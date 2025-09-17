@@ -1,0 +1,1073 @@
+:root{
+    --template-color-black: #0F0F0F;
+    --template-color-light: #005B41;
+    --template-color-mid: #232D3F;
+    --template-color-soft: #008170;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+
+}
+html{
+    font-size: 10px;
+}
+::placeholder{
+    color: white;
+    font-size: 1.25rem;
+    padding-left: 1rem;
+    font-weight: 100;
+    font-style: italic;
+}
+a{
+    text-decoration: none;
+    color: white;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    font-size: 1.5rem;
+    font-style: italic;
+    cursor: pointer;
+    z-index: 1;
+}
+p{
+    margin: 0;
+    padding: 0;
+    text-decoration: none;
+    color: white;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    font-size: 1.5rem;
+}
+svg > path {
+    opacity: 60%;
+}
+svg > path:nth-child(23) {
+    opacity: 80%;
+}
+.mark{
+    opacity: 30%;
+    box-shadow: 0;
+}
+.indent{
+    opacity: 40%;
+    background-image: linear-gradient(white,var(--template-color-mid)) ;
+}
+.hide{
+    display: none;
+}
+.show{
+    display: block;
+}
+.default-img{
+    width: 100%;
+    height: inherit;
+    grid-Area : 1/1/1/1;
+}
+.template-item{
+    height: 24vh;
+    width: 48vw;
+    margin: 0.5%;
+    border: var(--template-color-soft) 1px solid;
+    font-size: 1rem;
+    display: grid;
+    grid-template-columns: 1;
+    grid-template-rows: 1;
+}
+.template-label{
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: fit-content;
+    text-overflow: ellipsis;
+    text-align: center;
+    align-self: center;
+    font-size: 3rem;
+    white-space: nowrap;
+    overflow: hidden;
+    font-style: italic;
+    color: white;
+    grid-Area : 1/1/1/1;
+}
+@media (max-width: 50rem){
+    body{
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        background-image: linear-gradient(60deg, var(--template-color-black), var(--template-color-mid), var(--template-color-soft));
+    }
+    body #container{
+        height: 87vh;
+        overflow-y: scroll;
+    }
+    #header{
+        height: 8vh;
+        background-image: linear-gradient(-60deg, var(--template-color-black), var(--template-color-mid), var(--template-color-soft));
+    }
+    #header > h1{
+        margin: 0;
+        padding: 0 2%  ;
+        width: fit-content;
+        font-family:fantasy;
+        font-size: 3rem;
+        color: white;
+    }
+    #summary{
+        height: 40vh;
+        padding: 2.5%;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 1vh
+    }
+    #summary > div {
+        display: flex;
+        justify-content: space-around;
+    }
+    
+    #logger{
+        height: 7vh;
+        display: flex;
+        justify-content: space-around;
+    }
+    #logger > button{
+        height: 7vh;
+        width: 48vw;
+        background-image: linear-gradient(60deg , var(--template-color-light),var(--template-color-soft));
+        border-width: 2px;
+        border-image-source: linear-gradient(60deg , var(--template-color-light),var(--template-color-soft));
+        font-size: 1.8rem;
+        
+        font-family:Georgia, 'Times New Roman', Times, serif
+    }
+    #logger > button:active{
+        border: 0;
+        opacity: 50%;
+        background-color: var(--template-color-black);
+    }
+    #schedule{
+        height: fit-content;
+    }
+    #schedule div {
+        background-image: linear-gradient(170deg,  var(--template-color-black), var(--template-color-light));
+    }
+    #schedule > div:first-child{
+        margin-top: 1%;
+        height: 4vh;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        padding: 2vw 2vw 0 2vw;
+        font-size: 1.5rem;
+    }
+    
+    #schedule > div > #week {
+        margin: 1% 1% 0 1%;
+        height: 10vh;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        border: #0F0F0F 1px solid;
+    }
+    #schedule > div > #week > span {
+        margin: 2%;
+        width: 8vw;
+        /* padding: 1rem; */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 8rem;
+        color: var(--template-color-black);
+        background-color: white;
+        font-size: 2.5vh;
+        font-weight: 700;
+    }
+
+    #schedule #calendar:target{
+        display: flex;
+    }
+
+    #schedule #weeklystatus:target{
+        display: block;
+    }
+
+    #schedule #weeklystatus{
+        display: none;
+    }
+    
+     #schedule #calendar{
+        border: 1px white solid;
+        margin: 0.5vh 1vh;
+        padding: 1vh;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+     }
+     #schedule #calendar .label-area{
+        font-size: 2rem;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        width: 95%;
+     }
+     #schedule #calendar .calendar-body{
+        border: 2px white solid;
+        margin: 0.5vh;
+        padding: 0.5vh 0.5vh 0.9vh 0.5vh;
+        padding-left: 1vh;
+        width: 75%;
+        height: 21vh;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        overflow-y: scroll;
+     }
+     #schedule #calendar .date-body {
+        margin: 0.5vw;
+        background-color: white;
+        color: black;
+        font-size: 1.25rem;
+        font-weight: 700;
+        border-radius: 50%;
+        width: 3.5vh;
+        height: 3.5vh;
+        border: 1px black solid;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+     }
+
+    #schedule > div > #streak{
+        height: 20vh;
+        display: flex;
+    }
+    #schedule > div > #streak > span{
+        margin: 1%;
+        width: 50%;
+        border: var(--template-color-black) 1px solid;
+    }
+    #templates{
+        height: 30vh;
+        margin-bottom: 1%;
+        overflow-x: scroll;
+    }
+    #templates > div{
+        height: 100%;
+        width: fit-content;
+        display: flex;
+    }
+
+    #templates > div > div{
+        height: 29vh;
+        margin: 0.5vh ;
+        border: var(--template-color-soft) 1px solid;
+    }
+  
+    #footer{
+        height: 5vh;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        background-image: linear-gradient(-60deg, var(--template-color-black), var(--template-color-mid), var(--template-color-soft));
+    }
+    #footer > a{
+        
+        text-decoration: none;
+        color: white;
+    }
+
+    /* Styling for create workout page */
+    #createworkoutpage{
+        height: 100vh;
+        background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
+    }
+    #createworkoutform{
+        overflow-y: scroll;
+        margin-top: 2%;
+        height: 87vh;
+        display: flex;
+        flex-wrap: wrap;
+    }
+    #createworkoutform > *:not(p,hr)
+    {
+        padding: 2%;
+        margin : 2%;
+        width: 100%;
+        height: fit-content;
+        background-color: var(--template-color-mid);
+        font-size: 1.5rem;
+        color: white;
+        border: 0.1px solid white;
+        border-radius: 1vh;
+    }
+    #createworkoutform > p{
+        width: 100%;
+        margin: 2%;
+    }
+   #createworkoutform > hr{
+    width: 100%;
+    background-color: white;
+    
+   }
+   #createworkoutform > #clocksvgarea{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+   }
+   #createworkoutform > #clocksvgarea > div{
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+   }
+   #createworkoutform > #clocksvgarea > div > span{
+    margin-left: 2vw;
+    width: fit-content;
+    height: fit-content;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+   }
+   #createworkoutform > #clocksvgarea > div  > span > input[type="date"] {
+    margin: 0;
+    padding: 0;
+    height: 3vh;
+    width: 11vh;
+    border: 0;
+    background-color: var(--template-color-mid);
+    font-size: 1rem;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+        color: white;
+   }
+   #createworkoutform > #clocksvgarea > div > span > h2{
+    font-size: 1rem;
+    margin: 0;
+    padding: 0;
+   }
+   #createworkoutform > #clocksvgarea > div > span > span {
+    display: flex;
+    gap: 0.25rem;
+    border: 0;
+   }
+   #createworkoutform > #clocksvgarea > div > span > span > *:not(h2){
+    font-size: 1rem;
+    background-color: var(--template-color-mid);
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    color: white;
+   } 
+    #createworkoutform > #snapshotcontainer{
+    display: grid;
+    grid-template-columns: 50% 55%;
+    padding: 0;
+    border: 0;
+    height: 5vh;
+    width: 95vw;
+    border-radius: 1vh;
+   }
+   #createworkoutform > #snapshotcontainer > #addexercises{
+    grid-area: 1/1/2/2;
+    text-align: center;
+    box-shadow: 3px 3px gray;
+    border: 1px white solid;
+    height: 4vh;
+    padding-top: 1vh;
+    padding-left: 1vw;
+    padding-right: 1vw;
+    width: 93vw;
+    margin: 0;
+    border-radius: 1vh;
+   }
+    #createworkoutform > #snapshotcontainer > #addexercises:active{
+    border-color:transparent;
+    box-shadow: none;
+    opacity: 50%;
+   } 
+   
+   #createworkoutform > #snapshotcontainer  #snapshot {
+    width : 38vw;
+    height: 3vh;
+    padding-top: 0.5vh;
+    font-size : 0.9rem;
+   }
+    #createworkoutform > #snapshotcontainer  #flag{
+    grid-area: 1/2/2/3;
+    display: flex;
+    width: 91%;
+    height: 5vh;
+    margin: 0.1vh;
+    border-radius: 1vh;
+    z-index: 1;
+    opacity: 40%;
+   }
+   #createworkoutform > span > input[type="range"]{
+    width: 60vw;
+   }
+   #createworkoutform .scale{
+    display: flex;
+    justify-content: space-between;
+   }
+   #createworkoutform .scale> p:first-child{
+    align-self: center;
+   }
+   #createworkoutform .infobite{
+    margin: 0;
+    padding: 0;
+    font-size: 1rem;
+    width: fit-content;
+    height: fit-content;
+    align-self:self-start;
+   }
+   /* Styling for exercises list page */
+    #createexercisespage{
+        height: 100vh;
+        width: 100vw;
+        background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
+    }
+    #createexercisespage > #exerciselist > input[type="search"]{
+        width: 98.5vw;
+        color: black;
+        padding: 1vh 1vw;
+        margin: 0.5vh 0.5vw;
+    }
+    #createexercisespage > #exerciselist > input[type="search"]::placeholder{
+        color: black;
+    }
+    #createexercisespage > #exerciselist {
+        height: 87vh;
+        display: grid;
+        grid-template-rows: 0.2fr 0.8fr;
+    }
+    #createexercisespage > #exerciselist > section{
+        grid-area: 2/1/3/2;
+        overflow-y: scroll;
+        height: 79vh;
+        padding: 1vh;
+        background-image: linear-gradient(-90deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
+        color: white;
+    }
+    #createexercisespage > #exerciselist > section > custom-option-element {
+        width: 100%;
+        height: 5vh;
+        margin: 0.1vh 0.1vh 1vh 0.1vh;
+        background-color: var(--template-color-mid);
+        font-size: 1.25rem;
+        font-weight: 900;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-left: 1vw;  
+    }
+    #createexercisespage > #exerciselist > #doneselection{
+        grid-area: 2/1/3/2;
+        width: 5rem;
+        height: 5rem;
+        font-size: 30px;
+        background-color: transparent;
+        position: relative;
+        top: 72vh;
+        left: 40vw;
+        text-align: center;
+        background-color: rgba(0%, 0%, 0%, 0.65);
+        border-radius: 5rem;
+    }
+    #createexercisespage > #exercisedetails{
+        display: none;
+        overflow-y: scroll;
+        margin: 0.5vh;
+        padding: 0.5vh;
+    }
+    #createexercisespage #media{
+        width: 100%;
+    }
+    #createexercisespage #description{
+        padding:  2vh 1vh;
+        width: fit-content;
+        font-size: 1.5rem;
+        border: 1px white solid;
+        text-wrap: pretty ;
+    }
+    #createexercisespage #ratings{
+        padding:  2vh 0;
+        display: flex;
+        justify-content: center;
+    }
+    #createexercisespage #ratings > * {
+       display: flex;
+        width: 30vw;
+        flex-direction: column;
+    }
+    #createexercisespage #ratings > span > h4 {
+        margin: 0;
+        font-size: 1.25rem;
+    }
+    #createexercisespage #ratings > span > p {
+        margin: 0.5vw 0 1vh 2.5vw;
+        font-size: 1.5rem;
+    }
+    #createexercisespage #otherinfo {
+        padding:  2vh 0;
+        display: flex;
+        justify-content: center;
+        gap: 1vw;
+        height: fit-content;
+    }
+    #createexercisespage #otherinfo > *{
+        display: flex;
+        width: 28vw;
+        flex-direction: column;
+    }
+    #createexercisespage #otherinfo > span > h4{
+        margin: 0;
+        font-size: 1.25rem;
+    }
+    #createexercisespage #otherinfo > span > p{
+        margin: 0.5vw 0 1vh 2.5vw;
+        font-size: 1.5rem;
+        overflow-wrap: break-word;
+    }
+    #createexercisespage > #suggestionscontainer{
+        margin: 0.5vh;
+        padding: 0.5vh;
+        display: none;
+    }
+    #createexercisespage > #suggestionscontainer > #suggestions{
+        height: 25vh;
+        width: 95vw;
+        overflow-x: scroll;
+        overflow-y: hidden;
+        /* border: 1px white solid; */
+    }
+    #createexercisespage > #suggestionscontainer > #suggestions > div 
+    {
+        display: flex;
+        width: fit-content;
+        gap: 1px
+    }
+    #createexercisespage > #suggestionscontainer #suggestions > div > *
+    {
+        width: 50vw;
+        height: 24vh;
+        border: 0.5px solid white;
+    }
+    #createexercisespage #tags{
+        margin: 1vh 1vw;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: start;
+        gap: 5vw;
+    }
+    #createexercisespage #tags > span{
+        background-color: white;
+        width: fit-content;
+        padding: 1vh;
+        border-radius: 1.5vh;
+    } 
+    #createexercisespage legend{
+        font-size: 1.5rem;
+        font-family: Georgia, 'Times New Roman', Times, serif;
+        font-weight: 900;
+    }
+    #createexercisespage #closedetails{
+        display: flex;
+    }
+    #createexercisespage > #selectionlistdisplay{
+        display: none;
+        height: 87vh;
+        width: 98vw;
+        overflow-y: scroll;
+        padding: 1vw;
+        background-image: linear-gradient(-90deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
+    }
+    #createexercisespage > #selectionlistdisplay > span{
+        display: flex;
+        width: inherit;
+        padding: 0;
+    }
+    #createexercisespage > #selectionlistdisplay > span > custom-option-element {
+        width: 100%;
+        height: 5vh;
+        margin: 0.1vh 0.1vh 1vh 0.1vh;
+        background-color: var(--template-color-mid);
+        font-size: 1.25rem;
+        font-weight: 900;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-left: 1vw;  
+        color: white;
+    }
+    #createexercisespage > #selectionlistdisplay > span > button{
+        margin: 0;
+        width : 0;
+        font-size: 0px;
+        padding: 0px;
+        border: 0;
+        height: 5vh;
+        background-color: darkred;
+        color: white;
+        font-family: Georgia, 'Times New Roman', Times, serif;
+    }
+    #createexercisespage > #selectionlistdisplay > span > div {
+        background-color: var(--template-color-mid);
+    }
+    #createexercisespage > #selectionlistdisplay > div > span{
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        gap: 1vw;
+    }
+    #createexercisespage > #selectionlistdisplay > div > span > span {
+        display: flex;
+        flex-direction: column;
+    }
+    #createexercisespage > #selectionlistdisplay > div > span > span > p {
+        width: 100%;
+    }
+    #createexercisespage > #selectionlistdisplay > div > span  p {
+        margin: 0;
+        padding: 0;
+        align-self: end;
+        font-size: 0.5rem;
+    }
+    #createexercisespage > #selectionlistdisplay > div > span  p > i{
+        font-size: 1rem;
+    }
+    #createexercisespage > #selectionlistdisplay > div > span > input{
+        width: 8vw;
+        text-align: center;
+    }
+    #createexercisespage > #selectionlistdisplay > div > span > input::placeholder{
+        color: black;
+        font-size: 0.75rem;
+        padding: 0;
+    }
+    #createexercisespage > #selectionlistdisplay > div > span > select{
+        width: 14vw;
+        font-size: 0.75rem;
+    }
+    #createexercisespage > #selectionlistdisplay > div > span > select:focus{
+        font-size: 1.25rem;
+    }
+    #createexercisespage > #selectionlistdisplay > div > span > input:first-child{
+        width: 3vw;
+    }
+    #createexercisespage > #selectionlistdisplay > div > span > .remove{
+        width: 4vw;
+        height: 90%;
+        background-color: transparent;
+        color: red;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        box-shadow: 1px 1px gray;
+        align-self: center;
+    }
+   
+    #createexercisespage > #selectionlistdisplay > div > button{
+        width: 90%;
+        height: 4vh;
+        margin: 2% 5%;
+        opacity: 50%;
+        background-color: var(--template-color-soft);
+        color: white;
+        font-family: Georgia, 'Times New Roman', Times, serif;
+        font-weight: 900;
+    }
+
+    /* ---------------- */
+    #createtemplatepage{
+        height: 100vh;
+        background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
+    }
+    #createtemplateform{
+        overflow-y: scroll;
+        margin-top: 2%;
+        height: 87vh;
+        display: flex;
+        flex-wrap: wrap;
+    }
+    #createtemplateform > *:not(p,hr)
+    {
+        padding: 2%;
+        margin : 2%;
+        width: 100%;
+        height: fit-content;
+        background-color: var(--template-color-mid);
+        font-size: 1.5rem;
+        color: white;
+        border: 0.1px solid white;
+        border-radius: 1vh;
+    }
+    #createtemplateform > p{
+        width: 100%;
+        margin: 2%;
+    }
+   #createtemplateform > hr{
+    width: 100%;
+    height: 0.5vh;
+    background-color: white;
+    
+   }
+   #createtemplatepage #snapshotcontainer{
+    display: grid;
+    grid-template-columns: 50% 55%;
+    padding: 0;
+    border: 0;
+    height: 5vh;
+    width: 95vw;
+    border-radius: 1vh;
+   }
+   #createtemplatepage #snapshotcontainer > #addexercises{
+    grid-area: 1/1/2/2;
+    text-align: center;
+    box-shadow: 3px 3px gray;
+    border: 1px white solid;
+    height: 4vh;
+    padding-top: 1vh;
+    padding-left: 1vw;
+    padding-right: 1vw;
+    width: 93vw;
+    margin: 0;
+    border-radius: 1vh;
+   }
+    #createtemplatepage  #snapshotcontainer > #addexercises:active{
+    border-color:transparent;
+    box-shadow: none;
+    opacity: 50%;
+   } 
+   
+   #createtemplatepage  #snapshotcontainer  #snapshot {
+    width : 38vw;
+    height: 3vh;
+    padding-top: 0.5vh;
+    font-size : 0.9rem;
+   }
+    #createtemplatepage #snapshotcontainer  #flag{
+    grid-area: 1/2/2/3;
+    display: flex;
+    width: 91%;
+    height: 5vh;
+    margin: 0.1vh;
+    border-radius: 1vh;
+    z-index: 1;
+    opacity: 40%;
+   }
+    #createtemplatepage #templates{
+        height: 25vh;
+        margin-bottom: 1%;
+        overflow-x: scroll;
+    }
+    #createtemplatepage #templates > div{
+        height: 100%;
+        width: fit-content;
+        display: flex;
+    }
+
+    #createtemplatepage #templates > div > .template-item{
+        
+    }
+    
+    #createtemplatepage #templates > div > .template-item > .content-area {
+        grid-area : 1/1/1/1;
+        color : white;
+        font-size: 1.25rem;
+        padding: 1vh;
+    }
+    
+    /* history page */
+    #historypage{
+        height: 100vh;
+        width: 100vw;
+        background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
+    }
+    #historypage #history{
+        height: 87.5vh;
+        width: 90%;
+        margin: 1vh;
+        padding: 1vw;
+        font-size: 2rem;
+        font-weight: 900;
+        display: grid;
+        align-content: start;
+        overflow-y: scroll;
+    }
+    #historypage custom-option-element {
+        width: fit-content;
+        height: fit-content;
+        margin: 0.1vh;
+        background-color: var(--template-color-mid);
+        font-size: 0.75rem;
+        font-weight: 900;
+        display: flex;
+        align-items: center;
+        gap: 2vw;
+        color: white;
+        padding: 0.5vh;
+        border: 1px white solid;
+    }
+    #historypage custom-option-element div{
+        border: 1px white solid;
+    }
+    #historypage .date-area{
+        width: 100%;
+        color:white;
+        margin: 0.1vh;
+        padding-bottom: 1vh;
+        font-size: 2rem;
+        font-style: italic;
+        display: flex;
+        justify-content: center;
+        align-items: end;
+        background-color: #0F0F0F;
+        opacity: 25%;
+        cursor: pointer;
+    }
+    #historypage .date-area:hover{
+        opacity: 0;
+    }
+    /* past wprlout page */
+    #pastworkout{
+        height: 100vh;
+        width: 100vw;
+        background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
+    }
+    #pastworkout #container{
+        height: 87.5vh;
+        padding: 0.5vh;
+        overflow-y: scroll;
+    }
+    #pastworkout #snapshot{
+        display: flex;
+        justify-content: space-around;
+        border: 1px white solid;
+        padding: 1vh;
+    }
+    #pastworkout #snapshot>span{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    #pastworkout #exercises{
+        height: fit-content;
+        margin: 1vh;
+        padding: 1vh;
+        border: 1px white solid;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-content: center;
+    }
+    #pastworkout #exercises > div{
+        margin: 0;
+        border: 2px white solid;
+        border-radius: 50%;
+        min-width: 3vh;
+        min-height: 3vh;
+        background-color:#232D3F;
+        color: white;
+        display: flex;
+        align-items: center;
+        font-size: 1rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow:ellipsis;
+    }
+    #pastworkout #exercises p{
+         
+    }
+    #pastworkout #expand{
+        display: none;
+        height: fit-content ;
+        border: 1px white solid;
+        margin: 1vh;
+        padding: 1vh;
+        flex-direction: column;
+        align-items: center;
+        background-color: #0F0F0F;
+        color: white;
+    }
+    #pastworkout #expand #close{
+        align-self: center;
+        font-size: 2rem;
+    }
+    #pastworkout #expand > *:not(span[id="close"],p,div[id="exdetails"]){
+        width: 95%;
+        display: flex;
+        justify-content: space-around;
+        border: 1px white solid;
+        padding: 1vh;
+    }
+    #pastworkout #expand > *:not(span[id="close"],p,div[id="exdetails"]) > span{
+        display: flex;
+        flex-direction: column;
+        align-content: center;
+    }
+     #pastworkout #expand > p{
+        margin-top: 0.5vh;
+        margin-bottom: 2vh;
+        font-size: 1rem;
+        font-style: italic;
+        align-self: end;
+     }
+     #pastworkout #expand > h1{
+        margin-bottom: 0;
+     }
+     #pastworkout #expand #exdetails{
+        border: 1px white solid;
+        margin: 0.5vh 0;
+        padding: 1vh;
+        display: flex;
+        flex-direction: column;
+        gap: 1vh;
+        width: 95%;
+     }
+     #pastworkout #expand #exdetails output{
+        background-color: white;
+        width: 12vw;
+        height: 5vh;
+        font-size: 2rem;
+        color: black;
+        text-align: center;
+        
+     }
+     #pastworkout #expand #exdetails > .row{
+        display: flex;
+        justify-content: space-around;
+     }
+     #pastworkout #svgcontainer{
+        border: 1px white solid;
+        margin: 0.5vh 1vh;
+        display: flex;
+        justify-content: center;
+        
+     }
+     #pastworkout #calendar{
+        border: 1px white solid;
+        margin: 0.5vh 1vh;
+        padding: 1vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        /* width: 95%; */
+     }
+     #pastworkout #calendar .label-area{
+        font-size: 2rem;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        width: 95%;
+     }
+     #pastworkout #calendar .calendar-body{
+        border: 2px white solid;
+        margin: 0.5vh;
+        padding: 0.5vh;
+        padding-left: 1vh;
+        width: 80%;
+        display: flex;
+        flex-wrap: wrap;
+     }
+     #pastworkout #calendar .date-body {
+        margin: 0.5vw;
+        background-color: white;
+        color: black;
+        font-size: 2rem;
+        font-weight: 700;
+        border-radius: 50%;
+        width: 5vh;
+        height: 5vh;
+        border: 1px black solid;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+     }
+     /* trends page */
+     #trendspage{
+        height: 100vh;
+        width: 100vw;
+        background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
+     }
+     #trendspage #container{
+        height: 87vh;
+     }
+     #trendspage #container #mainfilters{
+        display: flex;
+        flex-direction: column;
+        padding: 0.5vh 0 0 0;
+     }
+     #trendspage #container #mainfilters span{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: white;
+        font-size: 1.5rem;
+        padding: 0.5vh 1vh;
+     }
+     #trendspage #container #mainfilters span > span{
+        display: flex;
+        justify-content: space-around;
+      }
+     #trendspage #container #mainfilters span > span > label{
+        margin-top: 0.5vw;
+     }
+     #trendspage #container #mainfilters select{
+        background-color:#232D3F ;
+        display: flex;
+        align-items: center;
+        width: 95.5vw;
+        color: white;
+        margin: 1vw;
+        border: 1px white solid;
+     }
+     #trendspage #container h2{
+        border: 1px white solid;
+        text-align: center;
+        margin: 1vh 0;
+        color: white;
+     }
+     #trendspage #container > section{
+        margin: 0.5vh;
+        display: flex;
+        flex-direction: column;
+        border: 1px white solid;
+     }
+     #trendspage #container > section select{
+        background-color:#232D3F ;
+        display: flex;
+        align-items: center;
+        width: 95.5vw;
+        margin: 1vw;
+        border: 1px white solid;
+        color: white;
+        height: fit-content;
+     }
+      #trendspage #container > section > div{
+        height: 30vh;
+        padding: 1vw 3vh 1vh 3vh;
+        display: grid;
+
+      }
+      #trendspage #container > section > div > div{
+        grid-area: 1/1/1/1;
+      }
+      #trendspage #container > section > div > #graphics{
+        display: flex;
+        justify-content: center;
+      }
+      #trendspage #container > section > div > #legend{
+        display: flex;
+        flex-direction: column;
+        align-items: end;
+      }
+      #trendspage #container > section > div > #legend > svg{
+        display: none;
+      }
+      #trendspage #container > section > div > #legend > a{
+        border: 1px white solid;
+        width: fit-content;
+        padding: 0 1vh;
+        border-radius: 50%;
+        text-align: right;
+      }
+      #trendspage #container > section > div > #legend > a:hover + svg{
+        display: block;
+      }
+
+}
+
+
+

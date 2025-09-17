@@ -1,0 +1,7940 @@
+const exerciseDB = () => {return { 
+  "barbell_bench_press_flat": {
+    "name": "Barbell Bench Press (Flat)",
+    "categories": ["chest", "compound", "strength"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["mid pecs", "overall chest"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": ["https://thumbs.dreamstime.com/b/beige-cat-athlete-doing-exercises-barbell-bench-press-white-background-isolated-cat-training-bench-press-169850803.jpg"],
+      "videoLinks": []
+    },
+    "description": "Lie flat on a bench, grip the barbell slightly wider than shoulder-width. Lower the bar to your mid-chest, then press it back up to the starting position.",
+    "effectiveness": 9,
+    "technicality": 7,
+    "fatigue": 8
+  },
+  "incline_barbell_bench_press": {
+    "name": "Incline Barbell Bench Press",
+    "categories": ["chest", "compound", "strength"],
+    "movers": ["upper-chest", "lower-chest", "front-delts", "triceps"],
+    "focus": ["upper pecs"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on an incline bench, grip the barbell slightly wider than shoulder-width. Lower the bar to your upper chest, then press it back up.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 7
+  },
+  "decline_barbell_bench_press": {
+    "name": "Decline Barbell Bench Press",
+    "categories": ["chest", "compound", "strength"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["lower pecs"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on a decline bench, grip the barbell slightly wider than shoulder-width. Lower the bar to your lower chest, then press it back up.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 7
+  },
+  "close_grip_barbell_bench_press": {
+    "name": "Close-Grip Barbell Bench Press",
+    "categories": ["chest", "triceps", "compound"],
+    "movers": ["triceps", "lower-chest", "upper-chest", "front-delts"],
+    "focus": ["inner pecs", "triceps"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie flat on a bench, grip the barbell with hands closer than shoulder-width. Lower the bar to your mid-chest, keeping elbows tucked, then press back up.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "barbell_floor_press": {
+    "name": "Barbell Floor Press",
+    "categories": ["chest", "compound", "strength"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["mid pecs", "triceps lockout"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on the floor with a barbell. Lower the bar until your upper arms touch the floor, then press it back up.",
+    "effectiveness": 6,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "reverse_grip_barbell_bench_press": {
+    "name": "Reverse-Grip Barbell Bench Press",
+    "categories": ["chest", "compound", "strength"],
+    "movers": ["upper-chest", "triceps", "front-delts", "lower-chest"],
+    "focus": ["upper pecs", "triceps"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie flat on a bench, grip the barbell with an underhand (supinated) grip. Lower the bar to your mid-chest, then press it back up.",
+    "effectiveness": 6,
+    "technicality": 8,
+    "fatigue": 7
+  },
+  "guillotine_press_barbell": {
+    "name": "Guillotine Press (Barbell)",
+    "categories": ["chest", "compound"],
+    "movers": ["upper-chest", "lower-chest", "front-delts", "triceps"],
+    "focus": ["upper pecs", "outer pecs"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie flat on a bench, grip the barbell wide. Lower the bar to your neck/upper chest (be extremely careful), then press back up.",
+    "effectiveness": 7,
+    "technicality": 9,
+    "fatigue": 7
+  },
+  "slight_incline_barbell_press": {
+    "name": "Slight Incline Barbell Press",
+    "categories": ["chest", "compound", "strength"],
+    "movers": ["upper-chest", "lower-chest", "front-delts", "triceps"],
+    "focus": ["upper pecs", "mid pecs"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Similar to incline bench press but with a very slight incline. Lowers the bar to upper chest and presses up.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 7
+  },
+  "high_incline_barbell_press": {
+    "name": "High Incline Barbell Press",
+    "categories": ["chest", "shoulders", "compound"],
+    "movers": ["front-delts", "upper-chest", "triceps"],
+    "focus": ["upper pecs", "front delts"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Performed on a steep incline bench, press the barbell from upper chest to lockout. More shoulder involvement.",
+    "effectiveness": 7,
+    "technicality": 7,
+    "fatigue": 7
+  },
+  "wide_grip_barbell_bench_press": {
+    "name": "Wide-Grip Barbell Bench Press",
+    "categories": ["chest", "compound", "strength"],
+    "movers": ["lower-chest", "upper-chest", "front-delts", "triceps"],
+    "focus": ["outer pecs", "mid pecs"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie flat on a bench, grip the barbell with a very wide grip. Lower the bar to your mid-chest, then press back up. Emphasizes outer chest.",
+    "effectiveness": 7,
+    "technicality": 7,
+    "fatigue": 8
+  },
+  "dumbbell_bench_press_flat": {
+    "name": "Dumbbell Bench Press (Flat)",
+    "categories": ["chest", "compound", "strength"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["mid pecs", "overall chest"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie flat on a bench, hold dumbbells above chest with palms facing each other or forward. Lower the dumbbells to your sides, then press them back up.",
+    "effectiveness": 9,
+    "technicality": 6,
+    "fatigue": 8
+  },
+  "incline_dumbbell_bench_press": {
+    "name": "Incline Dumbbell Bench Press",
+    "categories": ["chest", "compound", "strength"],
+    "movers": ["upper-chest", "lower-chest", "front-delts", "triceps"],
+    "focus": ["upper pecs"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on an incline bench, hold dumbbells above upper chest. Lower the dumbbells to your sides, then press them back up.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "decline_dumbbell_bench_press": {
+    "name": "Decline Dumbbell Bench Press",
+    "categories": ["chest", "compound", "strength"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["lower pecs"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on a decline bench, hold dumbbells above lower chest. Lower the dumbbells to your sides, then press them back up.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "dumbbell_flyes_flat": {
+    "name": "Dumbbell Flyes (Flat)",
+    "categories": ["chest", "isolation"],
+    "movers": ["lower-chest", "upper-chest", "front-delts"],
+    "focus": ["mid pecs", "outer pecs"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie flat on a bench with dumbbells above chest, palms facing each other. Lower arms out to sides with slight bend in elbows, then bring them back together in an arc.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "incline_dumbbell_flyes": {
+    "name": "Incline Dumbbell Flyes",
+    "categories": ["chest", "isolation"],
+    "movers": ["upper-chest", "lower-chest", "front-delts"],
+    "focus": ["upper pecs", "outer pecs"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on an incline bench with dumbbells above upper chest, palms facing each other. Lower arms out to sides with slight bend in elbows, then bring them back together in an arc.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "decline_dumbbell_flyes": {
+    "name": "Decline Dumbbell Flyes",
+    "categories": ["chest", "isolation"],
+    "movers": ["lower-chest", "upper-chest", "front-delts"],
+    "focus": ["lower pecs", "outer pecs"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on a decline bench with dumbbells above lower chest, palms facing each other. Lower arms out to sides with slight bend in elbows, then bring them back together in an arc.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "dumbbell_pullover": {
+    "name": "Dumbbell Pullover",
+    "categories": ["chest", "lats", "isolation"],
+    "movers": ["lats", "upper-chest", "lower-chest", "triceps"],
+    "focus": ["upper pecs", "serratus anterior", "lats"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie perpendicular on a bench with a dumbbell held in both hands above your chest. Lower the dumbbell behind your head in an arc, then pull it back over your chest.",
+    "effectiveness": 6,
+    "technicality": 7,
+    "fatigue": 5
+  },
+  "close_grip_dumbbell_press": {
+    "name": "Close-Grip Dumbbell Press",
+    "categories": ["chest", "triceps", "compound"],
+    "movers": ["triceps", "lower-chest", "upper-chest", "front-delts"],
+    "focus": ["inner pecs", "triceps"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie flat on a bench holding dumbbells close together above your chest, palms facing each other. Press straight up, squeezing the dumbbells together.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "svend_press_dumbbell": {
+    "name": "Svend Press (Dumbbell)",
+    "categories": ["chest", "isolation"],
+    "movers": ["lower-chest", "upper-chest"],
+    "focus": ["inner pecs"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand or sit, hold two dumbbells pressed together at chest height. Press them straight forward, squeezing your chest muscles hard.",
+    "effectiveness": 5,
+    "technicality": 5,
+    "fatigue": 4
+  },
+  "dumbbell_floor_press": {
+    "name": "Dumbbell Floor Press",
+    "categories": ["chest", "compound", "strength"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["mid pecs", "triceps lockout"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on the floor with dumbbells. Lower the dumbbells until your upper arms touch the floor, then press them back up.",
+    "effectiveness": 6,
+    "technicality": 5,
+    "fatigue": 6
+  },
+  "single_arm_dumbbell_press_flat": {
+    "name": "Single-Arm Dumbbell Press (Flat)",
+    "categories": ["chest", "core", "compound"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts", "core"],
+    "focus": ["mid pecs", "core stability"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie flat on a bench, holding one dumbbell. Press it up while stabilizing your core to prevent rotation.",
+    "effectiveness": 6,
+    "technicality": 7,
+    "fatigue": 6
+  },
+  "single_arm_incline_dumbbell_press": {
+    "name": "Single-Arm Incline Dumbbell Press",
+    "categories": ["chest", "core", "compound"],
+    "movers": ["upper-chest", "lower-chest", "front-delts", "triceps", "core"],
+    "focus": ["upper pecs", "core stability"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on an incline bench, holding one dumbbell. Press it up while stabilizing your core to prevent rotation.",
+    "effectiveness": 6,
+    "technicality": 7,
+    "fatigue": 6
+  },
+  "single_arm_decline_dumbbell_press": {
+    "name": "Single-Arm Decline Dumbbell Press",
+    "categories": ["chest", "core", "compound"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts", "core"],
+    "focus": ["lower pecs", "core stability"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on a decline bench, holding one dumbbell. Press it up while stabilizing your core to prevent rotation.",
+    "effectiveness": 6,
+    "technicality": 7,
+    "fatigue": 6
+  },
+  "standing_dumbbell_flyes": {
+    "name": "Standing Dumbbell Flyes",
+    "categories": ["chest", "isolation"],
+    "movers": ["lower-chest", "upper-chest", "front-delts"],
+    "focus": ["mid pecs", "outer pecs"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand with a slight bend in knees, hold dumbbells in front of you with palms facing each other. Perform a fly motion, bringing dumbbells out and then back in, squeezing chest.",
+    "effectiveness": 5,
+    "technicality": 7,
+    "fatigue": 5
+  },
+  "kneeling_dumbbell_flyes": {
+    "name": "Kneeling Dumbbell Flyes",
+    "categories": ["chest", "isolation"],
+    "movers": ["lower-chest", "upper-chest", "front-delts"],
+    "focus": ["mid pecs", "outer pecs"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Kneel on the floor, hold dumbbells in front of you. Perform a fly motion similar to standing, focusing on chest contraction.",
+    "effectiveness": 5,
+    "technicality": 6,
+    "fatigue": 5
+  },
+  "cable_crossover_high_pulley": {
+    "name": "Cable Crossover (High Pulley)",
+    "categories": ["chest", "isolation"],
+    "movers": ["lower-chest", "upper-chest", "front-delts"],
+    "focus": ["lower pecs", "inner pecs"],
+    "equipment": "cable machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand between high pulleys, grab handles. Bring hands down and across your body in an arc, squeezing your lower and inner chest.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "cable_crossover_mid_pulley": {
+    "name": "Cable Crossover (Mid Pulley)",
+    "categories": ["chest", "isolation"],
+    "movers": ["lower-chest", "upper-chest", "front-delts"],
+    "focus": ["mid pecs", "inner pecs"],
+    "equipment": "cable machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand between mid pulleys, grab handles. Bring hands straight across your body, squeezing your mid and inner chest.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "cable_crossover_low_pulley": {
+    "name": "Cable Crossover (Low Pulley)",
+    "categories": ["chest", "isolation"],
+    "movers": ["upper-chest", "lower-chest", "front-delts"],
+    "focus": ["upper pecs", "inner pecs"],
+    "equipment": "cable machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand between low pulleys, grab handles. Bring hands up and across your body in an arc, squeezing your upper and inner chest.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "single_arm_cable_crossover": {
+    "name": "Single-Arm Cable Crossover",
+    "categories": ["chest", "isolation", "core"],
+    "movers": ["lower-chest", "upper-chest", "front-delts", "core"],
+    "focus": ["inner pecs", "mind-muscle connection", "core stability"],
+    "equipment": "cable machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand facing one cable pulley, grab handle. Bring arm across your body, squeezing chest, while resisting rotation.",
+    "effectiveness": 7,
+    "technicality": 7,
+    "fatigue": 5
+  },
+  "decline_cable_press": {
+    "name": "Decline Cable Press",
+    "categories": ["chest", "compound"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["lower pecs"],
+    "equipment": "cable machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Set pulleys at a high position, grab handles, and press down and forward as if performing a decline press.",
+    "effectiveness": 7,
+    "technicality": 7,
+    "fatigue": 6
+  },
+  "incline_cable_press": {
+    "name": "Incline Cable Press",
+    "categories": ["chest", "compound"],
+    "movers": ["upper-chest", "lower-chest", "front-delts", "triceps"],
+    "focus": ["upper pecs"],
+    "equipment": "cable machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Set pulleys at a low position, grab handles, and press up and forward as if performing an incline press.",
+    "effectiveness": 7,
+    "technicality": 7,
+    "fatigue": 6
+  },
+  "standing_cable_press": {
+    "name": "Standing Cable Press",
+    "categories": ["chest", "compound", "core"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts", "core"],
+    "focus": ["mid pecs", "core stability"],
+    "equipment": "cable machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand facing away from cable machine, grab handles at chest height. Press forward and squeeze chest, maintaining core tension.",
+    "effectiveness": 6,
+    "technicality": 7,
+    "fatigue": 6
+  },
+  "cable_flyes_standing": {
+    "name": "Cable Flyes (Standing)",
+    "categories": ["chest", "isolation"],
+    "movers": ["lower-chest", "upper-chest", "front-delts"],
+    "focus": ["outer pecs", "inner pecs"],
+    "equipment": "cable machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand with feet staggered, slight bend in elbows, bring handles together in an arc motion, squeezing chest.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "cable_flyes_seated": {
+    "name": "Cable Flyes (Seated)",
+    "categories": ["chest", "isolation"],
+    "movers": ["lower-chest", "upper-chest", "front-delts"],
+    "focus": ["outer pecs", "inner pecs"],
+    "equipment": "cable machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit on a bench in front of a cable machine, grab handles, and perform the fly motion.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "cable_iron_cross": {
+    "name": "Cable Iron Cross",
+    "categories": ["chest", "isolation"],
+    "movers": ["lower-chest", "upper-chest", "front-delts"],
+    "focus": ["mid pecs", "stretch"],
+    "equipment": "cable machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand between two high pulleys. Extend arms out to the sides, then bring them together in a wide arc, mimicking a crucifix.",
+    "effectiveness": 6,
+    "technicality": 7,
+    "fatigue": 6
+  },
+  "reverse_grip_cable_press": {
+    "name": "Reverse Grip Cable Press",
+    "categories": ["chest", "compound"],
+    "movers": ["upper-chest", "triceps", "front-delts", "lower-chest"],
+    "focus": ["upper pecs", "triceps"],
+    "equipment": "cable machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand facing away from cable machine, grab handles with an underhand grip. Press forward, emphasizing upper chest and triceps.",
+    "effectiveness": 6,
+    "technicality": 8,
+    "fatigue": 6
+  },
+  "kneeling_cable_press": {
+    "name": "Kneeling Cable Press",
+    "categories": ["chest", "compound", "core"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts", "core"],
+    "focus": ["mid pecs", "core stability"],
+    "equipment": "cable machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Kneel facing away from cable machine, grab handles at chest height. Press forward and squeeze chest, engaging core.",
+    "effectiveness": 6,
+    "technicality": 7,
+    "fatigue": 6
+  },
+  "bent_over_cable_flyes": {
+    "name": "Bent-Over Cable Flyes",
+    "categories": ["chest", "isolation"],
+    "movers": ["lower-chest", "upper-chest", "front-delts", "rear-delts"],
+    "focus": ["lower pecs", "stretch"],
+    "equipment": "cable machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Bend at the waist with a slight knee bend, grab low pulleys. Bring hands up and out in an arc, squeezing the chest.",
+    "effectiveness": 6,
+    "technicality": 7,
+    "fatigue": 6
+  },
+  "machine_chest_press_seated": {
+    "name": "Machine Chest Press (Seated)",
+    "categories": ["chest", "compound", "machine"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["mid pecs", "overall chest"],
+    "equipment": "chest press machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit in the machine, grip handles, and press forward until arms are extended, then slowly return.",
+    "effectiveness": 8,
+    "technicality": 4,
+    "fatigue": 7
+  },
+  "incline_machine_press": {
+    "name": "Incline Machine Press",
+    "categories": ["chest", "compound", "machine"],
+    "movers": ["upper-chest", "lower-chest", "front-delts", "triceps"],
+    "focus": ["upper pecs"],
+    "equipment": "incline chest press machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit in the incline machine, grip handles, and press up and forward, then slowly return.",
+    "effectiveness": 7,
+    "technicality": 4,
+    "fatigue": 6
+  },
+  "decline_machine_press": {
+    "name": "Decline Machine Press",
+    "categories": ["chest", "compound", "machine"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["lower pecs"],
+    "equipment": "decline chest press machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit in the decline machine, grip handles, and press down and forward, then slowly return.",
+    "effectiveness": 7,
+    "technicality": 4,
+    "fatigue": 6
+  },
+  "pec_deck_fly_machine": {
+    "name": "Pec Deck Fly Machine",
+    "categories": ["chest", "isolation", "machine"],
+    "movers": ["lower-chest", "upper-chest"],
+    "focus": ["inner pecs", "outer pecs"],
+    "equipment": "pec deck machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit in the machine, place forearms against pads. Bring the pads together in front of you, squeezing your chest.",
+    "effectiveness": 7,
+    "technicality": 3,
+    "fatigue": 5
+  },
+  "chest_press_machine_plate_loaded": {
+    "name": "Chest Press Machine (Plate-Loaded)",
+    "categories": ["chest", "compound", "machine"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["overall chest"],
+    "equipment": "plate-loaded chest press machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Load plates, sit in the machine, and press the handles forward, then return.",
+    "effectiveness": 8,
+    "technicality": 4,
+    "fatigue": 7
+  },
+  "leverage_chest_press": {
+    "name": "Leverage Chest Press",
+    "categories": ["chest", "compound", "machine"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["overall chest"],
+    "equipment": "leverage chest press machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Similar to a plate-loaded machine, often allows for independent arm movement and varied grip angles.",
+    "effectiveness": 8,
+    "technicality": 4,
+    "fatigue": 7
+  },
+  "hammer_strength_chest_press": {
+    "name": "Hammer Strength Chest Press",
+    "categories": ["chest", "compound", "machine"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["overall chest"],
+    "equipment": "hammer strength machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "A specific type of plate-loaded leverage machine known for its natural feel and independent arm action.",
+    "effectiveness": 8,
+    "technicality": 4,
+    "fatigue": 7
+  },
+  "selectorized_chest_press": {
+    "name": "Selectorized Chest Press",
+    "categories": ["chest", "compound", "machine"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["overall chest"],
+    "equipment": "selectorized machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "A chest press machine where weight is selected via a pin, offering convenience and ease of use.",
+    "effectiveness": 8,
+    "technicality": 3,
+    "fatigue": 7
+  },
+  "machine_fly_seated": {
+    "name": "Machine Fly (Seated)",
+    "categories": ["chest", "isolation", "machine"],
+    "movers": ["lower-chest", "upper-chest"],
+    "focus": ["inner pecs", "outer pecs"],
+    "equipment": "fly machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Similar to pec deck, but often with handles instead of forearm pads, allowing for a more natural fly motion.",
+    "effectiveness": 7,
+    "technicality": 3,
+    "fatigue": 5
+  },
+  "converging_chest_press_machine": {
+    "name": "Converging Chest Press Machine",
+    "categories": ["chest", "compound", "machine"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["inner pecs", "overall chest"],
+    "equipment": "converging chest press machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Handles move in a converging arc, promoting a strong inner chest contraction at the top of the movement.",
+    "effectiveness": 8,
+    "technicality": 4,
+    "fatigue": 7
+  },
+  "push_up_standard": {
+    "name": "Push-Up (Standard)",
+    "categories": ["chest", "bodyweight", "compound"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts", "core"],
+    "focus": ["overall chest", "core stability"],
+    "equipment": "bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Start in a plank position, lower your chest towards the floor by bending elbows, then push back up.",
+    "effectiveness": 7,
+    "technicality": 5,
+    "fatigue": 6
+  },
+  "wide_push_up": {
+    "name": "Wide Push-Up",
+    "categories": ["chest", "bodyweight", "compound"],
+    "movers": ["lower-chest", "upper-chest", "front-delts", "triceps"],
+    "focus": ["outer pecs", "mid pecs"],
+    "equipment": "bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform a push-up with hands wider than shoulder-width, emphasizing the outer chest.",
+    "effectiveness": 7,
+    "technicality": 5,
+    "fatigue": 6
+  },
+  "close_grip_push_up": {
+    "name": "Close-Grip Push-Up",
+    "categories": ["chest", "triceps", "bodyweight"],
+    "movers": ["triceps", "lower-chest", "upper-chest", "front-delts"],
+    "focus": ["inner pecs", "triceps"],
+    "equipment": "bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform a push-up with hands closer than shoulder-width, often diamond shape, focusing on triceps and inner chest.",
+    "effectiveness": 6,
+    "technicality": 5,
+    "fatigue": 6
+  },
+  "decline_push_up": {
+    "name": "Decline Push-Up",
+    "categories": ["chest", "bodyweight", "compound"],
+    "movers": ["upper-chest", "lower-chest", "front-delts", "triceps"],
+    "focus": ["upper pecs"],
+    "equipment": "bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Place feet on an elevated surface (bench, chair) and perform a push-up, increasing resistance to the upper chest.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "incline_push_up": {
+    "name": "Incline Push-Up",
+    "categories": ["chest", "bodyweight", "compound"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["lower pecs", "easier variation"],
+    "equipment": "bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Place hands on an elevated surface (bench, table) and perform a push-up, making it easier and targeting lower chest more.",
+    "effectiveness": 6,
+    "technicality": 4,
+    "fatigue": 5
+  },
+  "archer_push_up": {
+    "name": "Archer Push-Up",
+    "categories": ["chest", "bodyweight", "strength"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["unilateral strength", "mid pecs"],
+    "equipment": "bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform a push-up with one arm extended out to the side, taking more weight on the working arm.",
+    "effectiveness": 7,
+    "technicality": 8,
+    "fatigue": 7
+  },
+  "one_arm_push_up": {
+    "name": "One-Arm Push-Up",
+    "categories": ["chest", "bodyweight", "strength"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts", "core"],
+    "focus": ["unilateral strength", "overall chest", "core strength"],
+    "equipment": "bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform a push-up using only one arm, keeping the body straight and stable.",
+    "effectiveness": 8,
+    "technicality": 9,
+    "fatigue": 8
+  },
+  "plyometric_push_up": {
+    "name": "Plyometric Push-Up",
+    "categories": ["chest", "bodyweight", "power"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["explosive power", "fast twitch fibers"],
+    "equipment": "bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform a push-up with enough force to lift your hands off the floor at the top of the movement.",
+    "effectiveness": 7,
+    "technicality": 7,
+    "fatigue": 8
+  },
+  "clapping_push_up": {
+    "name": "Clapping Push-Up",
+    "categories": ["chest", "bodyweight", "power"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["explosive power", "mid pecs"],
+    "equipment": "bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "A plyometric push-up where you clap your hands in the air at the top of the movement.",
+    "effectiveness": 7,
+    "technicality": 8,
+    "fatigue": 8
+  },
+  "knuckle_push_up": {
+    "name": "Knuckle Push-Up",
+    "categories": ["chest", "bodyweight", "strength"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["wrist strength", "mid pecs"],
+    "equipment": "bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform a push-up resting on your knuckles instead of flat palms, which can increase range of motion slightly.",
+    "effectiveness": 6,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "sphinx_push_up": {
+    "name": "Sphinx Push-Up",
+    "categories": ["chest", "triceps", "bodyweight"],
+    "movers": ["triceps", "lower-chest", "upper-chest"],
+    "focus": ["triceps", "inner pecs"],
+    "equipment": "bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Start in a forearm plank, then push up by extending your arms, keeping forearms on the ground for as long as possible.",
+    "effectiveness": 5,
+    "technicality": 6,
+    "fatigue": 5
+  },
+  "pseudo_planche_push_up": {
+    "name": "Pseudo Planche Push-Up",
+    "categories": ["chest", "shoulders", "bodyweight", "strength"],
+    "movers": ["front-delts", "upper-chest", "lower-chest", "triceps", "core"],
+    "focus": ["shoulder strength", "upper pecs", "core"],
+    "equipment": "bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hands turned outwards, lean significantly forward over your hands, keeping legs straight, then perform a push-up.",
+    "effectiveness": 8,
+    "technicality": 9,
+    "fatigue": 9
+  },
+  "pike_push_up": {
+    "name": "Pike Push-Up",
+    "categories": ["shoulders", "bodyweight", "strength"],
+    "movers": ["front-delts", "triceps", "upper-chest"],
+    "focus": ["front delts", "upper chest (indirectly)"],
+    "equipment": "bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Start in an inverted V-shape, hips high. Lower your head towards the floor by bending elbows, then push back up.",
+    "effectiveness": 6,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "ring_push_up": {
+    "name": "Ring Push-Up",
+    "categories": ["chest", "bodyweight", "strength", "stability"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts", "core"],
+    "focus": ["mid pecs", "stability"],
+    "equipment": "gymnastic rings",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform push-ups with hands on gymnastic rings, which adds instability and increases muscle activation.",
+    "effectiveness": 8,
+    "technicality": 8,
+    "fatigue": 7
+  },
+  "dips_chest_version": {
+    "name": "Dips (Chest Version)",
+    "categories": ["chest", "bodyweight", "compound"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["lower pecs", "mid pecs"],
+    "equipment": "dip station",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lean slightly forward with legs tucked, lower your body between parallel bars by bending elbows, then push back up.",
+    "effectiveness": 9,
+    "technicality": 7,
+    "fatigue": 8
+  },
+  "ring_dips": {
+    "name": "Ring Dips",
+    "categories": ["chest", "bodyweight", "strength", "stability"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts", "core"],
+    "focus": ["lower pecs", "stability"],
+    "equipment": "gymnastic rings",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform dips on gymnastic rings, requiring greater stabilization and often a deeper stretch.",
+    "effectiveness": 9,
+    "technicality": 9,
+    "fatigue": 9
+  },
+  "parallel_bar_dips": {
+    "name": "Parallel Bar Dips",
+    "categories": ["chest", "bodyweight", "compound"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["lower pecs", "mid pecs"],
+    "equipment": "parallel bars",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Standard dips using parallel bars, allowing for a good range of motion and effective chest engagement.",
+    "effectiveness": 9,
+    "technicality": 7,
+    "fatigue": 8
+  },
+  "korean_dips": {
+    "name": "Korean Dips",
+    "categories": ["chest", "shoulders", "bodyweight", "strength"],
+    "movers": ["triceps", "front-delts", "lower-chest", "upper-chest"],
+    "focus": ["triceps", "shoulder mobility"],
+    "equipment": "parallel bars",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "A more advanced dip where your body goes through the bars, placing significant stress on shoulders and triceps.",
+    "effectiveness": 6,
+    "technicality": 9,
+    "fatigue": 8
+  },
+  "wall_push_up": {
+    "name": "Wall Push-Up",
+    "categories": ["chest", "bodyweight", "beginner"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["overall chest", "beginner strength"],
+    "equipment": "bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand facing a wall, place hands on the wall shoulder-width apart. Lean into the wall by bending elbows, then push back.",
+    "effectiveness": 4,
+    "technicality": 3,
+    "fatigue": 3
+  },
+  "kettlebell_floor_press": {
+    "name": "Kettlebell Floor Press",
+    "categories": ["chest", "compound", "strength"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["mid pecs", "triceps lockout"],
+    "equipment": "kettlebell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on the floor, hold a kettlebell in one hand. Press it up until arm is extended, then lower until elbow touches the floor.",
+    "effectiveness": 6,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "kettlebell_bench_press": {
+    "name": "Kettlebell Bench Press",
+    "categories": ["chest", "compound", "strength"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["mid pecs", "overall chest"],
+    "equipment": "kettlebell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on a bench, hold kettlebells in each hand. Press them up like dumbbells, benefiting from the unique grip.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 7
+  },
+  "single_arm_kettlebell_press": {
+    "name": "Single-Arm Kettlebell Press",
+    "categories": ["chest", "core", "compound"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts", "core"],
+    "focus": ["mid pecs", "core stability"],
+    "equipment": "kettlebell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on a bench or floor, press one kettlebell up while stabilizing your body.",
+    "effectiveness": 6,
+    "technicality": 7,
+    "fatigue": 6
+  },
+  "kettlebell_pullover": {
+    "name": "Kettlebell Pullover",
+    "categories": ["chest", "lats", "isolation"],
+    "movers": ["upper-chest", "lats"],
+    "focus": ["upper pecs", "serratus anterior", "lats"],
+    "equipment": "kettlebell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Similar to dumbbell pullover, but with a kettlebell held by the horns or bell.",
+    "effectiveness": 6,
+    "technicality": 7,
+    "fatigue": 5
+  },
+  "kettlebell_flyes": {
+    "name": "Kettlebell Flyes",
+    "categories": ["chest", "isolation"],
+    "movers": ["lower-chest", "upper-chest", "front-delts"],
+    "focus": ["mid pecs", "outer pecs"],
+    "equipment": "kettlebell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on a flat or incline bench, carefully perform a fly motion with kettlebells. Requires good control.",
+    "effectiveness": 6,
+    "technicality": 8,
+    "fatigue": 6
+  },
+  "squeeze_press_dumbbell": {
+    "name": "Squeeze Press (Dumbbell)",
+    "categories": ["chest", "compound", "isolation"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["inner pecs"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on a bench, hold two dumbbells pressed together above your chest. Press them up, maintaining constant inward pressure.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "landmine_press_chest_variation": {
+    "name": "Landmine Press (Chest Variation)",
+    "categories": ["chest", "shoulders", "compound"],
+    "movers": ["upper-chest", "front-delts", "lower-chest", "triceps"],
+    "focus": ["upper pecs", "front delts"],
+    "equipment": "landmine attachment",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand or kneel, hold the end of a barbell in a landmine attachment at chest height. Press the bar up and forward.",
+    "effectiveness": 6,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "trx_chest_press": {
+    "name": "TRX Chest Press",
+    "categories": ["chest", "bodyweight", "stability"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts", "core"],
+    "focus": ["mid pecs", "stability", "core engagement"],
+    "equipment": "TRX suspension trainer",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold TRX handles, lean forward at an angle (more challenging the steeper the angle). Press forward and back.",
+    "effectiveness": 7,
+    "technicality": 7,
+    "fatigue": 7
+  },
+  "stability_ball_dumbbell_press": {
+    "name": "Stability Ball Dumbbell Press",
+    "categories": ["chest", "compound", "stability"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts", "core"],
+    "focus": ["mid pecs", "core stability"],
+    "equipment": "stability ball, dumbbells",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie with upper back on a stability ball, feet flat. Perform dumbbell presses while balancing.",
+    "effectiveness": 7,
+    "technicality": 7,
+    "fatigue": 7
+  },
+  "resistance_band_push_ups": {
+    "name": "Resistance Band Push-Ups",
+    "categories": ["chest", "bodyweight", "resistance"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["overall chest", "accommodating resistance"],
+    "equipment": "resistance band",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Place a resistance band across your back, hold ends with hands. Perform push-ups, the band adds resistance.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "resistance_band_chest_press_standing": {
+    "name": "Resistance Band Chest Press (Standing)",
+    "categories": ["chest", "compound", "resistance"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["mid pecs", "portable resistance"],
+    "equipment": "resistance band",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Anchor a band behind you or stand on it, press the band forward from chest height, mimicking a press.",
+    "effectiveness": 6,
+    "technicality": 5,
+    "fatigue": 6
+  },
+  "resistance_band_flyes": {
+    "name": "Resistance Band Flyes",
+    "categories": ["chest", "isolation", "resistance"],
+    "movers": ["lower-chest", "upper-chest"],
+    "focus": ["mid pecs", "inner pecs"],
+    "equipment": "resistance band",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Anchor a band behind you, or use a loop band around your back, and perform a fly motion.",
+    "effectiveness": 6,
+    "technicality": 5,
+    "fatigue": 5
+  },
+  "medicine_ball_chest_pass": {
+    "name": "Medicine Ball Chest Pass",
+    "categories": ["chest", "power", "explosive"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["explosive power"],
+    "equipment": "medicine ball",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on your back or stand, hold a medicine ball at chest. Explosively throw the ball forward to a partner or wall.",
+    "effectiveness": 6,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "partner_resistance_push_ups": {
+    "name": "Partner Resistance Push-Ups",
+    "categories": ["chest", "bodyweight", "resistance"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["overall chest", "variable resistance"],
+    "equipment": "partner",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform push-ups while a partner applies downward pressure to your upper back, varying resistance.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "plate_press": {
+    "name": "Plate Press (Standing or Lying)",
+    "categories": ["chest", "isolation"],
+    "movers": ["lower-chest", "upper-chest"],
+    "focus": ["inner pecs"],
+    "equipment": "weight plate",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold a weight plate between your palms at chest height, press it forward or up, squeezing your chest muscles together.",
+    "effectiveness": 5,
+    "technicality": 5,
+    "fatigue": 4
+  },
+  "around_the_world_dumbbell": {
+    "name": "Around the World (Dumbbell)",
+    "categories": ["chest", "isolation"],
+    "movers": ["lower-chest", "upper-chest", "front-delts"],
+    "focus": ["overall pecs", "stretch"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie flat, hold dumbbells with straight arms by your sides. Arc them up and over your head to meet at the top, then reverse.",
+    "effectiveness": 6,
+    "technicality": 7,
+    "fatigue": 6
+  },
+  "bent_arm_dumbbell_pullover": {
+    "name": "Bent-Arm Dumbbell Pullover",
+    "categories": ["chest", "lats", "isolation"],
+    "movers": ["upper-chest", "lats"],
+    "focus": ["upper pecs", "serratus anterior", "lats"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Similar to dumbbell pullover, but with a more pronounced bend in the elbows, slightly shifting emphasis.",
+    "effectiveness": 6,
+    "technicality": 7,
+    "fatigue": 5
+  },
+  "decline_push_up_with_feet_elevated_on_ball": {
+    "name": "Decline Push-Up with Feet Elevated on Ball",
+    "categories": ["chest", "bodyweight", "stability"],
+    "movers": ["upper-chest", "lower-chest", "triceps", "front-delts", "core"],
+    "focus": ["upper pecs", "core stability"],
+    "equipment": "stability ball",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform decline push-ups with your feet on a stability ball, increasing difficulty and core activation.",
+    "effectiveness": 7,
+    "technicality": 8,
+    "fatigue": 7
+  },
+  "incline_push_up_with_hands_on_ball": {
+    "name": "Incline Push-Up with Hands on Ball",
+    "categories": ["chest", "bodyweight", "stability"],
+    "movers": ["upper-chest", "lower-chest", "triceps", "front-delts", "core"],
+    "focus": ["lower pecs", "core stability"],
+    "equipment": "stability ball",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform incline push-ups with your hands on a stability ball, adding instability.",
+    "effectiveness": 6,
+    "technicality": 7,
+    "fatigue": 6
+  },
+  "weighted_push_up": {
+    "name": "Weighted Push-Up",
+    "categories": ["chest", "bodyweight", "strength"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["overall chest", "progressive overload"],
+    "equipment": "weight plates, weighted vest",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform push-ups with weight added to your back (e.g., plates, weighted vest) for increased resistance.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 8
+  },
+  "chains_bench_press": {
+    "name": "Chains Bench Press",
+    "categories": ["chest", "compound", "strength"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["overall chest", "accommodating resistance"],
+    "equipment": "barbell, chains",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Attach chains to the barbell; as you press, more chain lifts off the floor, increasing resistance at the top of the lift.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 8
+  },
+  "banded_bench_press": {
+    "name": "Banded Bench Press",
+    "categories": ["chest", "compound", "strength"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["overall chest", "accommodating resistance"],
+    "equipment": "barbell, resistance bands",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Loop resistance bands around the barbell and anchor them to the bench or power rack; resistance increases at the top.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 8
+  },
+  "pin_press_barbell": {
+    "name": "Pin Press (Barbell)",
+    "categories": ["chest", "strength", "compound"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["sticking point strength", "triceps lockout"],
+    "equipment": "barbell, power rack",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Set pins in a power rack at various heights. Press the barbell from the pins, focusing on specific ranges of motion.",
+    "effectiveness": 7,
+    "technicality": 7,
+    "fatigue": 7
+  },
+  "spoto_press_barbell": {
+    "name": "Spoto Press (Barbell)",
+    "categories": ["chest", "strength", "compound"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["chest tension", "control"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lower the barbell to about an inch above your chest, pause, then press back up without touching the chest.",
+    "effectiveness": 8,
+    "technicality": 8,
+    "fatigue": 7
+  },
+  "board_press_barbell": {
+    "name": "Board Press (Barbell)",
+    "categories": ["chest", "strength", "compound"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["triceps lockout", "upper range strength"],
+    "equipment": "barbell, boards",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Place one or more boards on your chest. Lower the barbell to the boards, then press back up.",
+    "effectiveness": 7,
+    "technicality": 7,
+    "fatigue": 7
+  },
+  "anderson_press_barbell": {
+    "name": "Anderson Press (Barbell)",
+    "categories": ["chest", "strength", "compound"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["starting strength", "specific range of motion"],
+    "equipment": "barbell, power rack",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Set pins in a power rack and press the barbell from a dead stop off the pins, usually in the lower range of motion.",
+    "effectiveness": 7,
+    "technicality": 7,
+    "fatigue": 7
+  },
+  "floor_press_with_chains": {
+    "name": "Floor Press with Chains",
+    "categories": ["chest", "compound", "strength"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["mid pecs", "triceps lockout", "accommodating resistance"],
+    "equipment": "barbell, chains",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform a barbell floor press with chains attached, adding progressive resistance through the lift.",
+    "effectiveness": 7,
+    "technicality": 7,
+    "fatigue": 7
+  },
+  "single_arm_cable_press": {
+    "name": "Single-Arm Cable Press",
+    "categories": ["chest", "compound", "core"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts", "core"],
+    "focus": ["mid pecs", "core stability"],
+    "equipment": "cable machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand facing away from a single cable pulley, grab handle. Press forward with one arm, engaging core to prevent rotation.",
+    "effectiveness": 7,
+    "technicality": 7,
+    "fatigue": 6
+  },
+  "pec_deck_reverse_fly": {
+    "name": "Pec Deck Reverse Fly",
+    "categories": ["shoulders", "rear delts", "isolation"],
+    "movers": ["rear-delts", "rhomboids", "traps"],
+    "focus": ["rear delts", "upper back", "shoulder health"],
+    "equipment": "pec deck machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit facing the machine, grab handles with arms extended forward. Pull arms back, squeezing shoulder blades. Primarily targets rear deltoids and upper back.",
+    "effectiveness": 5,
+    "technicality": 5,
+    "fatigue": 5
+  },
+  "dumbbell_hex_press": {
+    "name": "Dumbbell Hex Press",
+    "categories": ["chest", "compound", "isolation"],
+    "movers": ["lower-chest", "upper-chest", "triceps", "front-delts"],
+    "focus": ["inner pecs"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on a flat or incline bench, hold two dumbbells together with the hexagonal ends touching. Press them up, squeezing hard.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "guillotine_press_dumbbell": {
+    "name": "Guillotine Press (Dumbbell)",
+    "categories": ["chest", "compound"],
+    "movers": ["lower-chest", "upper-chest", "front-delts"],
+    "focus": ["upper pecs", "outer pecs"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie flat on a bench, hold dumbbells wide. Lower them to the sides of your neck/upper chest (very carefully), then press back up.",
+    "effectiveness": 7,
+    "technicality": 9,
+    "fatigue": 7
+  },
+  "svend_press_plate": {
+    "name": "Svend Press (Plate)",
+    "categories": ["chest", "isolation"],
+    "movers": ["lower-chest", "upper-chest"],
+    "focus": ["inner pecs"],
+    "equipment": "weight plate",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold a weight plate between your palms at chest height, press it straight forward, squeezing your chest muscles hard.",
+    "effectiveness": 5,
+    "technicality": 5,
+    "fatigue": 4
+  },
+  "pullup_pronated_grip_wide": {
+    "name": "Pull-Up (Pronated Grip, Wide)",
+    "categories": ["back", "vertical_pull", "compound", "bodyweight"],
+    "movers": ["lats", "rhomboids", "traps", "biceps", "rear-delts"],
+    "focus": ["upper lats", "back width"],
+    "equipment": "pullup bar",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hang from a pull-up bar with a wide pronated (overhand) grip. Pull your body up until your chin clears the bar, then slowly lower.",
+    "effectiveness": 9,
+    "technicality": 8,
+    "fatigue": 9
+  },
+  "pullup_neutral_grip": {
+    "name": "Pull-Up (Neutral Grip)",
+    "categories": ["back", "vertical_pull", "compound", "bodyweight"],
+    "movers": ["lats", "biceps", "rhomboids", "traps", "rear-delts"],
+    "focus": ["mid lats", "overall back"],
+    "equipment": "pullup bar (neutral grip handles)",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hang from a pull-up bar with a neutral (palms facing each other) grip. Pull your body up until your chin clears the bar, then slowly lower.",
+    "effectiveness": 9,
+    "technicality": 8,
+    "fatigue": 9
+  },
+  "pullup_supinated_grip_chinup": {
+    "name": "Pull-Up (Supinated Grip / Chin-Up)",
+    "categories": ["back", "vertical_pull", "compound", "bodyweight"],
+    "movers": ["lats", "biceps", "rhomboids", "traps", "rear-delts"],
+    "focus": ["lower lats", "biceps"],
+    "equipment": "pullup bar",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hang from a pull-up bar with a supinated (underhand) grip. Pull your body up until your chin clears the bar, focusing on biceps and lats, then slowly lower.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 8
+  },
+  "weighted_pullup": {
+    "name": "Weighted Pull-Up",
+    "categories": ["back", "vertical_pull", "compound", "strength"],
+    "movers": ["lats", "biceps", "rhomboids", "traps", "rear-delts"],
+    "focus": ["overall back strength", "progressive overload"],
+    "equipment": "pullup bar, weight belt/vest",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform pull-ups with added weight (e.g., dangling plates from a belt or wearing a weighted vest).",
+    "effectiveness": 9,
+    "technicality": 8,
+    "fatigue": 9
+  },
+  "assisted_pullup_machine": {
+    "name": "Assisted Pull-Up Machine",
+    "categories": ["back", "vertical_pull", "machine"],
+    "movers": ["lats", "biceps", "rhomboids", "traps", "rear-delts"],
+    "focus": ["lats engagement", "beginner progression"],
+    "equipment": "assisted pull-up machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Kneel on the pad of the machine, which provides counter-balance to assist your pull-up motion.",
+    "effectiveness": 7,
+    "technicality": 4,
+    "fatigue": 6
+  },
+  "lat_pulldown_wide_grip_pronated": {
+    "name": "Lat Pulldown (Wide Grip, Pronated)",
+    "categories": ["back", "vertical_pull", "compound", "machine"],
+    "movers": ["lats", "rhomboids", "traps", "biceps", "rear-delts"],
+    "focus": ["upper lats", "back width"],
+    "equipment": "lat pulldown machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit at the machine, grab the wide bar with a pronated grip. Pull the bar down to your upper chest, squeezing your lats, then control the ascent.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "lat_pulldown_close_grip_neutral": {
+    "name": "Lat Pulldown (Close Grip, Neutral)",
+    "categories": ["back", "vertical_pull", "compound", "machine"],
+    "movers": ["lats", "biceps", "rhomboids", "traps"],
+    "focus": ["lower lats", "mid-back thickness"],
+    "equipment": "lat pulldown machine (neutral grip handle)",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit at the machine, grab a V-bar or neutral grip handle. Pull the bar down to your lower chest/upper abs, focusing on lat contraction.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "lat_pulldown_reverse_grip_supinated": {
+    "name": "Lat Pulldown (Reverse Grip, Supinated)",
+    "categories": ["back", "vertical_pull", "compound", "machine"],
+    "movers": ["lats", "biceps", "rhomboids", "traps"],
+    "focus": ["lower lats", "biceps"],
+    "equipment": "lat pulldown machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit at the machine, grab the bar with an underhand (supinated) grip, hands shoulder-width apart. Pull the bar down to your upper chest, squeezing lats and biceps.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "single_arm_lat_pulldown": {
+    "name": "Single-Arm Lat Pulldown",
+    "categories": ["back", "vertical_pull", "isolation", "machine"],
+    "movers": ["lats", "biceps", "rhomboids", "traps"],
+    "focus": ["lats contraction", "unilateral strength"],
+    "equipment": "lat pulldown machine (single handle)",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit at the machine, use a single handle. Pull down one arm at a time, focusing on a deep lat contraction.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "straight_arm_pulldown_rope": {
+    "name": "Straight-Arm Pulldown (Rope)",
+    "categories": ["back", "isolation", "vertical_pull"],
+    "movers": ["lats"],
+    "focus": ["lats isolation", "stretch"],
+    "equipment": "cable machine, rope attachment",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand facing a high pulley, grab a rope attachment with arms straight. Pull the rope down and back towards your thighs, keeping arms extended.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 5
+  },
+  "straight_arm_pulldown_bar": {
+    "name": "Straight-Arm Pulldown (Bar)",
+    "categories": ["back", "isolation", "vertical_pull"],
+    "movers": ["lats"],
+    "focus": ["lats isolation", "stretch"],
+    "equipment": "cable machine, straight bar attachment",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand facing a high pulley, grab a straight bar attachment with arms straight. Pull the bar down and back towards your thighs, keeping arms extended.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 5
+  },
+  "barbell_row_bent_over_pronated_grip": {
+    "name": "Barbell Row (Bent-Over, Pronated Grip)",
+    "categories": ["back", "horizontal_pull", "compound", "strength"],
+    "movers": ["lats", "rhomboids", "traps", "rear-delts", "lowback"],
+    "focus": ["mid-back thickness", "lats"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hinge at hips, keep back straight, grab barbell with pronated grip. Pull the bar to your lower abs, squeezing shoulder blades, then lower with control.",
+    "effectiveness": 9,
+    "technicality": 9,
+    "fatigue": 9
+  },
+  "barbell_row_bent_over_supinated_grip": {
+    "name": "Barbell Row (Bent-Over, Supinated Grip)",
+    "categories": ["back", "horizontal_pull", "compound", "strength"],
+    "movers": ["lats", "biceps", "rhomboids", "traps", "rear-delts", "lowback"],
+    "focus": ["lower lats", "biceps", "mid-back thickness"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hinge at hips, keep back straight, grab barbell with supinated grip. Pull the bar to your lower abs, squeezing lats and biceps, then lower.",
+    "effectiveness": 8,
+    "technicality": 9,
+    "fatigue": 8
+  },
+  "pendlay_row": {
+    "name": "Pendlay Row",
+    "categories": ["back", "horizontal_pull", "compound", "power"],
+    "movers": ["lats", "rhomboids", "traps", "rear-delts", "lowback"],
+    "focus": ["explosive back strength", "mid-back thickness"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "From a dead stop on the floor each rep, explosively pull the barbell to your chest while maintaining a strict bent-over position.",
+    "effectiveness": 9,
+    "technicality": 9,
+    "fatigue": 9
+  },
+  "t_bar_row_plate_loaded": {
+    "name": "T-Bar Row (Plate-Loaded)",
+    "categories": ["back", "horizontal_pull", "compound", "machine"],
+    "movers": ["lats", "rhomboids", "traps", "rear-delts"],
+    "focus": ["mid-back thickness", "lats"],
+    "equipment": "plate-loaded T-bar row machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand on the platform, lean forward, grab handles. Pull the weight up to your chest, squeezing your back, then lower.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "t_bar_row_landmine": {
+    "name": "T-Bar Row (Landmine)",
+    "categories": ["back", "horizontal_pull", "compound"],
+    "movers": ["lats", "rhomboids", "traps", "rear-delts", "lowback"],
+    "focus": ["mid-back thickness", "lats"],
+    "equipment": "barbell, landmine attachment, V-bar handle",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Place one end of a barbell in a landmine, load weight on the other. Stand over the bar, grab a V-bar handle under it, and row towards your chest.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 7
+  },
+  "dumbbell_row_bent_over_single_arm": {
+    "name": "Dumbbell Row (Bent-Over, Single-Arm)",
+    "categories": ["back", "horizontal_pull", "compound", "unilateral"],
+    "movers": ["lats", "rhomboids", "rear-delts", "lowback", "core"],
+    "focus": ["lats contraction", "mid-back thickness", "core stability"],
+    "equipment": "dumbbell, bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Place one hand and knee on a bench, keep back flat. Grab a dumbbell with the other hand and pull it up to your hip, squeezing your back.",
+    "effectiveness": 9,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "dumbbell_row_bent_over_double_arm": {
+    "name": "Dumbbell Row (Bent-Over, Double-Arm)",
+    "categories": ["back", "horizontal_pull", "compound"],
+    "movers": ["lats", "rhomboids", "traps", "rear-delts", "lowback"],
+    "focus": ["mid-back thickness", "lats"],
+    "equipment": "dumbbells",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hinge at hips with two dumbbells, keep back straight. Pull dumbbells up to your sides, squeezing shoulder blades, then lower.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 7
+  },
+  "seated_cable_row_v_bar": {
+    "name": "Seated Cable Row (V-Bar)",
+    "categories": ["back", "horizontal_pull", "compound", "machine"],
+    "movers": ["lats", "rhomboids", "traps", "rear-delts"],
+    "focus": ["mid-back thickness", "inner back"],
+    "equipment": "cable machine, V-bar attachment",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit on the machine, feet on footrest, grab V-bar. Pull the bar to your lower abs, squeezing shoulder blades together, then control the release.",
+    "effectiveness": 8,
+    "technicality": 5,
+    "fatigue": 7
+  },
+  "seated_cable_row_wide_grip": {
+    "name": "Seated Cable Row (Wide Grip)",
+    "categories": ["back", "horizontal_pull", "compound", "machine"],
+    "movers": ["lats", "rhomboids", "traps", "rear-delts"],
+    "focus": ["upper back width", "outer lats"],
+    "equipment": "cable machine, wide bar attachment",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit on the machine, grab the wide bar with a pronated grip. Pull the bar to your upper abs/lower chest, flaring elbows out, then control the release.",
+    "effectiveness": 7,
+    "technicality": 5,
+    "fatigue": 6
+  },
+  "seated_cable_row_supinated_grip": {
+    "name": "Seated Cable Row (Supinated Grip)",
+    "categories": ["back", "horizontal_pull", "compound", "machine"],
+    "movers": ["lats", "biceps", "rhomboids", "traps"],
+    "focus": ["lower lats", "biceps"],
+    "equipment": "cable machine, straight bar attachment",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit on the machine, grab a straight bar with a supinated grip. Pull the bar to your lower abs, squeezing lats and biceps, then control the release.",
+    "effectiveness": 7,
+    "technicality": 5,
+    "fatigue": 6
+  },
+  "chest_supported_row_machine": {
+    "name": "Chest-Supported Row (Machine)",
+    "categories": ["back", "horizontal_pull", "compound", "machine"],
+    "movers": ["lats", "rhomboids", "traps", "rear-delts"],
+    "focus": ["mid-back thickness", "lats"],
+    "equipment": "chest-supported row machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie prone on the pad, grab handles. Pull the handles to your sides, squeezing your back, then control the release. Removes lower back strain.",
+    "effectiveness": 8,
+    "technicality": 4,
+    "fatigue": 7
+  },
+  "chest_supported_dumbbell_row": {
+    "name": "Chest-Supported Dumbbell Row",
+    "categories": ["back", "horizontal_pull", "compound"],
+    "movers": ["lats", "rhomboids", "traps", "rear-delts"],
+    "focus": ["mid-back thickness", "lats"],
+    "equipment": "dumbbells, incline bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie prone on an incline bench with dumbbells. Pull the dumbbells up to your sides, squeezing shoulder blades, then lower.",
+    "effectiveness": 8,
+    "technicality": 5,
+    "fatigue": 7
+  },
+  "deadlift_conventional": {
+    "name": "Deadlift (Conventional)",
+    "categories": ["back", "legs", "glutes", "compound", "strength"],
+    "movers": ["glutes", "hams", "lowback", "traps", "lats", "forearms"],
+    "focus": ["overall posterior chain strength", "lower back"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand with feet hip-width, bar over mid-foot. Hinge at hips, squat down, grip bar. Lift by extending hips and knees, keeping back straight. Lower with control.",
+    "effectiveness": 10,
+    "technicality": 10,
+    "fatigue": 10
+  },
+  "deadlift_sumo": {
+    "name": "Deadlift (Sumo)",
+    "categories": ["back", "legs", "glutes", "compound", "strength"],
+    "movers": ["glutes", "quads", "hams", "lowback", "lats", "traps", "forearms"],
+    "focus": ["glutes", "quads", "hams", "overall posterior chain strength"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand with a wide stance, toes pointed out, grip inside your knees. Lift by extending hips and knees, allowing for significant glute and quad drive. Lower with control.",
+    "effectiveness": 9,
+    "technicality": 9,
+    "fatigue": 9
+  },
+  "glute_ham_raise": {
+    "name": "Glute Ham Raise",
+    "categories": ["glutes", "hams", "compound", "strength"],
+    "movers": ["glutes", "hams", "calves", "lowback"],
+    "focus": ["glutes", "hams"],
+    "equipment": "glute-ham development (GHD) machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Secure your feet in a GHD machine, start with your torso perpendicular to the floor. Lower your body under control by extending at the hip and knee, then powerfully contract your glutes and hamstrings to return to the starting position.",
+    "effectiveness": 9,
+    "technicality": 8,
+    "fatigue": 8
+  },
+  "forearm_curl": {
+    "name": "Forearm Curl",
+    "categories": ["forearms", "isolation"],
+    "movers": ["forearms"],
+    "focus": ["forearms"],
+    "equipment": "dumbbell, barbell, cable",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit with forearms resting on your knees or a bench, palms up (or down for reverse). Curl the weight up using only your wrists and forearms.",
+    "effectiveness": 7,
+    "technicality": 4,
+    "fatigue": 5
+  },
+  "romanian_deadlift_barbell": {
+    "name": "Romanian Deadlift (Barbell)",
+    "categories": ["back", "hamstrings", "glutes", "compound"],
+    "movers": ["hams", "glutes", "lowback"],
+    "focus": ["hams", "glutes", "lower back endurance"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand with a slight knee bend, hold barbell. Hinge at hips, lowering the bar towards the floor while keeping it close to your legs. Squeeze glutes to return.",
+    "effectiveness": 8,
+    "technicality": 8,
+    "fatigue": 7
+  },
+  "romanian_deadlift_dumbbell": {
+    "name": "Romanian Deadlift (Dumbbell)",
+    "categories": ["back", "hamstrings", "glutes", "compound"],
+    "movers": ["hams", "glutes", "lowback"],
+    "focus": ["hams", "glutes", "lower back endurance"],
+    "equipment": "dumbbells",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand with a slight knee bend, hold dumbbells. Hinge at hips, lowering dumbbells towards the floor, keeping them close to your legs. Squeeze glutes to return.",
+    "effectiveness": 8,
+    "technicality": 8,
+    "fatigue": 7
+  },
+  "hyperextension_back_extension": {
+    "name": "Hyperextension (Back Extension)",
+    "categories": ["back", "lower_back", "isolation"],
+    "movers": ["lowback", "glutes", "hams"],
+    "focus": ["lower back strength", "glute engagement"],
+    "equipment": "hyperextension bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Anchor your lower body on a hyperextension bench. Lower your torso by hinging at the hips, then extend back up, squeezing lower back and glutes.",
+    "effectiveness": 7,
+    "technicality": 5,
+    "fatigue": 6
+  },
+  "superman": {
+    "name": "Superman",
+    "categories": ["back", "lower_back", "bodyweight", "isolation"],
+    "movers": ["lowback", "glutes", "hams"],
+    "focus": ["lower back endurance", "core stability"],
+    "equipment": "bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie face down on the floor. Simultaneously lift your arms, chest, and legs off the ground, squeezing your lower back and glutes. Hold, then lower.",
+    "effectiveness": 5,
+    "technicality": 4,
+    "fatigue": 4
+  },
+  "inverted_row_feet_on_floor": {
+    "name": "Inverted Row (Feet on Floor)",
+    "categories": ["back", "horizontal_pull", "compound", "bodyweight"],
+    "movers": ["lats", "rhomboids", "traps", "biceps"],
+    "focus": ["mid-back thickness", "lats", "beginner progression"],
+    "equipment": "low bar/Smith machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie under a low bar, grab with an overhand grip, feet on floor. Pull your chest towards the bar, keeping body straight, then slowly lower.",
+    "effectiveness": 7,
+    "technicality": 5,
+    "fatigue": 6
+  },
+  "inverted_row_feet_elevated": {
+    "name": "Inverted Row (Feet Elevated)",
+    "categories": ["back", "horizontal_pull", "compound", "bodyweight"],
+    "movers": ["lats", "rhomboids", "traps", "biceps"],
+    "focus": ["mid-back thickness", "lats"],
+    "equipment": "low bar/Smith machine, elevated surface",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform an inverted row with your feet elevated on a bench or box, increasing the difficulty.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "inverted_row_weighted": {
+    "name": "Inverted Row (Weighted)",
+    "categories": ["back", "horizontal_pull", "compound", "bodyweight", "strength"],
+    "movers": ["lats", "rhomboids", "traps", "biceps"],
+    "focus": ["mid-back thickness", "lats", "progressive overload"],
+    "equipment": "low bar/Smith machine, weight plate",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform inverted rows with a weight plate placed on your chest or lap.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "ring_rows": {
+    "name": "Ring Rows",
+    "categories": ["back", "horizontal_pull", "compound", "bodyweight", "stability"],
+    "movers": ["lats", "rhomboids", "traps", "biceps", "stabilizers"],
+    "focus": ["mid-back thickness", "lats", "stability"],
+    "equipment": "gymnastic rings",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform inverted rows using gymnastic rings, which adds instability and increases muscle activation.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 7
+  },
+  "face_pulls_rope": {
+    "name": "Face Pulls (Rope)",
+    "categories": ["back", "shoulders", "isolation"],
+    "movers": ["rear-delts", "traps", "rhomboids"],
+    "focus": ["rear-delts", "upper back", "shoulder health"],
+    "equipment": "cable machine, rope attachment",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Set cable to shoulder height, grab rope. Pull the rope towards your face, pulling elbows wide and back, squeezing upper back.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "face_pulls_straight_bar": {
+    "name": "Face Pulls (Straight Bar)",
+    "categories": ["back", "shoulders", "isolation"],
+    "movers": ["rear-delts", "traps", "rhomboids"],
+    "focus": ["rear-delts", "upper back", "shoulder health"],
+    "equipment": "cable machine, straight bar attachment",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Set cable to shoulder height, grab straight bar. Pull the bar towards your face, flaring elbows wide and back.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "rack_pulls_from_knees": {
+    "name": "Rack Pulls (from Knees)",
+    "categories": ["back", "strength", "compound"],
+    "movers": ["lowback", "traps", "lats", "glutes", "hams"],
+    "focus": ["upper back", "lower back lockout strength"],
+    "equipment": "barbell, power rack",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform rack pulls with the bar starting at knee height, emphasizing the top portion of the deadlift.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 8
+  },
+  "kettlebell_deadlift": {
+    "name": "Kettlebell Deadlift",
+    "categories": ["back", "legs", "glutes", "compound"],
+    "movers": ["glutes", "hams", "lowback"],
+    "focus": ["posterior chain", "hinge pattern"],
+    "equipment": "kettlebell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand over a kettlebell, hinge at hips with straight back. Grab kettlebell and lift by extending hips and knees, then lower.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "kettlebell_swing": {
+    "name": "Kettlebell Swing",
+    "categories": ["glutes", "hams", "back", "power"],
+    "movers": ["glutes", "hams", "lowback"],
+    "focus": ["explosive hip extension", "posterior chain power"],
+    "equipment": "kettlebell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hinge at hips, swing the kettlebell between your legs, then explosively extend hips to swing it up to chest height.",
+    "effectiveness": 8,
+    "technicality": 8,
+    "fatigue": 8
+  },
+  "barbell_shrugs": {
+    "name": "Barbell Shrugs",
+    "categories": ["back", "traps", "isolation"],
+    "movers": ["upper-traps"],
+    "focus": ["upper traps development"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold a barbell in front of you. Shrug your shoulders straight up towards your ears, then slowly lower.",
+    "effectiveness": 7,
+    "technicality": 4,
+    "fatigue": 6
+  },
+  "good_mornings_resistance_band": {
+    "name": "Good Mornings (Resistance Band)",
+    "categories": ["back", "hamstrings", "glutes", "isolation"],
+    "movers": ["hams", "glutes", "lowback"],
+    "focus": ["posterior chain warm-up", "mobility"],
+    "equipment": "resistance band",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand on a resistance band, loop it over your neck/shoulders. Perform the good morning motion, feeling tension through the posterior chain.",
+    "effectiveness": 6,
+    "technicality": 7,
+    "fatigue": 5
+  },
+  "back_extension_on_floor": {
+    "name": "Back Extension (on Floor)",
+    "categories": ["back", "lower_back", "bodyweight", "isolation"],
+    "movers": ["lowback", "glutes"],
+    "focus": ["lower back strength", "spinal control"],
+    "equipment": "bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie face down, hands behind head or by ears. Lift only your upper body off the floor, squeezing lower back, then slowly lower.",
+    "effectiveness": 4,
+    "technicality": 4,
+    "fatigue": 3
+  },
+  "machine_pullover": {
+    "name": "Machine Pullover",
+    "categories": ["back", "isolation", "machine"],
+    "movers": ["lats"],
+    "focus": ["lats isolation"],
+    "equipment": "pullover machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit in the machine, arms on pads. Pull the handles down towards your body, squeezing lats, then control the return.",
+    "effectiveness": 7,
+    "technicality": 3,
+    "fatigue": 6
+  },
+  "machine_row_plate_loaded": {
+    "name": "Machine Row (Plate-Loaded)",
+    "categories": ["back", "horizontal_pull", "compound", "machine"],
+    "movers": ["lats", "rhomboids", "traps", "rear-delts"],
+    "focus": ["mid-back thickness", "lats"],
+    "equipment": "plate-loaded row machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Load plates, sit in the machine, and pull the handles towards your body, squeezing your back, then return.",
+    "effectiveness": 8,
+    "technicality": 4,
+    "fatigue": 7
+  },
+  "machine_row_selectorized": {
+    "name": "Machine Row (Selectorized)",
+    "categories": ["back", "horizontal_pull", "compound", "machine"],
+    "movers": ["lats", "rhomboids", "traps", "rear-delts"],
+    "focus": ["mid-back thickness", "lats"],
+    "equipment": "selectorized row machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Select weight with a pin, sit in the machine, and pull the handles towards your body, squeezing your back, then return.",
+    "effectiveness": 8,
+    "technicality": 3,
+    "fatigue": 7
+  },
+  "back_lever_progression": {
+    "name": "Back Lever Progression",
+    "categories": ["calisthenics", "full_body", "strength"],
+    "movers": ["lats", "core", "side-delts", "triceps"],
+    "focus": ["full body tension", "lats strength", "core stability"],
+    "equipment": "gymnastic rings/pullup bar",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Advanced bodyweight skill involving holding a horizontal position with your body parallel to the floor, face down, while hanging from rings or a bar.",
+    "effectiveness": 9,
+    "technicality": 10,
+    "fatigue": 9
+  },
+  "front_lever_progression": {
+    "name": "Front Lever Progression",
+    "categories": ["calisthenics", "full_body", "strength"],
+    "movers": ["lats", "core", "front-delts", "biceps"],
+    "focus": ["full body tension", "lats strength", "core stability"],
+    "equipment": "gymnastic rings/pullup bar",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Advanced bodyweight skill involving holding a horizontal position with your body parallel to the floor, face up, while hanging from rings or a bar.",
+    "effectiveness": 9,
+    "technicality": 10,
+    "fatigue": 9
+  },
+  "rope_climb": {
+    "name": "Rope Climb",
+    "categories": ["back", "biceps", "grip", "conditioning"],
+    "movers": ["lats", "biceps", "forearms", "core"],
+    "focus": ["grip strength", "upper body endurance", "lats"],
+    "equipment": "climbing rope",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Using hands (and sometimes feet), climb a vertical rope to the top.",
+    "effectiveness": 9,
+    "technicality": 9,
+    "fatigue": 9
+  },
+  "australian_pullup": {
+    "name": "Australian Pull-Up",
+    "categories": ["back", "bodyweight", "horizontal_pull"],
+    "movers": ["lats", "rhomboids", "biceps"],
+    "focus": ["mid-back thickness", "lats"],
+    "equipment": "low bar/Smith machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Another term for inverted row, emphasizing the 'pulling yourself up' aspect.",
+    "effectiveness": 7,
+    "technicality": 5,
+    "fatigue": 6
+  },
+  "kettlebell_renegade_row": {
+    "name": "Kettlebell Renegade Row",
+    "categories": ["back", "core", "unilateral", "strength"],
+    "movers": ["lats", "rhomboids", "rear-delts", "core"],
+    "focus": ["mid-back thickness", "lats", "core stability"],
+    "equipment": "kettlebells",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Start in a plank position with hands on kettlebells. Perform a single-arm row while keeping your core stable and hips square.",
+    "effectiveness": 8,
+    "technicality": 8,
+    "fatigue": 7
+  },
+  "dumbbell_pullover_single_arm": {
+    "name": "Dumbbell Pullover (Single-Arm)",
+    "categories": ["back", "chest", "isolation", "unilateral"],
+    "movers": ["lats", "core", "upper-chest"],
+    "focus": ["lats stretch", "unilateral lats development"],
+    "equipment": "dumbbell, bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie perpendicular on a bench, hold one dumbbell with an extended arm. Lower the dumbbell behind your head in an arc, then pull it back over your chest.",
+    "effectiveness": 6,
+    "technicality": 7,
+    "fatigue": 5
+  },
+  "reverse_grip_bent_over_row": {
+    "name": "Reverse-Grip Bent-Over Row",
+    "categories": ["back", "horizontal_pull", "compound", "strength"],
+    "movers": ["lats", "biceps", "rhomboids", "traps", "rear-delts", "lowback"],
+    "focus": ["lower lats", "biceps", "mid-back thickness"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Same as Barbell Row (Bent-Over, Supinated Grip).",
+    "effectiveness": 8,
+    "technicality": 9,
+    "fatigue": 8
+  },
+  "pullup_commando": {
+    "name": "Pull-Up (Commando)",
+    "categories": ["back", "bodyweight", "compound", "unilateral"],
+    "movers": ["lats", "biceps", "core"],
+    "focus": ["unilateral lats strength", "core stability"],
+    "equipment": "pullup bar",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Grab the bar with one hand in front of the other (mixed grip). Pull up, bringing your head to one side of the bar, then alternate sides.",
+    "effectiveness": 8,
+    "technicality": 8,
+    "fatigue": 8
+  },
+  "meadows_row": {
+    "name": "Meadows Row",
+    "categories": ["back", "horizontal_pull", "compound", "unilateral"],
+    "movers": ["lats", "rhomboids", "traps", "rear-delts", "lowback"],
+    "focus": ["lats thickness", "upper back", "lower back"],
+    "equipment": "barbell, landmine attachment",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand perpendicular to a landmine barbell. Grab the end of the bar with one hand and row, allowing some torso rotation for a deep stretch.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 7
+  },
+  "seal_row_barbell": {
+    "name": "Seal Row (Barbell)",
+    "categories": ["back", "horizontal_pull", "compound"],
+    "movers": ["lats", "rhomboids", "traps", "rear-delts"],
+    "focus": ["mid-back thickness", "lats", "no lower back strain"],
+    "equipment": "barbell, seal row bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie prone on a specific seal row bench (or elevated benches). Grab a barbell from the floor and row it to your chest.",
+    "effectiveness": 9,
+    "technicality": 7,
+    "fatigue": 8
+  },
+  "seal_row_dumbbell": {
+    "name": "Seal Row (Dumbbell)",
+    "categories": ["back", "horizontal_pull", "compound"],
+    "movers": ["lats", "rhomboids", "traps", "rear-delts"],
+    "focus": ["mid-back thickness", "lats", "no lower back strain"],
+    "equipment": "dumbbells, seal row bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie prone on a specific seal row bench. Grab dumbbells from the floor and row them to your sides.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "one_arm_landmine_row": {
+    "name": "One-Arm Landmine Row",
+    "categories": ["back", "horizontal_pull", "compound", "unilateral"],
+    "movers": ["lats", "rhomboids", "traps", "rear-delts", "core"],
+    "focus": ["lats contraction", "mid-back thickness", "core stability"],
+    "equipment": "barbell, landmine attachment",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand perpendicular to a landmine barbell. Grab the end of the bar with one hand and row it to your hip, maintaining a stable torso.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 7
+  },
+  "reverse_grip_pendlay_row": {
+    "name": "Reverse-Grip Pendlay Row",
+    "categories": ["back", "horizontal_pull", "compound", "power"],
+    "movers": ["lats", "biceps", "rhomboids", "traps", "rear-delts", "lowback"],
+    "focus": ["explosive lower lats", "biceps"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Similar to a Pendlay row but with an underhand grip, emphasizing lower lats and biceps.",
+    "effectiveness": 8,
+    "technicality": 9,
+    "fatigue": 8
+  },
+  "wide_grip_seated_cable_row": {
+    "name": "Wide-Grip Seated Cable Row",
+    "categories": ["back", "horizontal_pull", "compound", "machine"],
+    "movers": ["lats", "rhomboids", "traps", "rear-delts"],
+    "focus": ["upper back width", "outer lats"],
+    "equipment": "cable machine, wide grip bar",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform seated cable rows with a wider, pronated grip, pulling to the upper abs/lower chest.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "close_grip_seated_cable_row": {
+    "name": "Close-Grip Seated Cable Row",
+    "categories": ["back", "horizontal_pull", "compound", "machine"],
+    "movers": ["lats", "rhomboids", "traps", "rear-delts"],
+    "focus": ["mid-back thickness", "inner back"],
+    "equipment": "cable machine, close grip handle",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform seated cable rows with a close, neutral grip (V-bar), pulling to the lower abs.",
+    "effectiveness": 8,
+    "technicality": 5,
+    "fatigue": 7
+  },
+  "dumbbell_reverse_fly_bent_over": {
+    "name": "Dumbbell Reverse Fly (Bent-Over)",
+    "categories": ["shoulders", "back", "isolation"],
+    "movers": ["rear-delts", "rhomboids", "traps"],
+    "focus": ["rear-delts", "upper back thickness"],
+    "equipment": "dumbbells",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hinge at hips, slight knee bend, hold dumbbells with palms facing each other. Raise arms out to the sides in an arc, squeezing shoulder blades.",
+    "effectiveness": 7,
+    "technicality": 7,
+    "fatigue": 5
+  },
+  "cable_reverse_fly_standing": {
+    "name": "Cable Reverse Fly (Standing)",
+    "categories": ["shoulders", "back", "isolation"],
+    "movers": ["rear-delts", "rhomboids", "traps"],
+    "focus": ["rear-delts", "upper back thickness"],
+    "equipment": "cable machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand between two low pulleys, grab opposite handles. Pull arms out and back in an arc, squeezing upper back.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 5
+  },
+  "machine_reverse_pec_deck_fly": {
+    "name": "Machine Reverse Pec Deck Fly",
+    "categories": ["shoulders", "back", "isolation", "machine"],
+    "movers": ["rear-delts", "rhomboids", "traps"],
+    "focus": ["rear-delts", "upper back thickness"],
+    "equipment": "reverse pec deck machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit facing the machine, grab handles. Pull arms back, squeezing shoulder blades and rear delts.",
+    "effectiveness": 7,
+    "technicality": 4,
+    "fatigue": 6
+  },
+  "lying_t_bar_row": {
+    "name": "Lying T-Bar Row",
+    "categories": ["back", "horizontal_pull", "compound"],
+    "movers": ["lats", "rhomboids", "traps", "rear-delts"],
+    "focus": ["mid-back thickness", "lats"],
+    "equipment": "T-bar row machine (lying version)",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie prone on a pad, grab handles. Pull the weight up to your chest, similar to a chest-supported row.",
+    "effectiveness": 8,
+    "technicality": 5,
+    "fatigue": 7
+  },
+  "rack_pulls_from_floor": {
+    "name": "Rack Pulls (from Floor)",
+    "categories": ["back", "strength", "compound"],
+    "movers": ["lowback", "traps", "lats", "glutes", "hams"],
+    "focus": ["overall back strength", "pulling power"],
+    "equipment": "barbell, power rack",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Similar to a deadlift but with the bar resting on pins a few inches off the floor, to allow for a reset each rep.",
+    "effectiveness": 9,
+    "technicality": 9,
+    "fatigue": 9
+  },
+  "arch_hang": {
+    "name": "Arch Hang",
+    "categories": ["back", "bodyweight", "mobility"],
+    "movers": ["lats", "traps/rhomboids", "side-delts"],
+    "focus": ["back flexibility", "scapular control"],
+    "equipment": "pullup bar",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hang from a pull-up bar and arch your back, squeezing shoulder blades together and pushing chest forward.",
+    "effectiveness": 4,
+    "technicality": 5,
+    "fatigue": 4
+  },
+  "one_arm_deadlift_kettlebell": {
+    "name": "One-Arm Deadlift (Kettlebell)",
+    "categories": ["back", "legs", "glutes", "compound", "unilateral", "core"],
+    "movers": ["glutes", "hams", "lowback", "core"],
+    "focus": ["unilateral strength", "core stability"],
+    "equipment": "kettlebell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform a deadlift with one arm, using a kettlebell. Challenges grip and core stability significantly.",
+    "effectiveness": 7,
+    "technicality": 8,
+    "fatigue": 7
+  },
+  "belt_squat_deadlift": {
+    "name": "Belt Squat Deadlift",
+    "categories": ["legs", "glutes", "back", "compound"],
+    "movers": ["quads", "glutes", "hams", "lowback"],
+    "focus": ["legs", "glutes", "reduced spinal load"],
+    "equipment": "belt squat machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "A deadlift variation where the weight is loaded on a belt around the hips, taking stress off the spine.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "glute_bridge_barbell": {
+    "name": "Glute Bridge (Barbell)",
+    "categories": ["glutes", "hamstrings", "back", "compound"],
+    "movers": ["glutes", "hams", "lowback"],
+    "focus": ["glute strength", "hip extension"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on your back, knees bent, feet flat. Place a padded barbell over your hips. Drive hips up, squeezing glutes.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "standing_cable_row_single_arm": {
+    "name": "Standing Cable Row (Single-Arm)",
+    "categories": ["back", "horizontal_pull", "isolation", "unilateral", "core"],
+    "movers": ["lats", "rhomboids", "rear-delts", "core"],
+    "focus": ["lats contraction", "core stability"],
+    "equipment": "cable machine, single handle",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand facing the cable machine, grab a single handle. Pull the handle towards your hip, engaging your lats and core to prevent rotation.",
+    "effectiveness": 7,
+    "technicality": 7,
+    "fatigue": 6
+  },
+  "seated_band_row": {
+    "name": "Seated Band Row",
+    "categories": ["back", "horizontal_pull", "resistance"],
+    "movers": ["lats", "rhomboids", "traps", "rear-delts"],
+    "focus": ["mid-back thickness", "lats", "portable resistance"],
+    "equipment": "resistance band",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit on the floor with legs extended, loop a resistance band around your feet. Pull the ends of the band towards your torso, squeezing your back.",
+    "effectiveness": 6,
+    "technicality": 5,
+    "fatigue": 5
+  },
+  "band_assisted_pullup": {
+    "name": "Band-Assisted Pull-Up",
+    "categories": ["back", "vertical_pull", "bodyweight", "progression"],
+    "movers": ["lats", "biceps", "rear-delts"],
+    "focus": ["lats engagement", "pull-up progression"],
+    "equipment": "pullup bar, resistance band",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Loop a resistance band over the pull-up bar and place your feet or knees into it to assist your pull-up.",
+    "effectiveness": 7,
+    "technicality": 5,
+    "fatigue": 6
+  },
+  "archer_pullup": {
+    "name": "Archer Pull-Up",
+    "categories": ["back", "bodyweight", "strength", "unilateral"],
+    "movers": ["lats", "biceps", "rear-delts"],
+    "focus": ["unilateral lats strength", "back width"],
+    "equipment": "pullup bar",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform a pull-up with one arm extended straight out to the side, taking more load on the working arm.",
+    "effectiveness": 8,
+    "technicality": 9,
+    "fatigue": 8
+  },
+  "one_arm_pullup_progression": {
+    "name": "One-Arm Pull-Up Progression",
+    "categories": ["back", "bodyweight", "strength", "unilateral"],
+    "movers": ["lats", "biceps", "rear-delts", "core"],
+    "focus": ["maximal unilateral strength", "back development"],
+    "equipment": "pullup bar",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Advanced bodyweight exercise involving pulling up with only one arm.",
+    "effectiveness": 9,
+    "technicality": 10,
+    "fatigue": 9
+  },
+  "weighted_inverted_row": {
+    "name": "Weighted Inverted Row",
+    "categories": ["back", "horizontal_pull", "bodyweight", "strength"],
+    "movers": ["lats", "rhomboids", "traps", "biceps"],
+    "focus": ["mid-back thickness", "lats", "progressive overload"],
+    "equipment": "low bar, weight vest/plate",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform inverted rows while wearing a weighted vest or with a weight plate placed on your torso.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "chinup_weighted": {
+    "name": "Chin-Up (Weighted)",
+    "categories": ["back", "vertical_pull", "compound", "strength"],
+    "movers": ["lats", "biceps", "rear-delts"],
+    "focus": ["lower lats", "biceps strength"],
+    "equipment": "pullup bar, weight belt/vest",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform chin-ups with added weight.",
+    "effectiveness": 9,
+    "technicality": 7,
+    "fatigue": 8
+  },
+  "deadlift_with_bands": {
+    "name": "Deadlift (with Bands)",
+    "categories": ["back", "legs", "glutes", "compound", "strength"],
+    "movers": ["glutes", "hams", "lowback", "lats", "traps"],
+    "focus": ["accommodating resistance", "speed"],
+    "equipment": "barbell, resistance bands",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Loop resistance bands around the barbell and anchor them to the floor; resistance increases as you lift.",
+    "effectiveness": 8,
+    "technicality": 9,
+    "fatigue": 9
+  },
+  "deadlift_with_chains": {
+    "name": "Deadlift (with Chains)",
+    "categories": ["back", "legs", "glutes", "compound", "strength"],
+    "movers": ["glutes", "hams", "lowback", "lats", "traps"],
+    "focus": ["accommodating resistance", "top end strength"],
+    "equipment": "barbell, chains",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Attach chains to the barbell; as you lift, more chain comes off the floor, increasing resistance.",
+    "effectiveness": 8,
+    "technicality": 9,
+    "fatigue": 9
+  },
+  "reverse_hyperextension_banded": {
+    "name": "Reverse Hyperextension (Banded)",
+    "categories": ["back", "lower_back", "glutes", "isolation"],
+    "movers": ["glutes", "hams", "lowback"],
+    "focus": ["glute lockout", "lower back endurance"],
+    "equipment": "reverse hyperextension machine, resistance band",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform reverse hyperextensions with a resistance band looped around your feet and anchored to the machine.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "hyperextension_weighted": {
+    "name": "Hyperextension (Weighted)",
+    "categories": ["back", "lower_back", "isolation", "strength"],
+    "movers": ["lowback", "glutes", "hams"],
+    "focus": ["lower back strength", "glute engagement"],
+    "equipment": "hyperextension bench, weight plate",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold a weight plate to your chest while performing hyperextensions for increased resistance.",
+    "effectiveness": 8,
+    "technicality": 5,
+    "fatigue": 7
+  },
+  "pull_over_dumbbell_lying_flat": {
+    "name": "Pullover (Dumbbell, Lying Flat)",
+    "categories": ["back", "chest", "isolation"],
+    "movers": ["lats", "upper-chest", "core"],
+    "focus": ["lats stretch", "chest expansion"],
+    "equipment": "dumbbell, flat bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on a flat bench, holding a dumbbell with both hands above your chest. Lower the dumbbell behind your head in an arc, then pull it back over your chest.",
+    "effectiveness": 6,
+    "technicality": 7,
+    "fatigue": 5
+  },
+  "pull_over_barbell": {
+    "name": "Pullover (Barbell)",
+    "categories": ["back", "chest", "isolation"],
+    "movers": ["lats", "upper-chest", "core"],
+    "focus": ["lats stretch", "chest expansion"],
+    "equipment": "barbell, flat bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on a flat bench, holding a barbell with a close grip above your chest. Lower the barbell behind your head in an arc, then pull it back over your chest.",
+    "effectiveness": 6,
+    "technicality": 7,
+    "fatigue": 5
+  },
+  "smith_machine_row": {
+    "name": "Smith Machine Row",
+    "categories": ["back", "horizontal_pull", "compound", "machine"],
+    "movers": ["lats", "rhomboids", "traps", "rear-delts"],
+    "focus": ["mid-back thickness", "lats", "stability"],
+    "equipment": "Smith machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Set the bar low in a Smith machine. Perform a bent-over row, benefiting from the fixed path and stability.",
+    "effectiveness": 7,
+    "technicality": 5,
+    "fatigue": 6
+  },
+  "smith_machine_shrugs": {
+    "name": "Smith Machine Shrugs",
+    "categories": ["back", "traps", "isolation", "machine"],
+    "movers": ["upper-traps"],
+    "focus": ["upper traps development"],
+    "equipment": "Smith machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Set the bar in a Smith machine. Shrug your shoulders straight up towards your ears, then slowly lower, benefiting from the fixed path.",
+    "effectiveness": 6,
+    "technicality": 4,
+    "fatigue": 5
+  },
+  "kettlebell_high_pull": {
+    "name": "Kettlebell High Pull",
+    "categories": ["back", "shoulders", "power"],
+    "movers": ["traps", "rear-delts", "lats", "hams", "glutes"],
+    "focus": ["explosive traps", "full body power"],
+    "equipment": "kettlebell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "From a hinged position, explosively pull the kettlebell up, keeping it close to your body, until your elbows are high.",
+    "effectiveness": 7,
+    "technicality": 8,
+    "fatigue": 7
+  },
+  "upright_row_barbell_wide_grip": {
+    "name": "Upright Row (Barbell, Wide Grip)",
+    "categories": ["shoulders", "traps", "compound"],
+    "movers": ["traps", "side-delts", "front-delts"],
+    "focus": ["traps", "side delts"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand with a wide grip on a barbell. Pull the bar straight up along your body to chest height, leading with elbows.",
+    "effectiveness": 6,
+    "technicality": 7,
+    "fatigue": 6
+  },
+  "cable_upright_row": {
+    "name": "Cable Upright Row",
+    "categories": ["shoulders", "traps", "compound"],
+    "movers": ["traps", "side-delts", "front-delts"],
+    "focus": ["traps", "side delts"],
+    "equipment": "cable machine, bar attachment",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand facing a low pulley, grab a straight bar. Pull the bar straight up along your body to chest height.",
+    "effectiveness": 6,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "shrug_machine": {
+    "name": "Shrug Machine",
+    "categories": ["back", "traps", "isolation", "machine"],
+    "movers": ["upper-traps"],
+    "focus": ["upper traps development"],
+    "equipment": "shrug machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit or stand in the machine, place shoulders under pads. Shrug shoulders up against the resistance, then lower.",
+    "effectiveness": 7,
+    "technicality": 3,
+    "fatigue": 6
+  },
+  "inverted_row_ring_feet_elevated": {
+    "name": "Inverted Row (Ring, Feet Elevated)",
+    "categories": ["back", "horizontal_pull", "compound", "bodyweight", "stability"],
+    "movers": ["lats", "rhomboids", "traps", "biceps", "core"],
+    "focus": ["mid-back thickness", "lats", "stability"],
+    "equipment": "gymnastic rings, elevated surface",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform ring rows with your feet elevated on a bench or box, increasing the difficulty.",
+    "effectiveness": 8,
+    "technicality": 8,
+    "fatigue": 8
+  },
+  "supine_grip_inverted_row": {
+    "name": "Supine Grip Inverted Row",
+    "categories": ["back", "bodyweight", "horizontal_pull"],
+    "movers": ["lats", "biceps", "rhomboids"],
+    "focus": ["lower lats", "biceps"],
+    "equipment": "low bar/Smith machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Same as Reverse-Grip Inverted Row.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "dumbbell_reverse_fly_incline_bench": {
+    "name": "Dumbbell Reverse Fly (Incline Bench)",
+    "categories": ["shoulders", "back", "isolation"],
+    "movers": ["rear-delts", "rhomboids", "traps"],
+    "focus": ["rear-delts", "upper back thickness"],
+    "equipment": "dumbbells, incline bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie chest down on an incline bench, hold dumbbells. Raise arms out to the sides in an arc, squeezing shoulder blades.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 5
+  },
+  "barbell_good_morning_seated": {
+    "name": "Barbell Good Morning (Seated)",
+    "categories": ["back", "hamstrings", "lower_back", "isolation"],
+    "movers": ["hams", "lowback"],
+    "focus": ["lower back strength", "hamstring stretch"],
+    "equipment": "barbell, bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit on a bench with a barbell on your upper back. Hinge at your hips, lowering your torso towards your thighs, then return.",
+    "effectiveness": 6,
+    "technicality": 8,
+    "fatigue": 6
+  },
+  "glute_ham_raise_reverse": {
+    "name": "Glute-Ham Raise (Reverse)",
+    "categories": ["hamstrings", "glutes", "back", "compound"],
+    "movers": ["hams", "glutes", "lowback"],
+    "focus": ["hamstrings", "glutes", "lower back strength"],
+    "equipment": "GHR machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Another name for Reverse Hyperextension if done on a GHR machine where feet swing up.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 7
+  },
+  "kettlebell_row_bent_over": {
+    "name": "Kettlebell Row (Bent-Over)",
+    "categories": ["back", "horizontal_pull", "compound"],
+    "movers": ["lats", "rhomboids", "traps", "rear-delts", "lowback"],
+    "focus": ["mid-back thickness", "lats"],
+    "equipment": "kettlebell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hinge at hips, keep back straight, grab a kettlebell. Pull the kettlebell up to your hip, squeezing your back, then lower.",
+    "effectiveness": 7,
+    "technicality": 7,
+    "fatigue": 6
+  },
+  "prone_cobra": {
+    "name": "Prone Cobra",
+    "categories": ["back", "mobility", "rehab"],
+    "movers": ["lowback", "glutes", "traps/rhomboids"],
+    "focus": ["spinal erector endurance", "posture"],
+    "equipment": "bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie face down, arms by your sides, palms down. Lift chest and arms, externally rotating shoulders, squeezing glutes. Hold, then lower.",
+    "effectiveness": 5,
+    "technicality": 4,
+    "fatigue": 4
+  },
+  "band_face_pull": {
+    "name": "Band Face Pull",
+    "categories": ["back", "shoulders", "isolation", "resistance"],
+    "movers": ["rear-delts", "traps", "rhomboids"],
+    "focus": ["rear-delts", "upper back", "shoulder health"],
+    "equipment": "resistance band",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Anchor a resistance band at head height. Grab the ends and pull towards your face, pulling elbows wide and back.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "weighted_hyperextension_reverse_grip": {
+    "name": "Weighted Hyperextension (Reverse Grip)",
+    "categories": ["back", "lower_back", "isolation", "strength"],
+    "movers": ["lowback", "glutes", "hams"],
+    "focus": ["lower back strength", "glute engagement"],
+    "equipment": "hyperextension bench, weight plate",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold a weight plate behind your neck/head while performing hyperextensions.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "glute_ham_sit_up": {
+    "name": "Glute-Ham Sit-Up",
+    "categories": ["abs", "core", "back"],
+    "movers": ["abs", "hip flexors", "lowback"],
+    "focus": ["abdominal strength", "hip flexor strength"],
+    "equipment": "GHR machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Anchor feet on GHR, lower torso back and then use abs to pull up to upright position. Can involve some lower back tension.",
+    "effectiveness": 6,
+    "technicality": 7,
+    "fatigue": 6
+  },
+  "dumbbell_shrugs_incline": {
+    "name": "Dumbbell Shrugs (Incline)",
+    "categories": ["back", "traps", "isolation"],
+    "movers": ["mid-traps", "lower-traps"],
+    "focus": ["mid/lower traps", "scapular retraction"],
+    "equipment": "dumbbells, incline bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie chest down on an incline bench, hold dumbbells. Shrug your shoulders up and back, squeezing mid-back.",
+    "effectiveness": 6,
+    "technicality": 5,
+    "fatigue": 5
+  },
+  "kroc_row": {
+    "name": "Kroc Row",
+    "categories": ["back", "horizontal_pull", "compound", "strength"],
+    "movers": ["lats", "rhomboids", "traps", "rear-delts", "forearms"],
+    "focus": ["high volume strength", "grip endurance"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "A very high-rep, heavy single-arm dumbbell row, often with some body English for higher reps and heavier weight.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 9
+  },
+  "supine_good_morning": {
+    "name": "Supine Good Morning",
+    "categories": ["hamstrings", "glutes", "lower_back", "mobility"],
+    "movers": ["hams", "glutes", "lowback"],
+    "focus": ["hamstring flexibility", "posterior chain activation"],
+    "equipment": "bodyweight/light bar",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on your back, knees bent, feet flat. Lift your hips, then try to straighten legs while keeping hips elevated, extending knees.",
+    "effectiveness": 5,
+    "technicality": 6,
+    "fatigue": 4
+  },
+  "lat_pulldown_machine_seated": {
+    "name": "Lat Pulldown Machine (Seated)",
+    "categories": ["back", "vertical_pull", "compound", "machine"],
+    "movers": ["lats", "biceps", "rear-delts"],
+    "focus": ["lats development", "back width"],
+    "equipment": "lat pulldown machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Generic term for the standard lat pulldown exercise.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "dumbbell_deadlift_sumo": {
+    "name": "Dumbbell Deadlift (Sumo)",
+    "categories": ["back", "legs", "glutes", "compound"],
+    "movers": ["glutes", "hams", "quads", "lowback"],
+    "focus": ["glutes", "quads", "hinge pattern"],
+    "equipment": "dumbbells",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand with a wide stance, hold dumbbells between your legs. Hinge and squat to pick up, extend hips and knees to lift.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "dumbbell_deadlift_conventional": {
+    "name": "Dumbbell Deadlift (Conventional)",
+    "categories": ["back", "legs", "glutes", "compound"],
+    "movers": ["glutes", "hams", "lowback", "lats"],
+    "focus": ["posterior chain", "hinge pattern"],
+    "equipment": "dumbbells",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand with feet hip-width, hold dumbbells in front of you. Hinge at hips and squat to pick up, extend hips and knees to lift.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "power_clean_pull": {
+    "name": "Power Clean Pull",
+    "categories": ["full_body", "power", "olympic_lift"],
+    "movers": ["glutes", "hams", "quads", "lowback", "traps"],
+    "focus": ["explosive pulling power", "traps"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform the first two phases of a power clean (from floor to hip extension) but without catching the bar.",
+    "effectiveness": 8,
+    "technicality": 9,
+    "fatigue": 9
+  },
+  "snatch_pull": {
+    "name": "Snatch Pull",
+    "categories": ["full_body", "power", "olympic_lift"],
+    "movers": ["glutes", "hams", "quads", "lowback", "traps", "shoulders"],
+    "focus": ["explosive pulling power", "traps", "back width"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform the first two phases of a snatch (from floor to full hip extension) but without catching the bar, using a wide grip.",
+    "effectiveness": 8,
+    "technicality": 9,
+    "fatigue": 9
+  },
+  "clean_grip_deadlift": {
+    "name": "Clean-Grip Deadlift",
+    "categories": ["back", "legs", "glutes", "compound", "strength"],
+    "movers": ["glutes", "hams", "lowback", "lats", "traps"],
+    "focus": ["overall posterior chain strength", "Olympic lift prep"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform a deadlift using a clean grip (slightly wider than shoulder-width), often used as a strength builder for Olympic lifts.",
+    "effectiveness": 9,
+    "technicality": 9,
+    "fatigue": 9
+  },
+  "front_squat_deadlift": {
+    "name": "Front Squat Deadlift",
+    "categories": ["back", "legs", "glutes", "compound"],
+    "movers": ["quads", "glutes", "hams", "lowback"],
+    "focus": ["quads", "upright torso deadlift"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "A hybrid movement, starting like a deadlift but with a more upright torso and greater quad involvement, similar to a front squat pull.",
+    "effectiveness": 7,
+    "technicality": 8,
+    "fatigue": 7
+  },
+  "band_pull_aparts": {
+    "name": "Band Pull-Aparts",
+    "categories": ["shoulders", "back", "isolation"],
+    "movers": ["rear-delts", "rhomboids", "traps"],
+    "focus": ["rear-delts", "upper back activation", "shoulder health"],
+    "equipment": "resistance band",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold a resistance band with both hands at chest height. Pull the band apart by squeezing your shoulder blades together.",
+    "effectiveness": 7,
+    "technicality": 4,
+    "fatigue": 4
+  },
+  "standing_cable_pullover": {
+    "name": "Standing Cable Pullover",
+    "categories": ["back", "isolation"],
+    "movers": ["lats"],
+    "focus": ["lats isolation", "stretch"],
+    "equipment": "cable machine, straight bar/rope",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand facing a high pulley, grab a straight bar or rope with arms extended. Pull the bar/rope down and back towards your thighs, keeping arms extended.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 5
+  },
+  "power_shrugs": {
+    "name": "Power Shrugs",
+    "categories": ["back", "traps", "power"],
+    "movers": ["upper-traps", "lowback", "glutes", "hams"],
+    "focus": ["explosive traps", "shrug height"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "From a deadlift position, explosively shrug the weight up by driving hips forward and extending knees, allowing some momentum.",
+    "effectiveness": 7,
+    "technicality": 7,
+    "fatigue": 7
+  },
+  "sumo_shrugs": {
+    "name": "Sumo Shrugs",
+    "categories": ["back", "traps", "power"],
+    "movers": ["upper-traps", "glutes", "hams"],
+    "focus": ["explosive traps", "grip"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform shrugs from a sumo deadlift stance, often with heavier weight due to improved leverage.",
+    "effectiveness": 7,
+    "technicality": 7,
+    "fatigue": 7
+  },
+  "plate_loaded_pullover": {
+    "name": "Plate Loaded Pullover",
+    "categories": ["back", "isolation", "machine"],
+    "movers": ["lats"],
+    "focus": ["lats isolation"],
+    "equipment": "plate-loaded pullover machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "A pullover machine that uses weight plates for resistance.",
+    "effectiveness": 7,
+    "technicality": 3,
+    "fatigue": 6
+  },
+  "prone_good_morning": {
+    "name": "Prone Good Morning",
+    "categories": ["back", "lower_back", "isolation"],
+    "movers": ["lowback", "glutes", "hams"],
+    "focus": ["lower back endurance"],
+    "equipment": "hyperextension bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie prone on a hyperextension bench. Keep upper body fixed and lift your legs and lower body up by squeezing glutes and lower back.",
+    "effectiveness": 6,
+    "technicality": 6,
+    "fatigue": 5
+  },
+  "assisted_standing_row": {
+    "name": "Assisted Standing Row",
+    "categories": ["back", "horizontal_pull", "bodyweight"],
+    "movers": ["lats", "rhomboids", "biceps"],
+    "focus": ["mid-back thickness", "lats", "beginner progression"],
+    "equipment": "TRX/bands/low bar",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lean back holding onto a TRX or band, pulling yourself up from a standing position. Adjust angle for difficulty.",
+    "effectiveness": 6,
+    "technicality": 5,
+    "fatigue": 5
+  },
+  "chinup_assisted_band": {
+    "name": "Chin-Up (Assisted, Band)",
+    "categories": ["back", "vertical_pull", "bodyweight", "progression"],
+    "movers": ["lats", "biceps", "rear-delts"],
+    "focus": ["lats engagement", "chin-up progression"],
+    "equipment": "pullup bar, resistance band",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Loop a resistance band over the pull-up bar and place your feet or knees into it to assist your chin-up.",
+    "effectiveness": 7,
+    "technicality": 5,
+    "fatigue": 6
+  },
+  "lat_pulldown_high_to_low": {
+    "name": "Lat Pulldown (High to Low)",
+    "categories": ["back", "vertical_pull", "machine"],
+    "movers": ["lats", "biceps"],
+    "focus": ["lats contraction", "mind-muscle connection"],
+    "equipment": "cable machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Set pulleys high, use single handles. Kneel or stand, pull the handles down and back towards your hips, emphasizing the lats.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "reverse_hyperextension_bodyweight": {
+    "name": "Reverse Hyperextension (Bodyweight)",
+    "categories": ["back", "lower_back", "glutes", "isolation", "bodyweight"],
+    "movers": ["glutes", "hams", "lowback"],
+    "focus": ["lower back strength", "glutes"],
+    "equipment": "bench/box",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie prone on a bench with hips at the edge. Keep upper body stable, raise your legs by squeezing glutes and lower back.",
+    "effectiveness": 6,
+    "technicality": 6,
+    "fatigue": 5
+  },
+  "sissy_squat_with_back_extension": {
+    "name": "Sissy Squat with Back Extension",
+    "categories": ["quads", "back", "compound"],
+    "movers": ["quads", "lowback"],
+    "focus": ["quad isolation", "lower back stability"],
+    "equipment": "sissy squat bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "While performing a sissy squat, allow some back extension at the bottom to increase lower back activation.",
+    "effectiveness": 5,
+    "technicality": 8,
+    "fatigue": 6
+  },
+  "kettlebell_clean": {
+    "name": "Kettlebell Clean",
+    "categories": ["full_body", "power", "compound"],
+    "movers": ["glutes", "hams", "quads", "lats", "traps", "shoulders"],
+    "focus": ["explosive power", "full body coordination"],
+    "equipment": "kettlebell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hinge to pick up the kettlebell, then explosively pull it up and 'catch' it in the rack position at your chest.",
+    "effectiveness": 8,
+    "technicality": 8,
+    "fatigue": 8
+  },
+  "dumbbell_snatch": {
+    "name": "Dumbbell Snatch",
+    "categories": ["full_body", "power", "compound", "unilateral"],
+    "movers": ["glutes", "hams", "quads", "lowback", "traps", "shoulders"],
+    "focus": ["explosive power", "unilateral strength"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Start with a dumbbell on the floor. Explosively pull and lift it overhead in one fluid motion.",
+    "effectiveness": 8,
+    "technicality": 9,
+    "fatigue": 8
+  },
+  "barbell_good_morning_overhead": {
+    "name": "Barbell Good Morning (Overhead)",
+    "categories": ["back", "hamstrings", "glutes", "shoulders", "mobility"],
+    "movers": ["hams", "glutes", "lowback", "shoulders"],
+    "focus": ["posterior chain", "shoulder mobility", "core stability"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold a barbell overhead with arms extended. Hinge at hips, lowering torso, maintaining the overhead position.",
+    "effectiveness": 7,
+    "technicality": 10,
+    "fatigue": 8
+  },
+  "lying_back_extension_ball": {
+    "name": "Lying Back Extension (Ball)",
+    "categories": ["back", "lower_back", "isolation"],
+    "movers": ["lowback", "glutes", "hams"],
+    "focus": ["lower back endurance", "core stability"],
+    "equipment": "stability ball",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie prone over a stability ball with hips at the apex. Lower and raise your torso, extending your lower back.",
+    "effectiveness": 6,
+    "technicality": 5,
+    "fatigue": 5
+  },
+  "seated_dumbbell_row": {
+    "name": "Seated Dumbbell Row",
+    "categories": ["back", "horizontal_pull", "compound"],
+    "movers": ["lats", "rhomboids", "traps", "rear-delts"],
+    "focus": ["mid-back thickness", "lats"],
+    "equipment": "dumbbells, bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit on a bench, lean forward slightly, hold dumbbells. Pull dumbbells to your sides, squeezing shoulder blades.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "pendulum_row": {
+    "name": "Pendulum Row",
+    "categories": ["back", "horizontal_pull", "compound"],
+    "movers": ["lats", "rhomboids", "traps", "rear-delts"],
+    "focus": ["mid-back thickness", "lats"],
+    "equipment": "pendulum row machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "A specific type of leverage row machine that often provides a unique feel and range of motion for the back.",
+    "effectiveness": 8,
+    "technicality": 5,
+    "fatigue": 7
+  },
+  "standing_dumbbell_pullover": {
+    "name": "Standing Dumbbell Pullover",
+    "categories": ["back", "isolation"],
+    "movers": ["lats"],
+    "focus": ["lats stretch", "isolation"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand holding a dumbbell overhead. Lower it behind your head by extending shoulders, keeping core tight, then pull back up.",
+    "effectiveness": 5,
+    "technicality": 7,
+    "fatigue": 5
+  },
+  "machine_lat_pulldown_wide_grip": {
+    "name": "Machine Lat Pulldown (Wide Grip)",
+    "categories": ["back", "vertical_pull", "compound", "machine"],
+    "movers": ["lats", "biceps", "rear-delts"],
+    "focus": ["upper lats", "back width"],
+    "equipment": "lat pulldown machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Another term for Lat Pulldown (Wide Grip, Pronated).",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "machine_lat_pulldown_close_grip": {
+    "name": "Machine Lat Pulldown (Close Grip)",
+    "categories": ["back", "vertical_pull", "compound", "machine"],
+    "movers": ["lats", "biceps"],
+    "focus": ["lower lats", "mid-back thickness"],
+    "equipment": "lat pulldown machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Another term for Lat Pulldown (Close Grip, Neutral).",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "machine_lat_pulldown_reverse_grip": {
+    "name": "Machine Lat Pulldown (Reverse Grip)",
+    "categories": ["back", "vertical_pull", "compound", "machine"],
+    "movers": ["lats", "biceps"],
+    "focus": ["lower lats", "biceps"],
+    "equipment": "lat pulldown machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Another term for Lat Pulldown (Reverse Grip, Supinated).",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "deadlift_block_pull": {
+    "name": "Deadlift (Block Pull)",
+    "categories": ["back", "legs", "glutes", "compound", "strength"],
+    "movers": ["glutes", "hams", "lowback", "lats", "traps"],
+    "focus": ["upper range strength", "lockout strength"],
+    "equipment": "barbell, blocks",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lift the barbell from elevated blocks (similar to rack pulls), reducing the range of motion for specific strength gains.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 8
+  },
+  "pullup_scapular": {
+    "name": "Pull-Up (Scapular)",
+    "categories": ["back", "mobility", "bodyweight"],
+    "movers": ["traps", "rhomboids", "lats"],
+    "focus": ["scapular control", "upper back activation"],
+    "equipment": "pullup bar",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "From a dead hang, pull your shoulder blades down and back, slightly elevating your body without bending elbows. Focus on scapular retraction.",
+    "effectiveness": 5,
+    "technicality": 6,
+    "fatigue": 4
+  },
+  "band_lat_pulldown": {
+    "name": "Band Lat Pulldown",
+    "categories": ["back", "vertical_pull", "resistance"],
+    "movers": ["lats", "biceps"],
+    "focus": ["lats activation", "portable resistance"],
+    "equipment": "resistance band, anchor point",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Anchor a resistance band overhead. Grab the band and perform a pulldown motion, squeezing your lats.",
+    "effectiveness": 6,
+    "technicality": 5,
+    "fatigue": 5
+  },
+  "dumbbell_shrugs_seated": {
+    "name": "Dumbbell Shrugs (Seated)",
+    "categories": ["back", "traps", "isolation"],
+    "movers": ["upper-traps"],
+    "focus": ["upper traps development", "reduced leg drive"],
+    "equipment": "dumbbells, bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit on a bench, hold dumbbells at your sides. Shrug your shoulders straight up, isolating the traps.",
+    "effectiveness": 6,
+    "technicality": 4,
+    "fatigue": 5
+  },
+  "weighted_superman": {
+    "name": "Weighted Superman",
+    "categories": ["back", "lower_back", "bodyweight", "strength"],
+    "movers": ["lowback", "glutes", "hams"],
+    "focus": ["lower back strength"],
+    "equipment": "light weight plate/dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform supermans while holding a light weight plate or dumbbell for added resistance.",
+    "effectiveness": 5,
+    "technicality": 5,
+    "fatigue": 5
+  },
+  "landmine_back_extension": {
+    "name": "Landmine Back Extension",
+    "categories": ["back", "lower_back", "isolation"],
+    "movers": ["lowback", "glutes", "hams"],
+    "focus": ["lower back endurance", "hinge pattern"],
+    "equipment": "landmine attachment, barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hinge at hips with the barbell end in front of you. Lower torso towards floor and extend back up, using lower back.",
+    "effectiveness": 6,
+    "technicality": 7,
+    "fatigue": 6
+  },
+  "machine_seated_row_neutral_grip": {
+    "name": "Machine Seated Row (Neutral Grip)",
+    "categories": ["back", "horizontal_pull", "compound", "machine"],
+    "movers": ["lats", "rhomboids", "traps", "rear-delts"],
+    "focus": ["mid-back thickness", "lats"],
+    "equipment": "seated row machine (neutral grip handles)",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform seated rows with a neutral grip, often with individual handles for better range of motion.",
+    "effectiveness": 8,
+    "technicality": 4,
+    "fatigue": 7
+  },
+  "rack_pulls_from_shins": {
+    "name": "Rack Pulls (from Shins)",
+    "categories": ["back", "strength", "compound"],
+    "movers": ["lowback", "traps", "lats", "glutes", "hams"],
+    "focus": ["mid-range pulling strength"],
+    "equipment": "barbell, power rack",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Set pins in a power rack at shin height, starting the pull from a more challenging mid-range position.",
+    "effectiveness": 8,
+    "technicality": 8,
+    "fatigue": 8
+  },
+  "standing_pulldown_bands": {
+    "name": "Standing Pulldown (Bands)",
+    "categories": ["back", "isolation", "resistance"],
+    "movers": ["lats"],
+    "focus": ["lats activation", "portable resistance"],
+    "equipment": "resistance band, anchor point",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Anchor a resistance band overhead. Stand and pull the band down towards your thighs, keeping arms relatively straight.",
+    "effectiveness": 6,
+    "technicality": 5,
+    "fatigue": 5
+  },
+  "dumbbell_power_shrugs": {
+    "name": "Dumbbell Power Shrugs",
+    "categories": ["back", "traps", "power"],
+    "movers": ["upper-traps", "lowback", "glutes", "hams"],
+    "focus": ["explosive traps", "grip"],
+    "equipment": "dumbbells",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold heavy dumbbells, perform a powerful shrug by extending hips and shrugging shoulders up.",
+    "effectiveness": 7,
+    "technicality": 7,
+    "fatigue": 7
+  },
+  "machine_seated_row_wide_grip": {
+    "name": "Machine Seated Row (Wide Grip)",
+    "categories": ["back", "horizontal_pull", "compound", "machine"],
+    "movers": ["lats", "rhomboids", "traps", "rear-delts"],
+    "focus": ["upper back width", "outer lats"],
+    "equipment": "seated row machine (wide grip handles)",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform seated rows with a wide, pronated grip, pulling to the upper abs/lower chest.",
+    "effectiveness": 7,
+    "technicality": 5,
+    "fatigue": 6
+  },
+  "chest_supported_t_bar_row": {
+    "name": "Chest-Supported T-Bar Row",
+    "categories": ["back", "horizontal_pull", "compound", "machine"],
+    "movers": ["lats", "rhomboids", "traps", "rear-delts"],
+    "focus": ["mid-back thickness", "lats"],
+    "equipment": "T-bar row machine with chest pad",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lean chest against a pad, grab handles. Pull the weight up to your chest, removing lower back strain.",
+    "effectiveness": 8,
+    "technicality": 5,
+    "fatigue": 7
+  },
+  "inverted_row_neutral_grip": {
+    "name": "Inverted Row (Neutral Grip)",
+    "categories": ["back", "bodyweight", "horizontal_pull"],
+    "movers": ["lats", "rhomboids", "biceps"],
+    "focus": ["mid-back thickness", "lats"],
+    "equipment": "low bar/parallel bars",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform inverted rows with a neutral grip (palms facing each other).",
+    "effectiveness": 7,
+    "technicality": 5,
+    "fatigue": 6
+  },
+  "reverse_hyperextension_reverse_hyper_machine": {
+    "name": "Reverse Hyperextension (Reverse Hyper Machine)",
+    "categories": ["back", "lower_back", "glutes", "isolation"],
+    "movers": ["glutes", "hams", "lowback"],
+    "focus": ["lower back strength", "glutes", "spinal decompression"],
+    "equipment": "reverse hyperextension machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Specific exercise on a dedicated reverse hyper machine, emphasizing concentric loading.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "resistance_band_deadlift": {
+    "name": "Resistance Band Deadlift",
+    "categories": ["back", "legs", "glutes", "compound", "resistance"],
+    "movers": ["glutes", "hams", "lowback"],
+    "focus": ["hinge pattern", "progressive resistance"],
+    "equipment": "resistance band",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand on a resistance band, loop it over your shoulders or hold ends in hands. Perform a deadlift motion, benefiting from accommodating resistance.",
+    "effectiveness": 6,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "dumbbell_dead_stop_row": {
+    "name": "Dumbbell Dead Stop Row",
+    "categories": ["back", "horizontal_pull", "compound"],
+    "movers": ["lats", "rhomboids", "traps", "rear-delts"],
+    "focus": ["starting strength", "mid-back thickness"],
+    "equipment": "dumbbells",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform a bent-over dumbbell row, lowering the dumbbell to the floor on each rep to remove momentum.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 7
+  },
+  "barbell_good_morning_safety_bar": {
+    "name": "Barbell Good Morning (Safety Bar)",
+    "categories": ["back", "hamstrings", "glutes", "isolation"],
+    "movers": ["hams", "glutes", "lowback"],
+    "focus": ["posterior chain flexibility", "lower back endurance", "shoulder comfort"],
+    "equipment": "safety squat bar",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform good mornings using a safety squat bar, which is more comfortable on the shoulders and allows easier setup.",
+    "effectiveness": 7,
+    "technicality": 8,
+    "fatigue": 7
+  },
+  "back_lever_full": {
+    "name": "Back Lever (Full)",
+    "categories": ["calisthenics", "full_body", "strength"],
+    "movers": ["lats", "core", "shoulders", "triceps"],
+    "focus": ["maximal strength", "body control"],
+    "equipment": "gymnastic rings/pullup bar",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "The full expression of the back lever, holding a perfect horizontal body position.",
+    "effectiveness": 9,
+    "technicality": 10,
+    "fatigue": 9
+  },
+  "front_lever_full": {
+    "name": "Front Lever (Full)",
+    "categories": ["calisthenics", "full_body", "strength"],
+    "movers": ["lats", "biceps", "shoulders", "core"],
+    "focus": ["maximal strength", "body control"],
+    "equipment": "gymnastic rings/pullup bar",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "The full expression of the front lever, holding a perfect horizontal body position.",
+    "effectiveness": 9,
+    "technicality": 10,
+    "fatigue": 9
+  },
+  "dumbbell_floor_pull": {
+    "name": "Dumbbell Floor Pull",
+    "categories": ["back", "horizontal_pull", "compound"],
+    "movers": ["lats", "rhomboids", "traps"],
+    "focus": ["mid-back thickness", "lats"],
+    "equipment": "dumbbells",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie prone on the floor with dumbbells. Pull the dumbbells up, lifting your chest slightly off the floor.",
+    "effectiveness": 6,
+    "technicality": 6,
+    "fatigue": 5
+  },
+  "good_mornings_ghetto_style": {
+    "name": "Good Mornings (Ghetto Style)",
+    "categories": ["back", "hamstrings", "lower_back", "bodyweight"],
+    "movers": ["hamstrings", "glutes", "lowback"],
+    "focus": ["posterior chain", "mobility"],
+    "equipment": "bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform good mornings using only bodyweight, often with hands behind head, focusing on the hinge movement.",
+    "effectiveness": 5,
+    "technicality": 6,
+    "fatigue": 4
+  },
+  "lat_pulldown_kneeling": {
+    "name": "Lat Pulldown (Kneeling)",
+    "categories": ["back", "vertical_pull", "compound", "machine"],
+    "movers": ["lats", "biceps", "rear-delts", "core"],
+    "focus": ["lats engagement", "core stability"],
+    "equipment": "cable machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Kneel facing the cable machine, grab bar. Pull the bar down to your chest, maintaining a stable torso.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "band_face_pull_kneeling": {
+    "name": "Band Face Pull (Kneeling)",
+    "categories": ["shoulders", "back", "isolation", "resistance"],
+    "movers": ["rear-delts", "rhomboids", "traps"],
+    "focus": ["rear delts", "upper back", "shoulder health"],
+    "equipment": "resistance band",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Kneel facing the anchor point for a band. Grab the band and pull towards your face, pulling elbows wide and back.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "belt_squat_good_morning": {
+    "name": "Belt Squat Good Morning",
+    "categories": ["back", "hamstrings", "glutes", "isolation"],
+    "movers": ["hamstrings", "glutes", "lowback"],
+    "focus": ["posterior chain", "reduced spinal load"],
+    "equipment": "belt squat machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform good mornings on a belt squat machine, taking pressure off the spine.",
+    "effectiveness": 7,
+    "technicality": 7,
+    "fatigue": 7
+  },
+  "barbell_shrugs_behind_back": {
+    "name": "Barbell Shrugs (Behind Back)",
+    "categories": ["back", "traps", "isolation"],
+    "movers": ["upper-traps"],
+    "focus": ["upper traps development", "different angle"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold a barbell behind your back. Shrug your shoulders straight up towards your ears, then slowly lower.",
+    "effectiveness": 6,
+    "technicality": 5,
+    "fatigue": 5
+  },
+  "dumbbell_shrugs_overhead": {
+    "name": "Dumbbell Shrugs (Overhead)",
+    "categories": ["shoulders", "traps", "isolation"],
+    "movers": ["upper-traps", "shoulders"],
+    "focus": ["upper traps", "shoulder stability"],
+    "equipment": "dumbbells",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold dumbbells overhead with arms locked. Shrug your shoulders up, lifting the dumbbells higher.",
+    "effectiveness": 6,
+    "technicality": 7,
+    "fatigue": 6
+  },
+  "kettlebell_overhead_carry": {
+    "name": "Kettlebell Overhead Carry",
+    "categories": ["full_body", "core", "shoulders", "conditioning"],
+    "movers": ["shoulders", "traps", "core"],
+    "focus": ["shoulder stability", "traps endurance", "core strength"],
+    "equipment": "kettlebell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold a kettlebell (or two) overhead with arm(s) locked out and walk a set distance, maintaining stability.",
+    "effectiveness": 7,
+    "technicality": 7,
+    "fatigue": 7
+  },
+  "band_pullup_iso_hold": {
+    "name": "Band Pull-Up (Iso Hold)",
+    "categories": ["back", "bodyweight", "strength", "isometric"],
+    "movers": ["lats", "biceps", "rear-delts"],
+    "focus": ["pull-up strength", "muscle endurance"],
+    "equipment": "pullup bar, resistance band",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform an assisted pull-up and hold a specific position (e.g., top, mid-range) for time.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "deadlift_from_blocks": {
+    "name": "Deadlift (from Blocks)",
+    "categories": ["back", "legs", "glutes", "compound", "strength"],
+    "movers": ["glutes", "hamstrings", "lowback", "lats", "traps"],
+    "focus": ["upper range strength", "lockout strength"],
+    "equipment": "barbell, lifting blocks",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Same as Deadlift (Block Pull).",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 8
+  },
+  "good_mornings_cambered_bar": {
+    "name": "Good Mornings (Cambered Bar)",
+    "categories": ["back", "hamstrings", "glutes", "isolation"],
+    "movers": ["hamstrings", "glutes", "lowback"],
+    "focus": ["posterior chain flexibility", "lower back endurance"],
+    "equipment": "cambered bar",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform good mornings using a cambered bar, which places the weight lower and can provide a different feel.",
+    "effectiveness": 7,
+    "technicality": 8,
+    "fatigue": 7
+  },
+  "kettlebell_single_arm_row_bent_over": {
+    "name": "Kettlebell Single-Arm Row (Bent-Over)",
+    "categories": ["back", "horizontal_pull", "compound", "unilateral"],
+    "movers": ["lats", "rhomboids", "rear-delts", "lowback", "core"],
+    "focus": ["lats contraction", "mid-back thickness", "core stability"],
+    "equipment": "kettlebell, bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Similar to single-arm dumbbell row but with a kettlebell, often providing a slightly different balance point.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "ring_chinup": {
+    "name": "Ring Chin-Up",
+    "categories": ["back", "bodyweight", "compound", "stability"],
+    "movers": ["lats", "biceps", "rear-delts", "core"],
+    "focus": ["lower lats", "biceps", "stability"],
+    "equipment": "gymnastic rings",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform chin-ups using gymnastic rings, which allows for a more natural rotation of the wrists and increased stability challenge.",
+    "effectiveness": 9,
+    "technicality": 8,
+    "fatigue": 8
+  },
+  "machine_t_bar_row": {
+    "name": "Machine T-Bar Row",
+    "categories": ["back", "horizontal_pull", "compound", "machine"],
+    "movers": ["lats", "rhomboids", "traps", "rear-delts"],
+    "focus": ["mid-back thickness", "lats"],
+    "equipment": "T-bar row machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "General term for T-Bar row machines, including plate-loaded and seated versions.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "seated_band_pulldown": {
+    "name": "Seated Band Pulldown",
+    "categories": ["back", "vertical_pull", "resistance"],
+    "movers": ["lats", "biceps"],
+    "focus": ["lats activation", "portable resistance"],
+    "equipment": "resistance band, anchor point",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit on the floor, anchor a resistance band overhead. Pull the band down towards your chest, mimicking a lat pulldown.",
+    "effectiveness": 6,
+    "technicality": 5,
+    "fatigue": 5
+  },
+  "resistance_band_pull_apart_overhead": {
+    "name": "Resistance Band Pull-Apart (Overhead)",
+    "categories": ["shoulders", "back", "isolation"],
+    "movers": ["rear-delts", "rhomboids", "traps"],
+    "focus": ["rear delts", "upper back activation", "shoulder health"],
+    "equipment": "resistance band",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold a resistance band overhead with arms extended. Pull the band apart by squeezing your shoulder blades together.",
+    "effectiveness": 7,
+    "technicality": 5,
+    "fatigue": 5
+  },
+  "dumbbell_rack_pull": {
+    "name": "Dumbbell Rack Pull",
+    "categories": ["back", "legs", "glutes", "compound", "strength"],
+    "movers": ["glutes", "hamstrings", "lowback", "lats", "traps"],
+    "focus": ["upper range strength", "lockout strength"],
+    "equipment": "dumbbells, rack/blocks",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform rack pulls using dumbbells, which can be useful for grip strength and individual side development.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "weighted_inverted_row_feet_elevated": {
+    "name": "Weighted Inverted Row (Feet Elevated)",
+    "categories": ["back", "horizontal_pull", "compound", "bodyweight", "strength"],
+    "movers": ["lats", "rhomboids", "traps", "biceps"],
+    "focus": ["mid-back thickness", "lats", "progressive overload"],
+    "equipment": "low bar, elevated surface, weight vest/plate",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Combine weighted inverted rows with elevated feet for maximal difficulty.",
+    "effectiveness": 9,
+    "technicality": 7,
+    "fatigue": 8
+  },
+  "pullup_negative": {
+    "name": "Pull-Up (Negative)",
+    "categories": ["back", "vertical_pull", "bodyweight", "progression"],
+    "movers": ["lats", "biceps", "rear-delts"],
+    "focus": ["eccentric strength", "pull-up progression"],
+    "equipment": "pullup bar",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Jump or step to the top of a pull-up position, then slowly lower yourself down, controlling the descent.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "hyperextension_side_oblique": {
+    "name": "Hyperextension (Side/Oblique)",
+    "categories": ["core", "obliques", "back"],
+    "movers": ["core", "lowback"],
+    "focus": ["oblique strength", "lower back stability"],
+    "equipment": "hyperextension bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie sideways on a hyperextension bench. Lower your upper body, then raise it using your obliques and side muscles.",
+    "effectiveness": 6,
+    "technicality": 6,
+    "fatigue": 5
+  },
+  "good_mornings_kettlebell": {
+    "name": "Good Mornings (Kettlebell)",
+    "categories": ["back", "hamstrings", "glutes", "isolation"],
+    "movers": ["hamstrings", "glutes", "lowback"],
+    "focus": ["posterior chain flexibility", "lower back endurance"],
+    "equipment": "kettlebell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold a kettlebell at your chest or in front, perform the good morning motion.",
+    "effectiveness": 6,
+    "technicality": 7,
+    "fatigue": 6
+  },
+  "barbell_dead_stop_row": {
+    "name": "Barbell Dead Stop Row",
+    "categories": ["back", "horizontal_pull", "compound"],
+    "movers": ["lats", "rhomboids", "traps", "rear-delts", "lowback"],
+    "focus": ["starting strength", "mid-back thickness"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform a bent-over barbell row, lowering the bar completely to the floor on each rep to remove momentum.",
+    "effectiveness": 9,
+    "technicality": 9,
+    "fatigue": 9
+  },
+  "clean_from_blocks": {
+    "name": "Clean From Blocks",
+    "categories": ["full_body", "power", "olympic_lift"],
+    "movers": ["glutes", "hamstrings", "quads", "lats", "traps", "shoulders", "lowback"],
+    "focus": ["power development", "specific pulling positions"],
+    "equipment": "barbell, blocks",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform a clean starting with the barbell on elevated blocks, working specific portions of the pull.",
+    "effectiveness": 8,
+    "technicality": 9,
+    "fatigue": 9
+  },
+  "snatch_from_blocks": {
+    "name": "Snatch From Blocks",
+    "categories": ["full_body", "power", "olympic_lift"],
+    "movers": ["glutes", "hamstrings", "quads", "lats", "traps", "shoulders", "lowback"],
+    "focus": ["power development", "specific pulling positions"],
+    "equipment": "barbell, blocks",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform a snatch starting with the barbell on elevated blocks, working specific portions of the pull.",
+    "effectiveness": 8,
+    "technicality": 9,
+    "fatigue": 9
+  },
+  "pullup_iso_hold": {
+    "name": "Pull-Up (Iso Hold)",
+    "categories": ["back", "bodyweight", "strength", "isometric"],
+    "movers": ["lats", "biceps", "rear-delts"],
+    "focus": ["pull-up strength", "muscle endurance"],
+    "equipment": "pullup bar",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold a specific position (e.g., top, mid-range) of a pull-up for time.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 8
+  },
+  "inverted_row_rings": {
+    "name": "Inverted Row (Rings)",
+    "categories": ["back", "horizontal_pull", "compound", "bodyweight", "stability"],
+    "movers": ["lats", "rhomboids", "traps", "biceps", "core"],
+    "focus": ["mid-back thickness", "lats", "stability"],
+    "equipment": "gymnastic rings",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Same as Ring Rows.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 7
+  },
+  "lat_pulldown_v_bar": {
+    "name": "Lat Pulldown (V-Bar)",
+    "categories": ["back", "vertical_pull", "compound", "machine"],
+    "movers": ["lats", "biceps"],
+    "focus": ["lower lats", "mid-back thickness"],
+    "equipment": "lat pulldown machine, V-bar attachment",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform lat pulldowns using a V-bar (close, neutral grip).",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "standing_resistance_band_row": {
+    "name": "Standing Resistance Band Row",
+    "categories": ["back", "horizontal_pull", "resistance"],
+    "movers": ["lats", "rhomboids", "traps", "rear-delts"],
+    "focus": ["mid-back thickness", "lats", "portable resistance"],
+    "equipment": "resistance band, anchor point",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Anchor a resistance band to a stable object. Grab the ends and step back, then pull towards your torso, squeezing your back.",
+    "effectiveness": 6,
+    "technicality": 5,
+    "fatigue": 5
+  },
+  "dumbbell_pullover_bent_arm": {
+    "name": "Dumbbell Pullover (Bent Arm)",
+    "categories": ["back", "chest", "isolation"],
+    "movers": ["lats", "upper-chest", "lower-chest"],
+    "focus": ["lats stretch", "chest expansion"],
+    "equipment": "dumbbell, bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform a dumbbell pullover with a more pronounced bend in the elbows, which can emphasize the lats more for some.",
+    "effectiveness": 6,
+    "technicality": 7,
+    "fatigue": 5
+  },
+  "barbell_pullover_bent_arm": {
+    "name": "Barbell Pullover (Bent Arm)",
+    "categories": ["back", "chest", "isolation"],
+    "movers": ["lats", "upper-chest", "lower-chest"],
+    "focus": ["lats stretch", "chest expansion"],
+    "equipment": "barbell, bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform a barbell pullover with a more pronounced bend in the elbows.",
+    "effectiveness": 6,
+    "technicality": 7,
+    "fatigue": 5
+  },
+  "band_reverse_fly": {
+    "name": "Band Reverse Fly",
+    "categories": ["shoulders", "back", "isolation", "resistance"],
+    "movers": ["rear-delts", "rhomboids", "traps"],
+    "focus": ["rear delts", "upper back activation", "shoulder health"],
+    "equipment": "resistance band",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold a light resistance band, extend arms forward. Pull hands apart and back, squeezing shoulder blades.",
+    "effectiveness": 6,
+    "technicality": 5,
+    "fatigue": 4
+  },
+  "machine_back_extension": {
+    "name": "Machine Back Extension",
+    "categories": ["back", "lower_back", "isolation", "machine"],
+    "movers": ["lowback", "glutes", "hamstrings"],
+    "focus": ["lower back strength"],
+    "equipment": "back extension machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "A dedicated machine that isolates the lower back muscles, similar to hyperextensions.",
+    "effectiveness": 7,
+    "technicality": 4,
+    "fatigue": 6
+  },
+  "straight_leg_deadlift_barbell": {
+    "name": "Straight Leg Deadlift (Barbell)",
+    "categories": ["hamstrings", "glutes", "back", "isolation"],
+    "movers": ["hamstrings", "glutes", "lowback"],
+    "focus": ["hamstring stretch", "lower back engagement"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Similar to RDL but with legs kept completely straight (or very minimal bend), emphasizing hamstring stretch.",
+    "effectiveness": 7,
+    "technicality": 9,
+    "fatigue": 7
+  },
+  "straight_leg_deadlift_dumbbell": {
+    "name": "Straight Leg Deadlift (Dumbbell)",
+    "categories": ["hamstrings", "glutes", "back", "isolation"],
+    "movers": ["hamstrings", "glutes", "lowback"],
+    "focus": ["hamstring stretch", "lower back engagement"],
+    "equipment": "dumbbells",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Similar to RDL but with legs kept completely straight (or very minimal bend), emphasizing hamstring stretch.",
+    "effectiveness": 7,
+    "technicality": 9,
+    "fatigue": 7
+  },
+  "band_deadlift_sumo": {
+    "name": "Band Deadlift (Sumo)",
+    "categories": ["back", "legs", "glutes", "compound", "resistance"],
+    "movers": ["glutes", "hamstrings", "quads", "lowback"],
+    "focus": ["hinge pattern", "glute activation"],
+    "equipment": "resistance band",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform sumo deadlifts with a resistance band, for a different resistance curve.",
+    "effectiveness": 6,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "weighted_inverted_row_rings": {
+    "name": "Weighted Inverted Row (Rings)",
+    "categories": ["back", "horizontal_pull", "compound", "bodyweight", "strength", "stability"],
+    "movers": ["lats", "rhomboids", "traps", "biceps", "core"],
+    "focus": ["mid-back thickness", "lats", "maximal challenge"],
+    "equipment": "gymnastic rings, weight vest/plate",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform ring rows with added weight, a highly challenging exercise.",
+    "effectiveness": 9,
+    "technicality": 9,
+    "fatigue": 9
+  },
+  "pullup_l_sit": {
+    "name": "Pull-Up (L-Sit)",
+    "categories": ["back", "abs", "bodyweight", "strength"],
+    "movers": ["lats", "biceps", "core"],
+    "focus": ["back strength", "core strength"],
+    "equipment": "pullup bar",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform a pull-up while holding your legs straight out in front of you (L-sit position).",
+    "effectiveness": 8,
+    "technicality": 9,
+    "fatigue": 8
+  },
+  "one_arm_chinup": {
+    "name": "One-Arm Chin-Up",
+    "categories": ["back", "biceps", "bodyweight", "strength", "unilateral"],
+    "movers": ["lats", "biceps", "rear-delts", "core"],
+    "focus": ["maximal unilateral strength", "biceps development"],
+    "equipment": "pullup bar",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Advanced bodyweight exercise involving pulling up with only one arm and an underhand grip.",
+    "effectiveness": 9,
+    "technicality": 10,
+    "fatigue": 9
+  },
+  "band_shrugs": {
+    "name": "Band Shrugs",
+    "categories": ["back", "traps", "isolation", "resistance"],
+    "movers": ["upper-traps"],
+    "focus": ["upper traps development", "portable resistance"],
+    "equipment": "resistance band",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand on a resistance band, hold the ends in your hands. Perform shrugs against the band's resistance.",
+    "effectiveness": 5,
+    "technicality": 4,
+    "fatigue": 4
+  },
+  "dumbbell_rear_delt_row": {
+    "name": "Dumbbell Rear Delt Row",
+    "categories": ["shoulders", "back", "isolation"],
+    "movers": ["rear-delts", "rhomboids", "traps"],
+    "focus": ["rear delts", "upper back thickness"],
+    "equipment": "dumbbells",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Bent-over with dumbbells, pull the dumbbells outwards and upwards, leading with elbows to target rear delts and upper back.",
+    "effectiveness": 7,
+    "technicality": 7,
+    "fatigue": 6
+  },
+  "kettlebell_renegade_row_standing": {
+    "name": "Kettlebell Renegade Row (Standing)",
+    "categories": ["back", "core", "unilateral", "strength"],
+    "movers": ["lats", "rhomboids", "rear-delts", "core"],
+    "focus": ["mid-back thickness", "lats", "core stability"],
+    "equipment": "kettlebell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform a single-arm kettlebell row while maintaining a bent-over standing position, challenging core stability.",
+    "effectiveness": 7,
+    "technicality": 8,
+    "fatigue": 7
+  },
+  "gymnastics_ring_pull_ups": {
+    "name": "Gymnastics Ring Pull-Ups",
+    "categories": ["back", "vertical_pull", "compound", "bodyweight", "stability"],
+    "movers": ["lats", "biceps", "rear-delts", "core"],
+    "focus": ["back width", "stability", "joint health"],
+    "equipment": "gymnastic rings",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform pull-ups on gymnastic rings, allowing for natural hand rotation and increased muscular activation.",
+    "effectiveness": 9,
+    "technicalality": 9,
+    "fatigue": 9
+  },
+  "gymnastics_ring_rows": {
+    "name": "Gymnastics Ring Rows",
+    "categories": ["back", "horizontal_pull", "compound", "bodyweight", "stability"],
+    "movers": ["lats", "rhomboids", "traps", "biceps", "core"],
+    "focus": ["mid-back thickness", "lats", "stability"],
+    "equipment": "gymnastic rings",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Same as Ring Rows.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 7
+  },
+  "barbell_high_pull": {
+    "name": "Barbell High Pull",
+    "categories": ["full_body", "power", "olympic_lift"],
+    "movers": ["glutes", "hamstrings", "quads", "traps", "shoulders", "lowback"],
+    "focus": ["explosive pulling power", "traps"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "From the floor, explosively pull a barbell up to chest height, keeping it close to your body, similar to the start of a clean.",
+    "effectiveness": 8,
+    "technicality": 9,
+    "fatigue": 9
+  },
+  "snatch_grip_row": {
+    "name": "Snatch-Grip Row",
+    "categories": ["back", "horizontal_pull", "compound"],
+    "movers": ["lats", "rhomboids", "traps", "rear-delts", "lowback"],
+    "focus": ["upper back width", "lats"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform bent-over rows with a very wide (snatch) grip, emphasizing upper back and outer lats.",
+    "effectiveness": 7,
+    "technicality": 8,
+    "fatigue": 7
+  },
+  "seal_row_machine": {
+    "name": "Seal Row (Machine)",
+    "categories": ["back", "horizontal_pull", "compound", "machine"],
+    "movers": ["lats", "rhomboids", "traps", "rear-delts"],
+    "focus": ["mid-back thickness", "lats", "no lower back strain"],
+    "equipment": "seal row machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "A dedicated machine for seal rows, allowing for a chest-supported, strict rowing motion.",
+    "effectiveness": 8,
+    "technicality": 5,
+    "fatigue": 7
+  },
+  "kettlebell_dead_stop_row": {
+    "name": "Kettlebell Dead Stop Row",
+    "categories": ["back", "horizontal_pull", "compound"],
+    "movers": ["lats", "rhomboids", "traps"],
+    "focus": ["starting strength", "mid-back thickness"],
+    "equipment": "kettlebell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform a bent-over kettlebell row, lowering the kettlebell to the floor on each rep to remove momentum.",
+    "effectiveness": 7,
+    "technicality": 7,
+    "fatigue": 7
+  },
+  "machine_hyperextension": {
+    "name": "Machine Hyperextension",
+    "categories": ["back", "lower_back", "isolation", "machine"],
+    "movers": ["lowback", "glutes", "hamstrings"],
+    "focus": ["lower back strength"],
+    "equipment": "hyperextension machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "General term for a machine that facilitates back extensions/hyperextensions.",
+    "effectiveness": 7,
+    "technicality": 4,
+    "fatigue": 6
+  },
+  "weighted_superman_on_ball": {
+    "name": "Weighted Superman (on Ball)",
+    "categories": ["back", "lower_back", "bodyweight", "strength", "stability"],
+    "movers": ["lowback", "glutes", "hamstrings", "core"],
+    "focus": ["lower back strength", "core stability"],
+    "equipment": "stability ball, light weight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform supermans while lying over a stability ball, holding a light weight for added resistance.",
+    "effectiveness": 6,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "standing_pullover_machine": {
+    "name": "Standing Pullover (Machine)",
+    "categories": ["back", "isolation", "machine"],
+    "movers": ["lats"],
+    "focus": ["lats isolation"],
+    "equipment": "pullover machine (standing variant)",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "A pullover machine designed for standing use, often with a chest pad.",
+    "effectiveness": 7,
+    "technicality": 4,
+    "fatigue": 6
+  },
+  "single_arm_barbell_row": {
+    "name": "Single-Arm Barbell Row",
+    "categories": ["back", "horizontal_pull", "compound", "unilateral"],
+    "movers": ["lats", "rhomboids", "rear-delts", "lowback", "core"],
+    "focus": ["lats contraction", "mid-back thickness", "core stability"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Similar to dumbbell row, but using one end of a barbell (often with a landmine attachment or wedged against a wall) for leverage.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 7
+  },
+  "cable_rear_delt_row": {
+    "name": "Cable Rear Delt Row",
+    "categories": ["shoulders", "back", "isolation"],
+    "movers": ["rear-delts", "rhomboids", "traps"],
+    "focus": ["rear delts", "upper back thickness"],
+    "equipment": "cable machine, single handle",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Set pulleys to chest height, grab a single handle. Pull the handle outwards and backwards, leading with elbow, to target rear delts.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 5
+  },
+  "band_deadlift_conventional": {
+    "name": "Band Deadlift (Conventional)",
+    "categories": ["back", "legs", "glutes", "compound", "resistance"],
+    "movers": ["glutes", "hamstrings", "lowback", "quads"],
+    "focus": ["hinge pattern", "progressive resistance"],
+    "equipment": "resistance band",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform conventional deadlifts with a resistance band, for a different resistance curve.",
+    "effectiveness": 6,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "pullup_close_grip": {
+    "name": "Pull-Up (Close Grip)",
+    "categories": ["back", "vertical_pull", "compound", "bodyweight"],
+    "movers": ["lats", "biceps", "rear-delts"],
+    "focus": ["lower lats", "biceps"],
+    "equipment": "pullup bar",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform pull-ups with an overhand grip, hands close together, emphasizing lower lats and biceps.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 8
+  },
+  "deadlift_from_deficit": {
+    "name": "Deadlift (from Deficit)",
+    "categories": ["back", "legs", "glutes", "compound", "strength"],
+    "movers": ["glutes", "hamstrings", "quads", "lats", "traps", "lowback"],
+    "focus": ["range of motion", "starting strength", "quads"],
+    "equipment": "barbell, platform",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Same as Deficit Deadlift.",
+    "effectiveness": 9,
+    "technicality": 10,
+    "fatigue": 10
+  },
+  "barbell_front_squat": {
+    "name": "Barbell Front Squat",
+    "categories": ["legs", "compound"],
+    "movers": ["quads", "glutes", "hamstrings", "core", "upper-back"],
+    "focus": ["quads", "core"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Place a barbell across the front of your shoulders, resting on your deltoids with elbows high. Squat down by pushing your hips back and bending your knees, keeping your torso upright. Drive through your heels to stand back up.",
+    "effectiveness": 9,
+    "technicality": 9,
+    "fatigue": 8
+  },
+  "goblet_squat": {
+    "name": "Goblet Squat",
+    "categories": ["legs", "compound"],
+    "movers": ["quads", "glutes", "hamstrings", "core"],
+    "focus": ["quads", "squat form"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold a dumbbell vertically against your chest with both hands. Stand with feet shoulder-width apart, toes slightly out. Squat down, keeping your chest up and elbows inside your knees, then drive back up.",
+    "effectiveness": 8,
+    "technicality": 5,
+    "fatigue": 6
+  },
+  "dumbbell_squat": {
+    "name": "Dumbbell Squat",
+    "categories": ["legs", "compound"],
+    "movers": ["quads", "glutes", "hamstrings"],
+    "focus": ["quads", "glutes"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold a dumbbell in each hand by your sides, or rest them on your shoulders. Stand with feet shoulder-width apart. Squat down as if sitting in a chair, keeping your back straight, and then stand back up.",
+    "effectiveness": 7,
+    "technicality": 4,
+    "fatigue": 5
+  },
+  "leg_press": {
+    "name": "Leg Press",
+    "categories": ["legs", "compound"],
+    "movers": ["quads", "glutes", "hamstrings"],
+    "focus": ["quads"],
+    "equipment": "machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit on a leg press machine with your feet shoulder-width apart on the platform. Release the safety, lower the platform by bending your knees until they are close to your chest, then push the platform back up by extending your legs.",
+    "effectiveness": 9,
+    "technicality": 3,
+    "fatigue": 7
+  },
+  "hack_squat": {
+    "name": "Hack Squat",
+    "categories": ["legs", "compound"],
+    "movers": ["quads", "glutes", "hamstrings"],
+    "focus": ["quads"],
+    "equipment": "machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Position yourself on a hack squat machine with your shoulders under the pads and feet on the platform. Lower the weight by bending your knees and hips, keeping your back against the pad. Push back up to straighten your legs.",
+    "effectiveness": 9,
+    "technicality": 4,
+    "fatigue": 7
+  },
+  "sissy_squat": {
+    "name": "Sissy Squat",
+    "categories": ["legs", "isolation"],
+    "movers": ["quads"],
+    "focus": ["quads (vastus medialis)"],
+    "equipment": "bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand tall, holding onto something for balance. Push your knees forward while leaning back, lifting your heels off the ground. Lower yourself until your knees are close to the floor, keeping your torso in line with your thighs. Return to the starting position.",
+    "effectiveness": 7,
+    "technicality": 8,
+    "fatigue": 6
+  },
+  "forward_lunges": {
+    "name": "Forward Lunges",
+    "categories": ["legs", "compound", "unilateral"],
+    "movers": ["quads", "glutes", "hamstrings"],
+    "focus": ["quads", "glutes"],
+    "equipment": "bodyweight, dumbbell, barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Step forward with one leg, lowering your hips until both knees are bent at approximately a 90-degree angle. Ensure your front knee is directly over your ankle and your back knee hovers above the ground. Push off your front foot to return to the starting position.",
+    "effectiveness": 7,
+    "technicality": 5,
+    "fatigue": 6
+  },
+  "reverse_lunges": {
+    "name": "Reverse Lunges",
+    "categories": ["legs", "compound", "unilateral"],
+    "movers": ["quads", "glutes", "hamstrings"],
+    "focus": ["quads", "glutes"],
+    "equipment": "bodyweight, dumbbell, barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Step backward with one leg, lowering your hips until both knees are bent at approximately a 90-degree angle. Ensure your front knee is directly over your ankle and your back knee hovers above the ground. Push through your front heel to return to the starting position.",
+    "effectiveness": 7,
+    "technicality": 5,
+    "fatigue": 6
+  },
+  "dumbbell_lunges": {
+    "name": "Dumbbell Lunges",
+    "categories": ["legs", "compound", "unilateral"],
+    "movers": ["quads", "glutes", "hamstrings"],
+    "focus": ["quads", "glutes"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold a dumbbell in each hand by your sides. Perform either forward, reverse, or walking lunges, maintaining good form.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "barbell_lunges": {
+    "name": "Barbell Lunges",
+    "categories": ["legs", "compound", "unilateral"],
+    "movers": ["quads", "glutes", "hamstrings"],
+    "focus": ["quads", "glutes"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Place a barbell across your upper back. Perform either forward, reverse, or walking lunges, maintaining balance and good form.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 8
+  },
+  "step_ups": {
+    "name": "Step-Ups",
+    "categories": ["legs", "compound", "unilateral"],
+    "movers": ["quads", "glutes", "hamstrings"],
+    "focus": ["quads", "glutes"],
+    "equipment": "bench, box, bodyweight, dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Place one foot flat on a sturdy bench or box. Drive through your heel to step up, bringing your other foot to meet it on the box. Control the descent back down with the starting leg, leaving the other leg hanging.",
+    "effectiveness": 7,
+    "technicality": 5,
+    "fatigue": 6
+  },
+  "box_jumps": {
+    "name": "Box Jumps",
+    "categories": ["legs", "plyometric"],
+    "movers": ["quads", "glutes", "hamstrings", "calves"],
+    "focus": ["explosive power", "quads"],
+    "equipment": "box",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand in front of a sturdy box. Bend your knees and swing your arms back, then explode upwards, driving through your heels to land softly on the box with both feet. Step or jump back down with control.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 8
+  },
+  "pistol_squat": {
+    "name": "Pistol Squat",
+    "categories": ["legs", "compound", "unilateral", "bodyweight"],
+    "movers": ["quads", "glutes", "hamstrings", "core", "calves"],
+    "focus": ["quads", "balance"],
+    "equipment": "bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand on one leg, extending the other leg straight out in front of you. Lower your body into a deep squat, keeping your extended leg off the floor and maintaining balance. Push through your heel to stand back up.",
+    "effectiveness": 9,
+    "technicality": 9,
+    "fatigue": 7
+  },
+  "wall_sit": {
+    "name": "Wall Sit",
+    "categories": ["legs", "isometric"],
+    "movers": ["quads", "glutes"],
+    "focus": ["quads endurance"],
+    "equipment": "bodyweight, wall",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lean your back against a wall and slide down until your knees are bent at a 90-degree angle, as if sitting in an invisible chair. Hold this position for time, keeping your core engaged and feet flat on the floor.",
+    "effectiveness": 6,
+    "technicality": 2,
+    "fatigue": 5
+  },
+  "leg_extension": {
+    "name": "Leg Extension",
+    "categories": ["legs", "isolation"],
+    "movers": ["quads"],
+    "focus": ["quads"],
+    "equipment": "machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit on a leg extension machine with your shins under the padded lever. Extend your legs straight out, contracting your quads at the top. Slowly lower the weight back to the starting position.",
+    "effectiveness": 8,
+    "technicality": 2,
+    "fatigue": 6
+  },
+  "sled_push": {
+    "name": "Sled Push",
+    "categories": ["legs", "compound", "conditioning"],
+    "movers": ["quads", "glutes", "hamstrings", "calves", "core"],
+    "focus": ["quads", "conditioning"],
+    "equipment": "sled",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Load a sled with weight and grip the handles. Lean into the sled and push it forward using short, powerful steps, driving through your legs.",
+    "effectiveness": 8,
+    "technicality": 3,
+    "fatigue": 9
+  },
+  "sled_pull_forward": {
+    "name": "Sled Pull (Forward)",
+    "categories": ["legs", "compound", "conditioning"],
+    "movers": ["quads", "glutes", "hamstrings", "calves", "core"],
+    "focus": ["quads", "conditioning"],
+    "equipment": "sled",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Attach a harness or rope to a sled. Walk forward, pulling the sled behind you with strong, deliberate steps, engaging your legs and core.",
+    "effectiveness": 7,
+    "technicality": 3,
+    "fatigue": 8
+  },
+  "kettlebell_goblet_squat": {
+    "name": "Kettlebell Goblet Squat",
+    "categories": ["legs", "compound"],
+    "movers": ["quads", "glutes", "hamstrings", "core"],
+    "focus": ["quads", "squat form"],
+    "equipment": "kettlebell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold a kettlebell by the horns against your chest. Stand with feet shoulder-width apart, toes slightly out. Squat down, keeping your chest up and elbows inside your knees, then drive back up.",
+    "effectiveness": 8,
+    "technicality": 5,
+    "fatigue": 6
+  },
+  "zercher_squat": {
+    "name": "Zercher Squat",
+    "categories": ["legs", "compound"],
+    "movers": ["quads", "glutes", "hamstrings", "biceps", "upper-back", "core"],
+    "focus": ["quads", "core", "upper back strength"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Cradle a barbell in the crook of your elbows, holding it against your torso. Perform a squat, keeping your chest up and core tight. Drive through your heels to return to the starting position.",
+    "effectiveness": 7,
+    "technicality": 8,
+    "fatigue": 7
+  },
+  "high_bar_squat": {
+    "name": "High Bar Squat",
+    "categories": ["legs", "compound", "olympic style"],
+    "movers": ["quads", "glutes", "hamstrings", "core"],
+    "focus": ["quads"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Place the barbell high on your trapezius muscles. Maintain a relatively upright torso as you descend into a squat, focusing on knee flexion to target the quads. Drive through your midfoot to stand.",
+    "effectiveness": 9,
+    "technicality": 8,
+    "fatigue": 9
+  },
+  "low_bar_squat": {
+    "name": "Low Bar Squat",
+    "categories": ["legs", "compound", "powerlifting style"],
+    "movers": ["glutes", "hamstrings", "quads", "lowback"],
+    "focus": ["glutes", "hamstrings", "quads"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Place the barbell lower on your rear deltoids. Hinge at the hips more and lean forward slightly as you descend, focusing on hip drive to engage the posterior chain more, while still heavily involving the quads.",
+    "effectiveness": 9,
+    "technicality": 8,
+    "fatigue": 9
+  },
+  "pause_squat": {
+    "name": "Pause Squat",
+    "categories": ["legs", "compound", "strength"],
+    "movers": ["quads", "glutes", "hamstrings", "core"],
+    "focus": ["strength development", "quads tension"],
+    "equipment": "barbell, dumbbell, bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform a regular squat, but pause at the bottom position (typically for 2-3 seconds) before driving back up. This eliminates the stretch reflex and builds strength in the hole.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 8
+  },
+  "tempo_squat": {
+    "name": "Tempo Squat",
+    "categories": ["legs", "compound", "strength"],
+    "movers": ["quads", "glutes", "hamstrings", "core"],
+    "focus": ["muscle control", "time under tension", "quads"],
+    "equipment": "barbell, dumbbell, bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform a squat using a controlled tempo, e.g., a 3-second eccentric (lowering phase), a 1-second pause at the bottom, and a 2-second concentric (lifting phase). This increases time under tension.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 8
+  },
+  "jump_squat": {
+    "name": "Jump Squat",
+    "categories": ["legs", "plyometric", "compound"],
+    "movers": ["quads", "glutes", "hamstrings", "calves"],
+    "focus": ["explosive power", "quads"],
+    "equipment": "bodyweight, light dumbbell/barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform a regular squat, but explode upwards at the bottom, jumping off the ground. Land softly with bent knees to absorb the impact, then immediately go into the next repetition.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "cyclist_squat": {
+    "name": "Cyclist Squat",
+    "categories": ["legs", "compound", "quad focus"],
+    "movers": ["quads", "glutes"],
+    "focus": ["vastus medialis (VMO)", "quads"],
+    "equipment": "barbell, bodyweight, plate under heels",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Elevate your heels on a small plate or wedges. Stand with a narrow to shoulder-width stance. Perform a squat with a very upright torso, allowing your knees to track far over your toes, emphasizing quadriceps activation.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "heels_elevated_squat": {
+    "name": "Heels Elevated Squat",
+    "categories": ["legs", "compound", "quad focus"],
+    "movers": ["quads", "glutes", "calves"],
+    "focus": ["quads", "ankle mobility"],
+    "equipment": "barbell, dumbbell, bodyweight, plate under heels",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Place small plates or a wedge under your heels. This allows for a deeper squat with a more upright torso, increasing quad involvement and reducing ankle mobility demands.",
+    "effectiveness": 8,
+    "technicality": 5,
+    "fatigue": 7
+  },
+  "spanish_squat": {
+    "name": "Spanish Squat",
+    "categories": ["legs", "isolation", "rehab"],
+    "movers": ["quads"],
+    "focus": ["quads (patellar tendon loading)"],
+    "equipment": "resistance band, pole",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Anchor a strong resistance band around a sturdy pole or rack at knee height. Place the band just above your knees. Lean back slightly, keeping your torso upright, and lower into a squat, focusing on pushing your knees forward against the band.",
+    "effectiveness": 6,
+    "technicality": 6,
+    "fatigue": 5
+  },
+  "band_resisted_squat": {
+    "name": "Band Resisted Squat",
+    "categories": ["legs", "compound", "resistance"],
+    "movers": ["quads", "glutes", "hamstrings"],
+    "focus": ["quads", "glute activation"],
+    "equipment": "resistance band",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Place a resistance band just above your knees or around your hips (anchored). Perform a squat, pushing against the band's resistance. This helps activate glutes and can improve knee tracking.",
+    "effectiveness": 7,
+    "technicality": 5,
+    "fatigue": 6
+  },
+  "trx_squat": {
+    "name": "TRX Squat",
+    "categories": ["legs", "compound", "bodyweight"],
+    "movers": ["quads", "glutes", "hamstrings", "core"],
+    "focus": ["quads", "squat form", "assistance"],
+    "equipment": "TRX suspension trainer",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold the TRX handles with arms extended forward. Lean back slightly, using the TRX for balance and assistance. Perform a squat, going as deep as comfortable, then pull yourself back up.",
+    "effectiveness": 6,
+    "technicality": 4,
+    "fatigue": 4
+  },
+  "smith_machine_squat": {
+    "name": "Smith Machine Squat",
+    "categories": ["legs", "compound"],
+    "movers": ["quads", "glutes", "hamstrings"],
+    "focus": ["quads"],
+    "equipment": "Smith machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Position yourself in a Smith machine with the bar on your shoulders. Unrack the bar and perform a squat along the fixed vertical path. This allows for focus on quad isolation due to the fixed movement.",
+    "effectiveness": 7,
+    "technicality": 3,
+    "fatigue": 6
+  },
+  "adductor_machine": {
+    "name": "Adductor Machine",
+    "categories": ["inner thigh", "isolation"],
+    "movers": ["adductors", "quads"],
+    "focus": ["adductors"],
+    "equipment": "machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit on the adductor machine with your legs against the pads. Squeeze your legs together against the resistance, then slowly return to the starting position. While primarily for adductors, quads act as stabilizers.",
+    "effectiveness": 4,
+    "technicality": 2,
+    "fatigue": 3
+  },
+  "hip_sled": {
+    "name": "Hip Sled",
+    "categories": ["legs", "compound"],
+    "movers": ["quads", "glutes", "hamstrings"],
+    "focus": ["quads", "glutes"],
+    "equipment": "machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Similar to a leg press, but often with a more vertical or angled path. Load the weight and push the platform away from you using your legs, then control the descent.",
+    "effectiveness": 8,
+    "technicality": 3,
+    "fatigue": 7
+  },
+  "belt_squat": {
+    "name": "Belt Squat",
+    "categories": ["legs", "compound"],
+    "movers": ["quads", "glutes", "hamstrings"],
+    "focus": ["quads", "glutes", "spinal decompression"],
+    "equipment": "belt squat machine, dip belt with plates",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Attach a weight to a belt around your waist, allowing the load to be pulled from below. Perform a squat without direct spinal loading, allowing for a strong focus on the legs.",
+    "effectiveness": 8,
+    "technicality": 4,
+    "fatigue": 7
+  },
+  "lateral_lunges": {
+    "name": "Lateral Lunges",
+    "categories": ["legs", "compound", "unilateral"],
+    "movers": ["quads", "glutes", "adductors", "hamstrings"],
+    "focus": ["inner thigh", "quads"],
+    "equipment": "bodyweight, dumbbell, kettlebell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Step out to the side with one leg, keeping the other leg straight. Lower your hips down and back over the bent knee, keeping your chest up. Push off the bent leg to return to the starting position.",
+    "effectiveness": 6,
+    "technicality": 6,
+    "fatigue": 5
+  },
+  "curtsy_lunges": {
+    "name": "Curtsy Lunges",
+    "categories": ["legs", "compound", "unilateral"],
+    "movers": ["glutes", "quads", "abductors"],
+    "focus": ["glutes", "quads"],
+    "equipment": "bodyweight, dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Step one leg diagonally behind the other, as if curtsying, lowering your hips until both knees are bent. Keep your torso upright. Push through the front heel to return to the starting position.",
+    "effectiveness": 6,
+    "technicality": 6,
+    "fatigue": 5
+  },
+  "stationary_split_squat": {
+    "name": "Stationary Split Squat",
+    "categories": ["legs", "compound", "unilateral"],
+    "movers": ["quads", "glutes", "hamstrings"],
+    "focus": ["quads", "glutes"],
+    "equipment": "bodyweight, dumbbell, barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Assume a lunge stance, with one foot forward and one back. Lower your hips straight down, keeping your torso upright, until both knees are bent. Push through the front heel to return to the top of the split stance.",
+    "effectiveness": 7,
+    "technicality": 5,
+    "fatigue": 6
+  },
+  "single_leg_press": {
+    "name": "Single-Leg Press",
+    "categories": ["legs", "compound", "unilateral"],
+    "movers": ["quads", "glutes", "hamstrings"],
+    "focus": ["quads", "muscle imbalances"],
+    "equipment": "leg press machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform a leg press using only one leg at a time. This helps address strength imbalances and increases unilateral leg strength.",
+    "effectiveness": 8,
+    "technicality": 4,
+    "fatigue": 6
+  },
+  "single_leg_wall_sit": {
+    "name": "Single-Leg Wall Sit",
+    "categories": ["legs", "isometric", "unilateral"],
+    "movers": ["quads", "glutes", "hamstrings"],
+    "focus": ["quads endurance", "unilateral strength"],
+    "equipment": "bodyweight, wall",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lean your back against a wall and slide down until one knee is bent at a 90-degree angle, with the other leg extended straight out. Hold this position for time, keeping your core engaged.",
+    "effectiveness": 6,
+    "technicality": 3,
+    "fatigue": 5
+  },
+  "kneeling_squat": {
+    "name": "Kneeling Squat",
+    "categories": ["legs", "compound", "quad focus"],
+    "movers": ["quads", "glutes", "hamstrings"],
+    "focus": ["quads (top range), glutes"],
+    "equipment": "barbell, bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Start on your knees with a barbell on your upper back or hands behind your head. Sit back onto your heels or lower your hips as far as possible, then drive through your quads and glutes to return to the kneeling upright position.",
+    "effectiveness": 6,
+    "technicality": 7,
+    "fatigue": 6
+  },
+  "prowler_push": {
+    "name": "Prowler Push",
+    "categories": ["legs", "compound", "conditioning"],
+    "movers": ["quads", "glutes", "hamstrings", "calves", "core"],
+    "focus": ["quads", "conditioning"],
+    "equipment": "prowler sled",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Similar to a sled push, the prowler is a type of sled with upright handles. Push it forward with strong leg drives, engaging your entire lower body.",
+    "effectiveness": 8,
+    "technicality": 3,
+    "fatigue": 9
+  },
+  "reverse_nordic_curl": {
+    "name": "Reverse Nordic Curl",
+    "categories": ["quads", "eccentric", "bodyweight"],
+    "movers": ["quads", "hip-flexors"],
+    "focus": ["quads (eccentric strength)"],
+    "equipment": "bodyweight, padded surface",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Kneel on a padded surface, keeping your torso straight and hips extended. Slowly lean back, controlling the movement with your quads, until your body is nearly parallel to the floor. Use your quads to pull yourself back up, or use your hands for assistance.",
+    "effectiveness": 7,
+    "technicality": 8,
+    "fatigue": 7
+  },
+  "copenhagen_adduction": {
+    "name": "Copenhagen Adduction",
+    "categories": ["inner thigh", "core", "unilateral"],
+    "movers": ["adductors", "obliques", "quads", "hamstrings", "glutes"],
+    "focus": ["adductors", "core"],
+    "equipment": "bench, partner",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on your side with your top leg supported on a bench or by a partner. Lift your bottom leg to meet the top leg, squeezing your adductors. While primarily for adductors, the stabilizing leg's quad is engaged.",
+    "effectiveness": 5,
+    "technicality": 7,
+    "fatigue": 4
+  },
+  "depth_jumps": {
+    "name": "Depth Jumps",
+    "categories": ["legs", "plyometric", "advanced"],
+    "movers": ["quads", "glutes", "hamstrings", "calves"],
+    "focus": ["reactive strength", "explosive power"],
+    "equipment": "box",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand on a low box, step off and land softly, immediately exploding upwards for a maximum vertical jump. This exercise is for advanced athletes to improve reactive strength.",
+    "effectiveness": 8,
+    "technicality": 9,
+    "fatigue": 9
+  },
+  "broad_jumps": {
+    "name": "Broad Jumps",
+    "categories": ["legs", "plyometric"],
+    "movers": ["quads", "glutes", "hamstrings", "calves"],
+    "focus": ["horizontal power", "quads"],
+    "equipment": "bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand with feet shoulder-width apart. Swing your arms back and bend your knees, then explode forward and horizontally as far as possible. Land softly with bent knees.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "tuck_jumps": {
+    "name": "Tuck Jumps",
+    "categories": ["legs", "plyometric"],
+    "movers": ["quads", "glutes", "hamstrings", "hip-flexors"],
+    "focus": ["vertical power", "quads"],
+    "equipment": "bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand with feet shoulder-width apart. Squat down slightly, then explode upwards, driving your knees towards your chest. Land softly with bent knees and immediately prepare for the next jump.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "skater_squats": {
+    "name": "Skater Squats",
+    "categories": ["legs", "unilateral", "bodyweight"],
+    "movers": ["quads", "glutes", "hamstrings", "core"],
+    "focus": ["quads", "balance", "unilateral strength"],
+    "equipment": "bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand on one leg. Extend the other leg straight back, bending your standing knee and allowing the back knee to gently tap the ground behind you, similar to a single-leg squat. Push through the standing heel to return upright.",
+    "effectiveness": 7,
+    "technicality": 7,
+    "fatigue": 6
+  },
+  "overhead_squat": {
+    "name": "Overhead Squat",
+    "categories": ["legs", "compound", "full body"],
+    "movers": ["quads", "glutes", "hamstrings", "shoulders", "core", "upper-back", "lowback"],
+    "focus": ["quads", "mobility", "core stability"],
+    "equipment": "barbell, PVC pipe",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold a barbell overhead with a wide grip, arms locked out. Descend into a deep squat, maintaining the barbell directly over your midfoot and keeping your chest up. Drive through your feet to stand back up. This exercise demands high mobility and stability.",
+    "effectiveness": 8,
+    "technicality": 10,
+    "fatigue": 9
+  },
+  "barbell_good_mornings": {
+    "name": "Barbell Good Mornings",
+    "categories": ["hamstrings", "glutes", "lowback", "compound"],
+    "movers": ["hamstrings", "glutes", "lowback"],
+    "focus": ["hamstrings", "lower back strength"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Place a barbell across your upper back, similar to a high-bar squat. Keeping a slight bend in your knees, hinge forward at your hips, lowering your torso until it's roughly parallel to the floor or as far as your flexibility allows while maintaining a straight back. Drive through your hips and hamstrings to return to the upright position.",
+    "effectiveness": 8,
+    "technicality": 9,
+    "fatigue": 8
+  },
+  "lying_leg_curl": {
+    "name": "Lying Leg Curl",
+    "categories": ["hamstrings", "isolation"],
+    "movers": ["hamstrings"],
+    "focus": ["hamstrings"],
+    "equipment": "machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie face down on a leg curl machine with your ankles hooked under the padded lever. Curl your heels towards your glutes, squeezing your hamstrings at the top of the movement. Slowly lower the weight back to the starting position.",
+    "effectiveness": 8,
+    "technicality": 3,
+    "fatigue": 6
+  },
+  "seated_leg_curl": {
+    "name": "Seated Leg Curl",
+    "categories": ["hamstrings", "isolation"],
+    "movers": ["hamstrings"],
+    "focus": ["hamstrings"],
+    "equipment": "machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit on a seated leg curl machine with your knees aligned with the pivot point and your shins against the padded lever. Curl your heels towards your glutes, contracting your hamstrings. Slowly release the weight back to the starting position.",
+    "effectiveness": 8,
+    "technicality": 3,
+    "fatigue": 6
+  },
+  "standing_leg_curl": {
+    "name": "Standing Leg Curl",
+    "categories": ["hamstrings", "isolation", "unilateral"],
+    "movers": ["hamstrings"],
+    "focus": ["hamstrings", "unilateral strength"],
+    "equipment": "machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand on a standing leg curl machine with one leg hooked under the pad. Curl your heel towards your glute, focusing on the hamstring contraction. Control the eccentric phase as you return to the start. Complete reps on one side before switching.",
+    "effectiveness": 7,
+    "technicality": 4,
+    "fatigue": 5
+  },
+  "nordic_hamstring_curl": {
+    "name": "Nordic Hamstring Curl",
+    "categories": ["hamstrings", "bodyweight", "eccentric"],
+    "movers": ["hamstrings", "glutes"],
+    "focus": ["hamstrings (eccentric strength)"],
+    "equipment": "bodyweight, anchor point (e.g., partner, GHD machine)",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Kneel on a padded surface with your ankles secured (by a partner or under a GHD pad). Keeping your body in a straight line from knees to head, slowly lower your torso towards the floor, resisting the movement with your hamstrings. Push off with your hands or use your hamstrings to return to the starting position. Focus on the controlled descent.",
+    "effectiveness": 9,
+    "technicality": 9,
+    "fatigue": 9
+  },
+  "deficit_deadlift": {
+    "name": "Deficit Deadlift",
+    "categories": ["hamstrings", "glutes", "compound", "strength"],
+    "movers": ["hamstrings", "glutes", "lowback", "quads"],
+    "focus": ["hamstrings", "glutes", "starting strength"],
+    "equipment": "barbell, elevated platform",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand on an elevated surface (e.g., a mat, plates) while performing a conventional or sumo deadlift. This increases the range of motion, placing more stretch and demand on the hamstrings and glutes at the bottom of the lift.",
+    "effectiveness": 9,
+    "technicality": 9,
+    "fatigue": 9
+  },
+  "rack_pulls": {
+    "name": "Rack Pulls",
+    "categories": ["posterior-chain", "strength", "compound"],
+    "movers": ["hamstrings", "glutes", "lowback", "traps"],
+    "focus": ["posterior chain lockout strength"],
+    "equipment": "barbell, power rack",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Set the pins in a power rack so the barbell is elevated to a desired height (e.g., just below or at knee level). Perform a deadlift from this elevated position, focusing on hip extension and pulling the weight up. This allows for heavier loads and targets specific ranges of motion.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 8
+  },
+  "snatch_grip_deadlift": {
+    "name": "Snatch Grip Deadlift",
+    "categories": ["posterior-chain", "strength", "compound"],
+    "movers": ["hamstrings", "glutes", "lowback", "traps", "upper-back"],
+    "focus": ["hamstrings", "upper back strength", "mobility"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform a deadlift using a very wide grip on the barbell (like a snatch grip). This forces a deeper starting position, increasing the range of motion and placing significant demand on the hamstrings and upper back.",
+    "effectiveness": 8,
+    "technicality": 9,
+    "fatigue": 9
+  },
+  "glute_bridge_walkouts": {
+    "name": "Glute Bridge Walkouts",
+    "categories": ["hamstrings", "glutes", "bodyweight"],
+    "movers": ["hamstrings", "glutes", "core"],
+    "focus": ["hamstrings", "glutes"],
+    "equipment": "bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on your back with knees bent and feet flat. Lift your hips into a glute bridge. While keeping your hips elevated, slowly walk your feet out a few steps, extending your legs, then walk them back in, maintaining hip elevation throughout the movement.",
+    "effectiveness": 6,
+    "technicality": 5,
+    "fatigue": 5
+  },
+  "reverse_sled_drag": {
+    "name": "Reverse Sled Drag",
+    "categories": ["quads", "hamstrings", "conditioning"],
+    "movers": ["quads", "hamstrings", "glutes", "calves"],
+    "focus": ["quads", "hamstrings (eccentric)"],
+    "equipment": "sled, harness/rope",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Attach a harness or rope to a sled. Face the sled and walk backward, dragging the sled behind you. This movement heavily loads the quads eccentrically and trains hamstrings and glutes in a unique way.",
+    "effectiveness": 7,
+    "technicality": 3,
+    "fatigue": 8
+  },
+  "kneeling_cable_pull_through": {
+    "name": "Kneeling Cable Pull-Through",
+    "categories": ["hamstrings", "glutes", "hip hinge"],
+    "movers": ["hamstrings", "glutes"],
+    "focus": ["hip hinge mechanics", "glute isolation"],
+    "equipment": "cable machine, rope attachment",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Kneel facing away from a low cable pulley with a rope attachment between your legs. Hinge at your hips, pushing your glutes back. Drive through your hips and squeeze your glutes to pull the rope forward and return to the kneeling upright position.",
+    "effectiveness": 6,
+    "technicality": 5,
+    "fatigue": 5
+  },
+  "band_pull_through": {
+    "name": "Band Pull-Through",
+    "categories": ["hamstrings", "glutes", "hip hinge"],
+    "movers": ["hamstrings", "glutes"],
+    "focus": ["hip hinge mechanics", "hamstrings", "glutes"],
+    "equipment": "resistance band",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Anchor a resistance band to a low, sturdy object. Stand facing away from the anchor point with the band between your legs. Take a few steps forward to create tension. Perform a hip hinge by pushing your glutes back, then drive your hips forward to stand upright, squeezing your glutes.",
+    "effectiveness": 6,
+    "technicality": 4,
+    "fatigue": 5
+  },
+  "prowler_push_backward": {
+    "name": "Prowler Push (Backward)",
+    "categories": ["quads", "hamstrings", "conditioning"],
+    "movers": ["quads", "hamstrings", "glutes", "calves"],
+    "focus": ["quads", "hamstrings (eccentric)", "conditioning"],
+    "equipment": "prowler sled",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand facing the handles of a prowler sled. Grip the handles and push the sled backward, driving through your legs with powerful steps. This emphasizes the eccentric loading on the hamstrings and concentric work on the quads.",
+    "effectiveness": 7,
+    "technicality": 3,
+    "fatigue": 8
+  },
+  "45_degree_hyperextension": {
+    "name": "45-Degree Hyperextension (Hamstring Focus)",
+    "categories": ["hamstrings", "glutes", "lowback", "isolation"],
+    "movers": ["hamstrings", "glutes", "erector-spinae"],
+    "focus": ["hamstrings", "glutes"],
+    "equipment": "45-degree hyperextension bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Position yourself on a 45-degree hyperextension bench with your hips at the pivot point and ankles secured. Keep your legs relatively straight (slight knee bend) and round your upper back slightly. Lower your torso down, feeling a stretch in your hamstrings. Use your hamstrings and glutes to pull your torso back up, avoiding excessive arching of the lower back.",
+    "effectiveness": 7,
+    "technicality": 5,
+    "fatigue": 6
+  },
+  "goblet_rdl": {
+    "name": "Goblet RDL",
+    "categories": ["hamstrings", "glutes", "compound"],
+    "movers": ["hamstrings", "glutes", "lowback"],
+    "focus": ["hamstrings", "glutes", "hip hinge mechanics"],
+    "equipment": "dumbbell, kettlebell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold a dumbbell or kettlebell vertically against your chest (goblet style). Keep a slight bend in your knees and hinge at your hips, pushing them back as you lower your torso towards the floor, maintaining a straight back. Feel the stretch in your hamstrings, then squeeze your glutes and hamstrings to return to the standing position.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "dumbbell_sumo_deadlift": {
+    "name": "Dumbbell Sumo Deadlift",
+    "categories": ["hamstrings", "glutes", "compound"],
+    "movers": ["glutes", "hamstrings", "quads", "adductors"],
+    "focus": ["glutes", "hamstrings"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Place a heavy dumbbell on the floor. Stand over it with a wide sumo stance, toes pointed out. Squat down to grasp the dumbbell with both hands. Drive through your heels, extending your hips and knees to stand up, keeping your chest up and back straight. Lower with control.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "trap_bar_deadlift": {
+    "name": "Trap Bar Deadlift",
+    "categories": ["hamstrings", "glutes", "quads", "compound", "strength"],
+    "movers": ["quads", "hamstrings", "glutes", "lowback", "traps"],
+    "focus": ["overall leg strength", "hamstrings", "quads"],
+    "equipment": "trap bar",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand inside a trap bar with your feet hip-width apart. Hinge at your hips and bend your knees to grasp the handles. Keeping your chest up and back straight, drive through your heels to stand up, extending your hips and knees simultaneously. Lower with control.",
+    "effectiveness": 9,
+    "technicality": 7,
+    "fatigue": 9
+  },
+  "assisted_nordic_hamstring_curl": {
+    "name": "Assisted Nordic Hamstring Curl",
+    "categories": ["hamstrings", "bodyweight", "eccentric"],
+    "movers": ["hamstrings", "glutes"],
+    "focus": ["hamstrings (eccentric strength)"],
+    "equipment": "resistance band, partner",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform a Nordic Hamstring Curl, but use a resistance band pulled around your chest/shoulders for assistance, or have a partner lightly push your back. This helps you control the eccentric phase and gradually build strength for unassisted reps.",
+    "effectiveness": 8,
+    "technicality": 8,
+    "fatigue": 8
+  },
+  "ghd_hip_extension": {
+    "name": "GHD Hip Extension",
+    "categories": ["glutes", "hamstrings", "posterior-chain", "compound"],
+    "movers": ["glutes", "hamstrings"],
+    "focus": ["glutes", "hip extension", "hamstrings"],
+    "equipment": "GHD machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Position yourself on a GHD machine with your hips just above the pad and feet secured. Keeping your legs straight, lower your torso downwards by hinging at your hips. Drive through your glutes and hamstrings to extend your hips and bring your torso back up to horizontal.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 7
+  },
+  "ghd_back_extension_hamstring_focus": {
+    "name": "GHD Back Extension (Hamstring Focus)",
+    "categories": ["hamstrings", "lowback", "glutes", "isolation"],
+    "movers": ["hamstrings", "glutes", "erector-spinae"],
+    "focus": ["hamstrings", "spinal mobility"],
+    "equipment": "GHD machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Position yourself on a GHD machine with your hips above the pad and feet secured. Round your upper back and lower your torso down, allowing for significant hamstring stretch. Pull yourself back up by extending your hips and using your hamstrings and lower back, focusing on the movement through the spine.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "cable_standing_leg_curl": {
+    "name": "Cable Standing Leg Curl",
+    "categories": ["hamstrings", "isolation", "unilateral"],
+    "movers": ["hamstrings"],
+    "focus": ["hamstrings"],
+    "equipment": "cable machine, ankle strap",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Attach an ankle strap to a low cable pulley and secure it to one ankle. Step back slightly to create tension. Keeping your torso upright and knee relatively fixed, curl your heel towards your glute, squeezing your hamstring. Control the return to the start.",
+    "effectiveness": 7,
+    "technicality": 4,
+    "fatigue": 5
+  },
+  "resistance_band_standing_leg_curl": {
+    "name": "Resistance Band Standing Leg Curl",
+    "categories": ["hamstrings", "isolation", "unilateral"],
+    "movers": ["hamstrings"],
+    "focus": ["hamstrings"],
+    "equipment": "resistance band, anchor point",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Anchor a resistance band to a low, sturdy object. Loop the other end around one ankle. Step back to create tension. Keeping your torso upright, curl your heel towards your glute, squeezing your hamstring. Control the return to the start. Complete reps on one side before switching.",
+    "effectiveness": 6,
+    "technicality": 4,
+    "fatigue": 4
+  },
+  "seated_band_hamstring_curl": {
+    "name": "Seated Band Hamstring Curl",
+    "categories": ["hamstrings", "isolation"],
+    "movers": ["hamstrings"],
+    "focus": ["hamstrings"],
+    "equipment": "resistance band, sturdy anchor",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit on the floor with legs extended. Loop a resistance band around your ankles and anchor the other end to a sturdy object in front of you. Bend your knees, pulling your heels towards your glutes against the band's resistance. Extend legs to return to the start.",
+    "effectiveness": 5,
+    "technicality": 3,
+    "fatigue": 4
+  },
+  "dumbbell_good_morning": {
+    "name": "Dumbbell Good Morning",
+    "categories": ["hamstrings", "glutes", "lowback", "compound"],
+    "movers": ["hamstrings", "glutes", "lowback"],
+    "focus": ["hamstrings", "hip hinge mechanics"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold a dumbbell horizontally against your upper chest or behind your head. Keeping a slight bend in your knees, hinge forward at your hips, lowering your torso towards the floor, maintaining a straight back. Drive through your hips and hamstrings to return to the upright position.",
+    "effectiveness": 7,
+    "technicality": 7,
+    "fatigue": 6
+  },
+  "kettlebell_good_morning": {
+    "name": "Kettlebell Good Morning",
+    "categories": ["hamstrings", "glutes", "lowback", "compound"],
+    "movers": ["hamstrings", "glutes", "lowback"],
+    "focus": ["hamstrings", "hip hinge mechanics"],
+    "equipment": "kettlebell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold a kettlebell against your upper chest (goblet style) or by the horns. Keeping a slight bend in your knees, hinge forward at your hips, lowering your torso towards the floor, maintaining a straight back. Drive through your hips and hamstrings to return to the upright position.",
+    "effectiveness": 7,
+    "technicality": 7,
+    "fatigue": 6
+  },
+  "single_leg_stiff_leg_deadlift": {
+    "name": "Single-Leg Stiff-Leg Deadlift",
+    "categories": ["hamstrings", "glutes", "unilateral", "balance"],
+    "movers": ["hamstrings", "glutes", "lowback", "core"],
+    "focus": ["hamstrings", "glutes", "balance"],
+    "equipment": "bodyweight, light dumbbell/kettlebell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand on one leg, keeping it as straight as possible (slight knee bend). Hinge at your hip, allowing your torso to lean forward and your non-standing leg to extend straight back. Focus on the stretch in the hamstring of the standing leg. Return to upright using your hamstring and glute.",
+    "effectiveness": 7,
+    "technicality": 8,
+    "fatigue": 6
+  },
+  "bulgarian_split_squat_hamstring_focus": {
+    "name": "Bulgarian Split Squat (Hamstring Focus)",
+    "categories": ["hamstrings", "quads", "glutes", "unilateral"],
+    "movers": ["hamstrings", "glutes", "quads"],
+    "focus": ["hamstrings", "glutes"],
+    "equipment": "dumbbell, barbell, bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Place one foot behind you on a bench. Take a longer stride forward with your front foot than typical. As you descend, emphasize hinging at the hip of the front leg and sitting back, allowing for a greater stretch and activation of the hamstrings and glutes.",
+    "effectiveness": 7,
+    "technicality": 7,
+    "fatigue": 7
+  },
+  "reverse_lunge_hamstring_focus": {
+    "name": "Reverse Lunge (Hamstring Focus)",
+    "categories": ["hamstrings", "quads", "glutes", "unilateral"],
+    "movers": ["hamstrings", "glutes", "quads"],
+    "focus": ["hamstrings", "glutes"],
+    "equipment": "bodyweight, dumbbell, barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Step backward into a lunge, but take a slightly longer stride than usual. As you descend, focus on hinging at the hip of the front leg and sitting back slightly more, emphasizing the stretch and activation in the front leg's hamstring and glute. Push through the heel of the front foot to return to standing.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "walking_lunges_hamstring_focus": {
+    "name": "Walking Lunges (Hamstring Focus)",
+    "categories": ["hamstrings", "quads", "glutes", "unilateral"],
+    "movers": ["hamstrings", "glutes", "quads"],
+    "focus": ["hamstrings", "glutes"],
+    "equipment": "bodyweight, dumbbell, barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform walking lunges with a slightly longer stride than usual. As you step forward and descend, emphasize hinging at the hip of the lead leg and sitting back to engage the hamstrings and glutes more effectively.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "stair_climber_step_mill": {
+    "name": "Stair Climber/Step Mill",
+    "categories": ["cardio", "legs", "conditioning"],
+    "movers": ["quads", "glutes", "hamstrings", "calves"],
+    "focus": ["quads", "glutes", "hamstrings"],
+    "equipment": "stair climber machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Walk or run on a stair climber machine. To emphasize hamstrings, focus on pushing through your heels rather than just pushing off the balls of your feet, and maintain a slight hip hinge.",
+    "effectiveness": 6,
+    "technicality": 3,
+    "fatigue": 7
+  },
+  "hill_sprints": {
+    "name": "Hill Sprints",
+    "categories": ["cardio", "legs", "power", "conditioning"],
+    "movers": ["hamstrings", "glutes", "quads", "calves"],
+    "focus": ["explosive power", "hamstrings", "glutes"],
+    "equipment": "outdoor hill",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sprint uphill as fast as possible. The incline increases the demand on the hamstrings and glutes for powerful hip extension and knee flexion during each stride, while reducing impact on joints.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 9
+  },
+  "sprints": {
+    "name": "Sprints",
+    "categories": ["cardio", "legs", "power", "conditioning"],
+    "movers": ["hamstrings", "quads", "glutes", "calves"],
+    "focus": ["explosive power", "hamstrings (eccentric loading)"],
+    "equipment": "track, open field",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Run at maximum speed over a short distance. Sprints heavily engage the hamstrings, particularly eccentrically, as they work to decelerate the lower leg before foot strike and powerfully extend the hip.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 10
+  },
+  "eccentric_hamstring_slides": {
+    "name": "Eccentric Hamstring Slides",
+    "categories": ["hamstrings", "eccentric", "isolation"],
+    "movers": ["hamstrings", "glutes", "core"],
+    "focus": ["hamstrings (eccentric strength)"],
+    "equipment": "hamstring slide machine, floor slides",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Similar to stability ball or slider curls but often with a dedicated machine. Lie on your back with feet on the sliding pads. Push your feet out to extend your legs, then slowly and with control, curl them back in using your hamstrings, maintaining hip elevation.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "single_leg_squat_to_bench": {
+    "name": "Single-Leg Squat to Bench (Hamstring Focus)",
+    "categories": ["hamstrings", "glutes", "quads", "unilateral"],
+    "movers": ["hamstrings", "glutes", "quads", "core"],
+    "focus": ["hamstrings", "glutes", "balance"],
+    "equipment": "bench, box",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand on one leg facing a bench or box behind you. Slowly lower yourself by hinging at your hip and bending your knee until your glutes lightly touch the bench. Keep your torso slightly leaned forward to emphasize the hip hinge and hamstring stretch. Drive through your heel to stand back up.",
+    "effectiveness": 6,
+    "technicality": 7,
+    "fatigue": 6
+  },
+  "weighted_glute_bridge": {
+    "name": "Weighted Glute Bridge",
+    "categories": ["glutes", "hamstrings", "compound"],
+    "movers": ["glutes", "hamstrings", "lowback"],
+    "focus": ["glutes", "hamstrings (with specific foot placement)"],
+    "equipment": "barbell, dumbbell, plate",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on your back with knees bent and feet flat, placing a barbell, dumbbell, or plate across your hips. Drive through your heels, lifting your hips off the ground until your body forms a straight line from shoulders to knees. Squeeze your glutes. For more hamstring activation, place your feet further away from your glutes.",
+    "effectiveness": 7,
+    "technicality": 3,
+    "fatigue": 5
+  },
+  "barbell_hip_thrust": {
+    "name": "Barbell Hip Thrust",
+    "categories": ["glutes", "compound", "strength"],
+    "movers": ["glutes", "hamstrings"],
+    "focus": ["gluteus maximus", "gluteus medius"],
+    "equipment": "barbell, bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit with your upper back against a bench and a barbell across your hips (use a pad!). Place your feet flat on the floor, slightly wider than shoulder-width, knees bent. Drive through your heels, extending your hips upwards until your body forms a straight line from shoulders to knees. Squeeze your glutes hard at the top. Slowly lower back down.",
+    "effectiveness": 10,
+    "technicality": 7,
+    "fatigue": 9
+  },
+  "barbell_romanian_deadlift": {
+    "name": "Barbell Romanian Deadlift (RDL)",
+    "categories": ["hamstrings", "glutes", "compound", "posterior chain"],
+    "movers": ["hams", "glutes", "lowback"],
+    "focus": ["gluteus maximus", "hamstrings"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold a barbell with an overhand grip, hands just outside your thighs. Keeping a slight bend in your knees, hinge at your hips, pushing them back as you lower the barbell towards the floor. Keep your back straight and the bar close to your legs. Feel the stretch in your hamstrings, then squeeze your glutes and hamstrings to return to the standing position.",
+    "effectiveness": 9,
+    "technicality": 8,
+    "fatigue": 9
+  },
+  "barbell_back_squat": {
+    "name": "Barbell Back Squat",
+    "categories": ["quads", "glutes", "compound", "strength"],
+    "movers": ["quads", "glutes", "hams", "lowback"],
+    "focus": ["gluteus maximus", "quads"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Place a barbell across your upper back. Stand with feet shoulder-width apart, toes slightly out. Keeping your chest up and back straight, descend by bending your knees and hinging at your hips, as if sitting into a chair. Go as deep as comfortable, then drive through your heels to return to the starting position, squeezing your glutes.",
+    "effectiveness": 9,
+    "technicality": 8,
+    "fatigue": 9
+  },
+  "bulgarian_split_squat": {
+    "name": "Bulgarian Split Squat",
+    "categories": ["quads", "glutes", "unilateral", "compound"],
+    "movers": ["quads", "glutes", "hams"],
+    "focus": ["gluteus maximus", "gluteus medius", "quads"],
+    "equipment": "dumbbell, barbell, bodyweight, bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Place one foot behind you on a bench or elevated surface. Take a stance with your front foot far enough forward to allow for a good range of motion. Descend by bending both knees, keeping your torso upright or with a slight forward lean. Drive through the heel of your front foot to stand back up, squeezing your glutes.",
+    "effectiveness": 9,
+    "technicality": 7,
+    "fatigue": 8
+  },
+  "glute_bridge": {
+    "name": "Glute Bridge",
+    "categories": ["glutes", "isolation", "bodyweight"],
+    "movers": ["glutes", "hams"],
+    "focus": ["gluteus maximus"],
+    "equipment": "bodyweight, optional band/weight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on your back with knees bent and feet flat on the floor, hip-width apart. Drive through your heels, lifting your hips off the ground until your body forms a straight line from shoulders to knees. Squeeze your glutes hard at the top. Slowly lower your hips back down.",
+    "effectiveness": 8,
+    "technicality": 3,
+    "fatigue": 5
+  },
+  "dumbbell_romanian_deadlift": {
+    "name": "Dumbbell Romanian Deadlift",
+    "categories": ["hamstrings", "glutes", "compound", "posterior chain"],
+    "movers": ["hams", "glutes", "lowback"],
+    "focus": ["gluteus maximus", "hamstrings"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold a dumbbell in each hand, palms facing your body. Keeping a slight bend in your knees, hinge at your hips, pushing them back as you lower the dumbbells towards the floor. Keep your back straight and the dumbbells close to your legs. Feel the stretch in your hamstrings, then squeeze your glutes and hamstrings to return to the standing position.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 8
+  },
+  "single_leg_romanian_deadlift": {
+    "name": "Single-Leg Romanian Deadlift (RDL)",
+    "categories": ["hamstrings", "glutes", "unilateral", "balance"],
+    "movers": ["hams", "glutes", "lowback", "core"],
+    "focus": ["gluteus maximus", "gluteus medius", "balance"],
+    "equipment": "dumbbell, kettlebell, bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold a dumbbell or kettlebell in one hand. Stand on the opposite leg, keeping a slight bend in your knee. Hinge at your hip, extending your non-standing leg straight back for balance, as you lower the weight towards the floor. Maintain a straight back. Squeeze your glute and hamstring to return to the upright position.",
+    "effectiveness": 8,
+    "technicality": 8,
+    "fatigue": 7
+  },
+  "kettlebell_swings": {
+    "name": "Kettlebell Swings",
+    "categories": ["hamstrings", "glutes", "power", "conditioning"],
+    "movers": ["hams", "glutes", "lowback", "core"],
+    "focus": ["gluteus maximus", "explosive power"],
+    "equipment": "kettlebell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand with feet shoulder-width apart, kettlebell on the floor in front of you. Hinge at your hips to grab the kettlebell. Hike the kettlebell back between your legs, then explosively drive your hips forward to swing the kettlebell up to chest height. Let gravity bring it back down, hinging at your hips again.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 9
+  },
+  "step_up": {
+    "name": "Step-Up",
+    "categories": ["quads", "glutes", "unilateral", "compound"],
+    "movers": ["quads", "glutes", "hams"],
+    "focus": ["gluteus maximus", "quads"],
+    "equipment": "box, bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand in front of a sturdy box or bench. Place one foot flat on the box. Drive through the heel of your elevated foot to step up onto the box, bringing your trailing leg up to meet the lead leg. Control the descent back down. Alternate legs or complete all reps on one side before switching.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "cable_glute_kickback": {
+    "name": "Cable Glute Kickback",
+    "categories": ["glutes", "isolation"],
+    "movers": ["glutes"],
+    "focus": ["gluteus maximus"],
+    "equipment": "cable machine, ankle strap",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Attach an ankle strap to a low cable pulley and secure it to one ankle. Stand facing the machine, holding onto it for support. Keeping your leg straight or with a slight bend, kick your leg backward and slightly upwards, squeezing your glute at the peak contraction. Control the return to the starting position.",
+    "effectiveness": 8,
+    "technicality": 5,
+    "fatigue": 6
+  },
+  "glute_ham_raise": {
+    "name": "Glute-Ham Raise (GHR)",
+    "categories": ["hamstrings", "glutes", "posterior chain", "compound"],
+    "movers": ["hams", "glutes", "calves"],
+    "focus": ["gluteus maximus", "hamstrings"],
+    "equipment": "GHD machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Position yourself on a GHD machine with your feet secured and knees just behind the pad. Lower your torso down by extending at the hips and then bending at the knees. Pull yourself back up using your hamstrings and glutes, returning to the starting position.",
+    "effectiveness": 8,
+    "technicality": 8,
+    "fatigue": 8
+  },
+  "walking_lunges": {
+    "name": "Walking Lunges",
+    "categories": ["quads", "glutes", "hamstrings", "unilateral"],
+    "movers": ["quads", "glutes", "hams"],
+    "focus": ["gluteus maximus", "quads"],
+    "equipment": "bodyweight, dumbbell, barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "From a standing position, step forward with one leg and lower your hips until both knees are bent at approximately a 90-degree angle. The back knee should hover just above the floor. Push off with your back foot and step through with your trailing leg to immediately move into the next lunge, creating a walking motion.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "reverse_hyperextension": {
+    "name": "Reverse Hyperextension",
+    "categories": ["glutes", "hamstrings", "lower back", "compound"],
+    "movers": ["glutes", "hams", "lowback"],
+    "focus": ["gluteus maximus", "gluteus medius"],
+    "equipment": "reverse hyper machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie face down on a reverse hyper machine with your hips at the edge of the pad. Hook your feet into the lever or stirrups. Lower your legs by bending at the hips, then powerfully extend your hips, swinging your legs upwards until they are in line with your torso or slightly higher. Control the descent.",
+    "effectiveness": 8,
+    "technicality": 5,
+    "fatigue": 7
+  },
+  "lateral_band_walk": {
+    "name": "Lateral Band Walk",
+    "categories": ["glutes", "isolation", "abduction"],
+    "movers": ["glutes"],
+    "focus": ["gluteus medius", "gluteus minimus"],
+    "equipment": "resistance band",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Place a resistance band around your ankles or just above your knees. Stand with feet hip-width apart, knees slightly bent, and a slight hinge at your hips. Take small, controlled steps sideways, keeping tension on the band throughout the movement. Continue for desired distance or reps in one direction, then switch.",
+    "effectiveness": 7,
+    "technicality": 4,
+    "fatigue": 4
+  },
+  "cable_pull_through": {
+    "name": "Cable Pull-Through",
+    "categories": ["hamstrings", "glutes", "hip hinge"],
+    "movers": ["hams", "glutes"],
+    "focus": ["gluteus maximus", "hip hinge mechanics"],
+    "equipment": "cable machine, rope attachment",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand facing away from a low cable pulley with a rope attachment between your legs. Take a few steps forward to create tension. Hinge at your hips, pushing your glutes back and allowing your torso to lean forward. Drive through your hips and squeeze your glutes to pull the rope forward and stand upright.",
+    "effectiveness": 7,
+    "technicality": 5,
+    "fatigue": 6
+  },
+  "donkey_kick": {
+    "name": "Donkey Kick",
+    "categories": ["glutes", "isolation"],
+    "movers": ["glutes"],
+    "focus": ["gluteus maximus"],
+    "equipment": "bodyweight, ankle weights, cable machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Start on all fours with your hands under your shoulders and knees under your hips. Keeping one knee bent at 90 degrees, lift that leg straight up towards the ceiling, pushing your heel towards the sky and squeezing your glute at the top. Avoid arching your lower back. Slowly lower your leg back down.",
+    "effectiveness": 6,
+    "technicality": 4,
+    "fatigue": 4
+  },
+  "good_mornings": {
+    "name": "Barbell Good Mornings",
+    "categories": ["hamstrings", "glutes", "lower back", "compound"],
+    "movers": ["hams", "glutes", "lowback"],
+    "focus": ["gluteus maximus", "hamstrings", "lower back strength"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Place a barbell across your upper back, similar to a high-bar squat. Keeping a slight bend in your knees, hinge forward at your hips, lowering your torso until it's roughly parallel to the floor or as far as your flexibility allows while maintaining a straight back. Drive through your hips and hamstrings to return to the upright position.",
+    "effectiveness": 7,
+    "technicality": 9,
+    "fatigue": 8
+  },
+  "standing_calf_raise_machine": {
+    "name": "Standing Calf Raise (Machine)",
+    "categories": ["calves", "isolation"],
+    "movers": ["calves"],
+    "focus": ["gastrocnemius"],
+    "equipment": "calf raise machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand on a calf raise machine with the balls of your feet on the edge of the platform and shoulders under the pads. Lower your heels towards the floor to get a full stretch in your calves. Push through the balls of your feet to raise yourself up as high as possible, contracting your calves. Slowly lower back down.",
+    "effectiveness": 9,
+    "technicality": 3,
+    "fatigue": 7
+  },
+  "seated_calf_raise_machine": {
+    "name": "Seated Calf Raise (Machine)",
+    "categories": ["calves", "isolation"],
+    "movers": ["calves"],
+    "focus": ["soleus"],
+    "equipment": "seated calf raise machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit on a seated calf raise machine with your knees bent at approximately 90 degrees and the pads resting on your lower thighs. Lower your heels towards the floor to stretch your calves. Push through the balls of your feet to raise the weight up as high as possible, squeezing your soleus. Slowly lower back down.",
+    "effectiveness": 9,
+    "technicality": 3,
+    "fatigue": 7
+  },
+  "dumbbell_standing_calf_raise": {
+    "name": "Dumbbell Standing Calf Raise",
+    "categories": ["calves", "isolation"],
+    "movers": ["calves"],
+    "focus": ["gastrocnemius"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold a dumbbell in each hand (or one hand with a single dumbbell). Stand with the balls of your feet on an elevated surface (e.g., a step or plate). Lower your heels to get a full stretch in your calves, then push through the balls of your feet to raise yourself up as high as possible. Slowly lower back down.",
+    "effectiveness": 8,
+    "technicality": 4,
+    "fatigue": 6
+  },
+  "single_leg_dumbbell_calf_raise": {
+    "name": "Single-Leg Dumbbell Calf Raise",
+    "categories": ["calves", "isolation", "unilateral"],
+    "movers": ["calves"],
+    "focus": ["gastrocnemius", "unilateral strength"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold a dumbbell in one hand (opposite to the working leg) and hold onto a sturdy object for balance with the other hand. Stand on one leg with the ball of your foot on an elevated surface. Lower your heel to get a full stretch, then raise yourself up as high as possible on the ball of that foot. Slowly lower back down.",
+    "effectiveness": 8,
+    "technicality": 5,
+    "fatigue": 6
+  },
+  "calf_press_leg_press_machine": {
+    "name": "Calf Press (Leg Press Machine)",
+    "categories": ["calves", "isolation"],
+    "movers": ["calves"],
+    "focus": ["gastrocnemius", "soleus"],
+    "equipment": "leg press machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit on a leg press machine with the balls of your feet on the lower edge of the platform. Extend your legs so they are nearly straight (a slight bend in the knees). Push through the balls of your feet to press the platform away, pointing your toes and contracting your calves. Slowly control the return, letting your heels drop for a stretch.",
+    "effectiveness": 8,
+    "technicality": 4,
+    "fatigue": 7
+  },
+  "donkey_calf_raise_machine": {
+    "name": "Donkey Calf Raise (Machine)",
+    "categories": ["calves", "isolation"],
+    "movers": ["calves"],
+    "focus": ["gastrocnemius"],
+    "equipment": "donkey calf raise machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Place your lower back under the padded lever of a donkey calf raise machine, with the balls of your feet on the platform. Keeping your legs straight, lower your heels for a stretch, then raise yourself up as high as possible by pressing through the balls of your feet. Slowly lower back down.",
+    "effectiveness": 8,
+    "technicality": 4,
+    "fatigue": 6
+  },
+  "barbell_standing_calf_raise": {
+    "name": "Barbell Standing Calf Raise",
+    "categories": ["calves", "isolation"],
+    "movers": ["calves"],
+    "focus": ["gastrocnemius"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Place a barbell across your upper back, similar to a back squat. Stand with the balls of your feet on an elevated surface (e.g., a step). Lower your heels to get a full stretch, then press through the balls of your feet to raise yourself up as high as possible. Slowly lower back down.",
+    "effectiveness": 8,
+    "technicality": 5,
+    "fatigue": 7
+  },
+  "box_jump_rebound": {
+    "name": "Box Jump (Rebound)",
+    "categories": ["calves", "plyometric", "compound"],
+    "movers": ["calves", "quads", "glutes", "hams"],
+    "focus": ["calves (explosive power)"],
+    "equipment": "box",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform a box jump, but immediately upon landing softly on the box, explode back up into another jump (either onto the same box or another). This emphasizes the stretch-shortening cycle and calf explosiveness.",
+    "effectiveness": 7,
+    "technicality": 7,
+    "fatigue": 8
+  },
+  "skipping_rope": {
+    "name": "Skipping Rope (Jump Rope)",
+    "categories": ["calves", "cardio", "conditioning"],
+    "movers": ["calves", "quads", "hams"],
+    "focus": ["calves endurance", "plyometrics"],
+    "equipment": "jump rope",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform continuous jumps over a rope, primarily pushing off the balls of your feet. This builds calf endurance, coordination, and reactive strength.",
+    "effectiveness": 7,
+    "technicality": 5,
+    "fatigue": 7
+  },
+  "stair_climber_calf_focus": {
+    "name": "Stair Climber (Calf Focus)",
+    "categories": ["calves", "cardio", "conditioning"],
+    "movers": ["calves", "quads", "glutes"],
+    "focus": ["calves endurance"],
+    "equipment": "stair climber machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Walk or run on a stair climber, emphasizing pushing off the balls of your feet on each step and maintaining a high level of plantarflexion. Avoid letting your heels fully drop.",
+    "effectiveness": 6,
+    "technicality": 3,
+    "fatigue": 7
+  },
+  "walking_on_tiptoes": {
+    "name": "Walking on Tiptoes (Calf Walk)",
+    "categories": ["calves", "bodyweight", "endurance"],
+    "movers": ["calves"],
+    "focus": ["calves endurance"],
+    "equipment": "bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Simply walk around on the balls of your feet, keeping your heels elevated throughout. This can be done for distance or time, with or without added weight (e.g., holding dumbbells).",
+    "effectiveness": 6,
+    "technicality": 2,
+    "fatigue": 5
+  },
+  "wall_calf_raise": {
+    "name": "Wall Calf Raise",
+    "categories": ["calves", "bodyweight", "isolation"],
+    "movers": ["calves"],
+    "focus": ["gastrocnemius"],
+    "equipment": "wall",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand facing a wall, hands on the wall for balance. Place the balls of your feet on the floor. Raise yourself up onto your tiptoes, squeezing your calves. Control the descent back down, getting a full stretch.",
+    "effectiveness": 6,
+    "technicality": 2,
+    "fatigue": 4
+  },
+  "plyometric_calf_jumps": {
+    "name": "Plyometric Calf Jumps",
+    "categories": ["calves", "plyometric"],
+    "movers": ["calves"],
+    "focus": ["calves explosiveness"],
+    "equipment": "bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand with feet hip-width apart. Perform small, quick jumps, focusing on pushing off the balls of your feet and minimizing ground contact time. Keep your knees relatively straight and use primarily your ankles.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "eccentric_calf_raise_single_leg": {
+    "name": "Eccentric Calf Raise (Single Leg)",
+    "categories": ["calves", "isolation", "unilateral"],
+    "movers": ["calves"],
+    "focus": ["calves (eccentric strength)"],
+    "equipment": "step, bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand on one leg on a step with your heel hanging off. Use both feet to raise yourself to the top of the calf raise. Then, lift one foot off the step and slowly lower your heel down on the single working leg, taking 3-5 seconds for the descent. Use both feet to return to the top.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "farmers_walk_tiptoes": {
+    "name": "Farmer's Walk (Tiptoes)",
+    "categories": ["calves", "core", "grip", "conditioning"],
+    "movers": ["calves", "forearms", "core"],
+    "focus": ["calves endurance", "grip strength"],
+    "equipment": "heavy dumbbells, kettlebells",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold heavy dumbbells or kettlebells in each hand. Walk for a set distance or time while staying on the balls of your feet, keeping your heels elevated throughout the movement. Focus on maintaining a strong, upright posture.",
+    "effectiveness": 7,
+    "technicality": 5,
+    "fatigue": 8
+  },
+  "toe_press_plate_loaded": {
+    "name": "Toe Press (Plate-Loaded Machine)",
+    "categories": ["calves", "isolation"],
+    "movers": ["calves"],
+    "focus": ["gastrocnemius", "soleus"],
+    "equipment": "plate-loaded leg press or specialized machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Similar to a calf press on a leg press machine, but often on a dedicated plate-loaded toe press where you sit and push a plate with the balls of your feet. Perform full range of motion, pressing through the balls of your feet and pointing your toes.",
+    "effectiveness": 8,
+    "technicality": 3,
+    "fatigue": 7
+  },
+  "sprint_running": {
+    "name": "Sprint Running",
+    "categories": ["calves", "hamstrings", "quads", "plyometric"],
+    "movers": ["calves", "hams", "quads", "glutes"],
+    "focus": ["calves explosiveness", "overall power"],
+    "equipment": "track, open field",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Run at maximum speed over a short distance. Sprints heavily engage the calves for powerful push-off and propulsion, as well as for absorbing impact upon landing.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 10
+  },
+  "hill_running": {
+    "name": "Hill Running",
+    "categories": ["calves", "quads", "glutes", "conditioning"],
+    "movers": ["calves", "quads", "glutes", "hams"],
+    "focus": ["calves strength endurance"],
+    "equipment": "outdoor hill, treadmill (incline)",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Run uphill. The incline naturally increases the demand on the calves, as they work harder to propel the body upwards with each stride.",
+    "effectiveness": 7,
+    "technicality": 5,
+    "fatigue": 8
+  },
+  "jump_squats_calves_focus": {
+    "name": "Jump Squats (Calves Focus)",
+    "categories": ["calves", "quads", "plyometric"],
+    "movers": ["calves", "quads", "glutes"],
+    "focus": ["calves explosiveness"],
+    "equipment": "bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform a bodyweight squat, but explode upwards into a jump, focusing on a powerful push-off through the balls of your feet, aiming for maximum height. Land softly with bent knees and immediately go into the next repetition.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "broad_jumps_calves_focus": {
+    "name": "Broad Jumps (Calves Focus)",
+    "categories": ["calves", "plyometric", "compound"],
+    "movers": ["calves", "quads", "glutes", "hams"],
+    "focus": ["calves explosiveness", "horizontal power"],
+    "equipment": "bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand with feet shoulder-width apart. Swing your arms back and bend your knees, then explode forward and horizontally as far as possible. Emphasize a strong push-off from the balls of your feet. Land softly with bent knees.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "barbell_curl": {
+    "name": "Barbell Curl",
+    "categories": ["biceps", "compound"],
+    "movers": ["biceps", "forearms"],
+    "focus": ["biceps peak", "overall biceps mass"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand holding a barbell with an underhand grip, hands shoulder-width apart. Keeping your elbows tucked close to your sides, curl the barbell upwards towards your chest, squeezing your biceps at the top. Slowly lower the bar back to the starting position with control.",
+    "effectiveness": 10,
+    "technicality": 5,
+    "fatigue": 8
+  },
+  "dumbbell_curl_alternating": {
+    "name": "Alternating Dumbbell Curl",
+    "categories": ["biceps", "isolation", "unilateral"],
+    "movers": ["biceps", "forearms"],
+    "focus": ["biceps peak", "muscle imbalances"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand or sit holding a dumbbell in each hand with palms facing forward. Keeping your elbow tucked, curl one dumbbell upwards towards your shoulder, squeezing your bicep. Slowly lower it with control while simultaneously curling the other dumbbell up.",
+    "effectiveness": 9,
+    "technicality": 4,
+    "fatigue": 7
+  },
+  "concentration_curl": {
+    "name": "Concentration Curl",
+    "categories": ["biceps", "isolation"],
+    "movers": ["biceps"],
+    "focus": ["biceps peak", "mind-muscle connection"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit on a bench with your legs spread, holding a dumbbell. Rest your elbow against the inside of your thigh, letting the dumbbell hang. Curl the dumbbell upwards towards your shoulder, focusing purely on squeezing your bicep. Slowly lower with control. Perform all reps on one arm before switching.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 5
+  },
+  "preacher_curl_barbell": {
+    "name": "Barbell Preacher Curl",
+    "categories": ["biceps", "isolation"],
+    "movers": ["biceps"],
+    "focus": ["biceps peak", "full stretch"],
+    "equipment": "preacher curl bench, barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit on a preacher curl bench with your upper arms resting on the pad. Grab a barbell with an underhand grip. Lower the bar until your arms are fully extended and you feel a deep stretch in your biceps. Curl the bar upwards towards your shoulders, squeezing your biceps at the top. Slowly lower with control.",
+    "effectiveness": 9,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "cable_curl_standing": {
+    "name": "Standing Cable Curl",
+    "categories": ["biceps", "isolation"],
+    "movers": ["biceps"],
+    "focus": ["constant tension", "biceps peak"],
+    "equipment": "cable machine, straight bar/rope attachment",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand facing a cable machine with a straight bar or rope attachment connected to a low pulley. Grab the bar with an underhand grip. Keeping your elbows tucked, curl the bar upwards towards your chest, squeezing your biceps. Control the weight as you slowly lower it back down.",
+    "effectiveness": 8,
+    "technicality": 4,
+    "fatigue": 6
+  },
+  "incline_dumbbell_curl": {
+    "name": "Incline Dumbbell Curl",
+    "categories": ["biceps", "isolation"],
+    "movers": ["biceps"],
+    "focus": ["long head of biceps", "full stretch"],
+    "equipment": "dumbbell, adjustable bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit on an incline bench set at a 45-60 degree angle, holding a dumbbell in each hand with palms facing forward. Let your arms hang straight down. Curl the dumbbells upwards towards your shoulders, keeping your elbows stationary. Slowly lower with control, feeling a deep stretch.",
+    "effectiveness": 9,
+    "technicality": 5,
+    "fatigue": 7
+  },
+  "chin_ups": {
+    "name": "Chin-Ups",
+    "categories": ["back", "biceps", "compound"],
+    "movers": ["lats", "biceps", "rhomboids"],
+    "focus": ["overall biceps mass", "back thickness"],
+    "equipment": "pull-up bar",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hang from a pull-up bar with an underhand (supinated) grip, hands shoulder-width apart. Pull yourself upwards until your chin clears the bar, squeezing your lats and biceps. Slowly lower yourself back down to a full hang with control.",
+    "effectiveness": 10,
+    "technicality": 8,
+    "fatigue": 9
+  },
+  "ez_bar_curl": {
+    "name": "EZ Bar Curl",
+    "categories": ["biceps", "compound"],
+    "movers": ["biceps", "forearms"],
+    "focus": ["biceps peak", "wrist comfort"],
+    "equipment": "EZ bar",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand holding an EZ bar with an underhand grip, hands on the angled parts of the bar. Keeping your elbows tucked, curl the bar upwards towards your chest, squeezing your biceps. Slowly lower the bar back to the starting position with control.",
+    "effectiveness": 9,
+    "technicality": 5,
+    "fatigue": 7
+  },
+  "spider_curl": {
+    "name": "Spider Curl",
+    "categories": ["biceps", "isolation"],
+    "movers": ["biceps"],
+    "focus": ["biceps peak", "isolation"],
+    "equipment": "incline bench, dumbbell/barbell/EZ bar",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie chest-down on an incline bench, allowing your arms to hang straight down. Hold a dumbbell, barbell, or EZ bar with an underhand grip. Curl the weight upwards towards your chest, squeezing your biceps and minimizing body movement. Slowly lower with control.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "cable_hammer_curl": {
+    "name": "Cable Hammer Curl",
+    "categories": ["biceps", "forearms", "isolation"],
+    "movers": ["forearms", "biceps"],
+    "focus": ["forearm thickness", "outer bicep", "constant tension"],
+    "equipment": "cable machine, rope attachment",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand facing a cable machine with a rope attachment connected to a low pulley. Grab the rope with a neutral grip (palms facing each other). Keeping your elbows tucked, curl the rope upwards towards your shoulders, squeezing your biceps and forearms. Control the weight as you slowly lower it back down.",
+    "effectiveness": 7,
+    "technicality": 4,
+    "fatigue": 6
+  },
+  "dumbbell_preacher_curl": {
+    "name": "Dumbbell Preacher Curl",
+    "categories": ["biceps", "isolation", "unilateral"],
+    "movers": ["biceps"],
+    "focus": ["biceps peak", "full stretch", "unilateral focus"],
+    "equipment": "preacher curl bench, dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit on a preacher curl bench, resting one upper arm on the pad. Grab a dumbbell with an underhand grip. Lower the dumbbell until your arm is fully extended and you feel a deep stretch. Curl the dumbbell upwards towards your shoulder, squeezing your bicep. Slowly lower with control. Perform all reps on one arm before switching.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "bayesian_curl": {
+    "name": "Bayesian Curl (Dumbbell)",
+    "categories": ["biceps", "isolation"],
+    "movers": ["biceps"],
+    "focus": ["inner/outer bicep head", "constant tension"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand holding a dumbbell in each hand, arms hanging. As you curl, consciously rotate your wrists. For inner head emphasis, bring pinkies closer to shoulders at top. For outer head, bring thumbs closer. Experiment with the rotation to feel different parts of the bicep working.",
+    "effectiveness": 7,
+    "technicality": 7,
+    "fatigue": 5
+  },
+  "supinated_grip_pull_down": {
+    "name": "Supinated Grip Pull-Down (Lat Pull-Down)",
+    "categories": ["back", "biceps", "compound"],
+    "movers": ["lats", "biceps", "rhomboids"],
+    "focus": ["lats", "overall biceps engagement"],
+    "equipment": "lat pull-down machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit at a lat pull-down machine, grasping the bar with an underhand (supinated) grip, hands shoulder-width apart or slightly narrower. Lean back slightly, pull the bar down towards your upper chest, squeezing your lats and engaging your biceps. Control the weight as it returns to the starting position.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 8
+  },
+  "resistance_band_curl": {
+    "name": "Resistance Band Curl",
+    "categories": ["biceps", "isolation"],
+    "movers": ["biceps"],
+    "focus": ["biceps activation", "variable resistance"],
+    "equipment": "resistance band",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand on a resistance band, holding the ends with an underhand grip. Keeping your elbows tucked, curl your hands upwards towards your shoulders, squeezing your biceps against the increasing resistance of the band. Slowly lower with control.",
+    "effectiveness": 6,
+    "technicality": 3,
+    "fatigue": 4
+  },
+  "ez_bar_preacher_curl": {
+    "name": "EZ Bar Preacher Curl",
+    "categories": ["biceps", "isolation"],
+    "movers": ["biceps"],
+    "focus": ["biceps peak", "wrist comfort"],
+    "equipment": "preacher curl bench, EZ bar",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit on a preacher curl bench with your upper arms resting on the pad. Grab an EZ bar with an underhand grip on the angled parts. Lower the bar until your arms are fully extended and you feel a deep stretch. Curl the bar upwards towards your shoulders, squeezing your biceps at the top. Slowly lower with control.",
+    "effectiveness": 9,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "cross_body_hammer_curl": {
+    "name": "Cross Body Hammer Curl",
+    "categories": ["biceps", "forearms", "isolation", "unilateral"],
+    "movers": ["forearms", "biceps"],
+    "focus": ["brachialis", "brachioradialis", "forearm thickness"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand holding a dumbbell in one hand with a neutral grip (palms facing your body). Curl the dumbbell upwards and across your body towards the opposite shoulder. Squeeze your bicep and forearm. Slowly lower with control. Perform all reps on one arm before switching.",
+    "effectiveness": 7,
+    "technicality": 5,
+    "fatigue": 5
+  },
+  "close_grip_bench_press": {
+    "name": "Close-Grip Bench Press",
+    "categories": ["triceps", "chest", "shoulders", "compound"],
+    "movers": ["triceps", "upper-chest", "front-delts"],
+    "focus": ["overall triceps mass", "lateral and medial heads"],
+    "equipment": "barbell, bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on a flat bench with your feet flat on the floor. Grip the barbell with an overhand grip, hands slightly narrower than shoulder-width apart (typically inside the knurling). Lower the bar to your lower chest, keeping your elbows tucked close to your body. Press the bar back up to the starting position, focusing on triceps contraction.",
+    "effectiveness": 10,
+    "technicality": 7,
+    "fatigue": 9
+  },
+  "triceps_dips_parallel_bars": {
+    "name": "Triceps Dips (Parallel Bars)",
+    "categories": ["triceps", "chest", "compound", "bodyweight"],
+    "movers": ["triceps", "lower-chest", "front-delts"],
+    "focus": ["overall triceps mass", "lateral and medial heads"],
+    "equipment": "parallel bars, dip station",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Grip parallel bars with a neutral grip, pushing yourself up to fully extend your arms. Lean slightly forward and keep your elbows tucked. Lower your body by bending your elbows until your upper arms are parallel to the floor or slightly deeper. Push back up to the starting position, extending your triceps fully.",
+    "effectiveness": 9,
+    "technicality": 8,
+    "fatigue": 9
+  },
+  "skullcrusher_ez_bar": {
+    "name": "EZ Bar Skullcrusher (Lying Triceps Extension)",
+    "categories": ["triceps", "isolation"],
+    "movers": ["triceps"],
+    "focus": ["long head", "lateral head"],
+    "equipment": "EZ bar, bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on a flat bench, holding an EZ bar with an overhand grip, arms extended straight up over your chest. Keeping your upper arms stationary, lower the bar by bending your elbows, bringing the bar towards your forehead or behind your head. Extend your arms back to the starting position, squeezing your triceps.",
+    "effectiveness": 9,
+    "technicality": 7,
+    "fatigue": 8
+  },
+  "overhead_dumbbell_extension_two_arm": {
+    "name": "Two-Arm Overhead Dumbbell Extension",
+    "categories": ["triceps", "isolation"],
+    "movers": ["triceps"],
+    "focus": ["long head", "full stretch"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit or stand, holding one dumbbell with both hands, allowing it to hang behind your head with elbows bent. Press the dumbbell upwards by extending your arms overhead, fully contracting your triceps. Slowly lower the dumbbell back down, feeling a stretch in your triceps.",
+    "effectiveness": 9,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "cable_pushdown_rope": {
+    "name": "Cable Pushdown (Rope Attachment)",
+    "categories": ["triceps", "isolation"],
+    "movers": ["triceps"],
+    "focus": ["lateral and medial heads", "constant tension"],
+    "equipment": "cable machine, rope attachment",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand facing a cable machine with a rope attachment on a high pulley. Grip the rope with a neutral grip (palms facing each other). Keeping your elbows tucked close to your body, push the rope downwards and slightly outwards, extending your triceps fully. Squeeze your triceps at the bottom and slowly release.",
+    "effectiveness": 8,
+    "technicality": 4,
+    "fatigue": 6
+  },
+  "dumbbell_kickback": {
+    "name": "Dumbbell Kickback",
+    "categories": ["triceps", "isolation"],
+    "movers": ["triceps"],
+    "focus": ["lateral head", "peak contraction"],
+    "equipment": "dumbbell, bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hinge at your hips, keeping your back straight and one hand on a bench for support. Hold a dumbbell in the other hand, with your upper arm parallel to the floor and elbow bent at 90 degrees. Extend your forearm straight back, squeezing your triceps at the top. Slowly lower the dumbbell back to the starting position.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 5
+  },
+  "diamond_push_ups": {
+    "name": "Diamond Push-Ups (Close-Grip Push-Ups)",
+    "categories": ["triceps", "chest", "bodyweight", "compound"],
+    "movers": ["triceps", "upper-chest", "front-delts"],
+    "focus": ["lateral and medial heads", "bodyweight strength"],
+    "equipment": "bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Start in a push-up position, but bring your hands close together so your thumbs and index fingers form a diamond shape. Lower your chest towards your hands, keeping your elbows tucked close to your body. Push back up to the starting position, focusing on triceps contraction.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "overhead_cable_extension_rope": {
+    "name": "Overhead Cable Extension (Rope Attachment)",
+    "categories": ["triceps", "isolation"],
+    "movers": ["triceps"],
+    "focus": ["long head", "constant tension"],
+    "equipment": "cable machine, rope attachment",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand with your back to a high pulley on a cable machine. Grab the rope attachment with a neutral grip and step forward to create tension. Extend your arms overhead, keeping your elbows pointed forward and close to your head. Lower the rope behind your head, stretching your triceps, then extend back up.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "bench_dips": {
+    "name": "Bench Dips",
+    "categories": ["triceps", "chest", "bodyweight", "compound"],
+    "movers": ["triceps", "lower-chest", "front-delts"],
+    "focus": ["overall triceps mass", "convenience"],
+    "equipment": "bench, chair",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit on the edge of a bench with your hands gripping the edge beside your hips, fingers pointing forward. Slide your hips off the bench. Lower your body by bending your elbows until your upper arms are parallel to the floor. Push back up to the starting position, extending your triceps.",
+    "effectiveness": 7,
+    "technicality": 5,
+    "fatigue": 6
+  },
+  "jm_press": {
+    "name": "JM Press",
+    "categories": ["triceps", "chest", "compound"],
+    "movers": ["triceps", "upper-chest", "front-delts"],
+    "focus": ["triceps strength", "powerlifting accessory"],
+    "equipment": "barbell, bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on a flat bench, holding a barbell with a close grip (similar to close-grip bench press). Lower the bar towards your upper chest/throat area. As the bar descends, let your elbows tuck in and push them slightly forward. Extend your arms by driving the bar up in a diagonal path, combining elements of a close-grip bench press and a skullcrusher.",
+    "effectiveness": 8,
+    "technicality": 9,
+    "fatigue": 8
+  },
+  "lying_dumbbell_extension": {
+    "name": "Lying Dumbbell Extension",
+    "categories": ["triceps", "isolation"],
+    "movers": ["triceps"],
+    "focus": ["long head", "lateral head", "unilateral option"],
+    "equipment": "dumbbell, bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on a flat bench, holding a dumbbell in each hand with palms facing each other, arms extended straight up over your chest. Keeping your upper arms stationary, lower the dumbbells by bending your elbows, bringing them towards your shoulders. Extend your arms back to the starting position, squeezing your triceps.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "single_arm_cable_pushdown": {
+    "name": "Single-Arm Cable Pushdown",
+    "categories": ["triceps", "isolation", "unilateral"],
+    "movers": ["triceps"],
+    "focus": ["lateral and medial heads", "unilateral strength", "mind-muscle connection"],
+    "equipment": "cable machine, single handle attachment",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand facing a cable machine with a single handle attachment on a high pulley. Grip the handle with an overhand or underhand grip. Keeping your elbow tucked close to your body, push the handle downwards, extending your triceps fully. Squeeze your triceps at the bottom and slowly release. Perform all reps on one arm before switching.",
+    "effectiveness": 7,
+    "technicality": 5,
+    "fatigue": 5
+  },
+  "dumbbell_floor_press_close_grip": {
+    "name": "Dumbbell Floor Press (Close Grip)",
+    "categories": ["triceps", "chest", "compound"],
+    "movers": ["triceps", "upper-chest", "front-delts"],
+    "focus": ["triceps strength", "shoulder friendly"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on the floor with knees bent and feet flat. Hold a dumbbell in each hand with a neutral grip (palms facing each other) and elbows tucked to your sides. Press the dumbbells straight up by extending your arms, pausing briefly at the top. Lower the dumbbells back down until your triceps lightly touch the floor.",
+    "effectiveness": 7,
+    "technicality": 5,
+    "fatigue": 7
+  },
+  "seated_triceps_press_machine": {
+    "name": "Seated Triceps Press (Machine)",
+    "categories": ["triceps", "isolation"],
+    "movers": ["triceps"],
+    "focus": ["triceps isolation", "machine stability"],
+    "equipment": "triceps press machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit on the triceps press machine with your back firmly against the pad. Grip the handles and press them downwards by extending your arms, fully contracting your triceps. Control the weight as it returns to the starting position, allowing a full stretch in the triceps.",
+    "effectiveness": 7,
+    "technicality": 3,
+    "fatigue": 6
+  },
+  "reverse_grip_cable_pushdown": {
+    "name": "Reverse Grip Cable Pushdown",
+    "categories": ["triceps", "isolation"],
+    "movers": ["triceps"],
+    "focus": ["medial head", "lower triceps"],
+    "equipment": "cable machine, straight bar",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand facing a cable machine with a straight bar attachment on a high pulley. Grip the bar with an underhand (supinated) grip, hands shoulder-width apart. Keeping your elbows tucked close, push the bar downwards, extending your triceps fully. Squeeze at the bottom and slowly release.",
+    "effectiveness": 7,
+    "technicality": 5,
+    "fatigue": 6
+  },
+  "lying_barbell_extension_incline": {
+    "name": "Lying Barbell Extension (Incline Bench)",
+    "categories": ["triceps", "isolation"],
+    "movers": ["triceps"],
+    "focus": ["long head", "greater stretch"],
+    "equipment": "barbell, incline bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on an incline bench (30-45 degrees), holding a barbell with an overhand grip, arms extended straight up. Keep your upper arms stationary and lower the bar by bending your elbows, bringing it towards your head or behind. Extend your arms back up, squeezing your triceps, feeling the stretch in the long head.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 7
+  },
+  "band_triceps_pushdown": {
+    "name": "Resistance Band Triceps Pushdown",
+    "categories": ["triceps", "isolation", "bodyweight"],
+    "movers": ["triceps"],
+    "focus": ["triceps activation", "variable resistance", "warm-up"],
+    "equipment": "resistance band, pull-up bar/anchor point",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Loop a resistance band over a pull-up bar or sturdy anchor point. Grip the ends of the band with an overhand grip. Keeping your elbows tucked, push the band downwards by extending your arms, squeezing your triceps. Control the eccentric phase as the band pulls back up.",
+    "effectiveness": 6,
+    "technicality": 4,
+    "fatigue": 4
+  },
+  "tate_press": {
+    "name": "Tate Press",
+    "categories": ["triceps", "isolation"],
+    "movers": ["triceps"],
+    "focus": ["lateral head", "unique angle"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on a flat bench, holding a dumbbell in each hand with arms extended straight up over your chest, palms facing your feet. Keeping your upper arms fixed, bend your elbows and lower the dumbbells towards your chest, allowing your elbows to flare out slightly. Push the dumbbells back up by extending your arms.",
+    "effectiveness": 7,
+    "technicality": 7,
+    "fatigue": 6
+  },
+  "single_arm_overhead_dumbbell_extension": {
+    "name": "Single-Arm Overhead Dumbbell Extension",
+    "categories": ["triceps", "isolation", "unilateral"],
+    "movers": ["triceps"],
+    "focus": ["long head", "unilateral strength", "stability"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit or stand, holding a dumbbell in one hand, extending it overhead. Allow the dumbbell to hang behind your head by bending your elbow. Press the dumbbell upwards by extending your arm, fully contracting your triceps. Slowly lower the dumbbell back down. Perform all reps on one arm before switching.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "close_grip_smith_machine_bench_press": {
+    "name": "Close-Grip Smith Machine Bench Press",
+    "categories": ["triceps", "chest", "shoulders", "compound"],
+    "movers": ["triceps", "upper-chest", "front-delts"],
+    "focus": ["triceps isolation", "machine stability"],
+    "equipment": "Smith machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on a bench under a Smith machine. Grip the bar with a close, overhand grip. Unrack the bar and lower it to your lower chest, keeping your elbows tucked. Press the bar back up, focusing on triceps contraction. The fixed path of the Smith machine allows for stricter form.",
+    "effectiveness": 8,
+    "technicality": 5,
+    "fatigue": 8
+  },
+  "barbell_overhead_press_standing": {
+    "name": "Standing Barbell Overhead Press (OHP)",
+    "categories": ["shoulders", "compound", "strength"],
+    "movers": ["front-delts", "side-delts", "triceps", "upper-chest"],
+    "focus": ["overall shoulder mass and strength", "core stability"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand with a barbell racked at your upper chest, hands slightly wider than shoulder-width apart. Brace your core and press the barbell directly overhead until your arms are fully extended, slightly pushing your head through. Slowly lower the bar back to the starting position.",
+    "effectiveness": 10,
+    "technicality": 9,
+    "fatigue": 9
+  },
+  "dumbbell_shoulder_press_seated": {
+    "name": "Seated Dumbbell Shoulder Press",
+    "categories": ["shoulders", "compound", "strength"],
+    "movers": ["front-delts", "side-delts", "triceps"],
+    "focus": ["overall shoulder mass and strength", "stability"],
+    "equipment": "dumbbell, adjustable bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit on an adjustable bench set at a slight incline (80-90 degrees) with a dumbbell in each hand, resting on your thighs. Kick the dumbbells up to your shoulders, palms facing forward. Press the dumbbells directly overhead until your arms are fully extended. Slowly lower with control.",
+    "effectiveness": 9,
+    "technicality": 6,
+    "fatigue": 8
+  },
+  "dumbbell_lateral_raise": {
+    "name": "Dumbbell Lateral Raise",
+    "categories": ["shoulders", "isolation"],
+    "movers": ["side-delts"],
+    "focus": ["medial deltoid (shoulder width)"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand holding a dumbbell in each hand, palms facing your body, arms hanging by your sides. Keeping a slight bend in your elbows, raise the dumbbells out to the sides until your arms are parallel to the floor (shoulder height). Slowly lower with control.",
+    "effectiveness": 9,
+    "technicality": 5,
+    "fatigue": 6
+  },
+  "dumbbell_front_raise": {
+    "name": "Dumbbell Front Raise",
+    "categories": ["shoulders", "isolation"],
+    "movers": ["front-delts"],
+    "focus": ["anterior deltoid"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand holding a dumbbell in each hand in front of your thighs, palms facing your body. Keeping a slight bend in your elbows, raise one or both dumbbells straight up in front of you until your arm(s) are parallel to the floor (shoulder height). Slowly lower with control.",
+    "effectiveness": 8,
+    "technicality": 4,
+    "fatigue": 5
+  },
+  "reverse_pec_deck_fly": {
+    "name": "Reverse Pec Deck Fly",
+    "categories": ["shoulders", "isolation"],
+    "movers": ["rear-delts", "rhomboids", "traps"],
+    "focus": ["posterior deltoid"],
+    "equipment": "pec deck machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit on the pec deck machine facing inwards, with your chest against the pad and hands gripping the handles. Keep a slight bend in your elbows. Push the handles backward by squeezing your shoulder blades together and contracting your rear deltoids. Slowly return to the starting position.",
+    "effectiveness": 9,
+    "technicality": 4,
+    "fatigue": 6
+  },
+  "face_pull": {
+    "name": "Face Pull",
+    "categories": ["shoulders", "upper back", "isolation"],
+    "movers": ["rear-delts", "rhomboids", "traps"],
+    "focus": ["posterior deltoid", "rotator cuff health", "upper back"],
+    "equipment": "cable machine, rope attachment",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Set a cable pulley to chest height or slightly above. Grab a rope attachment with an overhand grip, thumbs facing up. Step back to create tension. Pull the rope towards your face, flaring your elbows out to the sides and squeezing your rear deltoids and upper back. Slowly release with control.",
+    "effectiveness": 9,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "arnold_press": {
+    "name": "Arnold Press",
+    "categories": ["shoulders", "compound"],
+    "movers": ["front-delts", "side-delts", "triceps"],
+    "focus": ["anterior and medial deltoid", "rotational strength"],
+    "equipment": "dumbbell, adjustable bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit on an adjustable bench with dumbbells held at shoulder height, palms facing your body. As you press the dumbbells upwards, rotate your wrists so palms face forward at the top. Reverse the rotation as you slowly lower the dumbbells back to the starting position.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 7
+  },
+  "barbell_push_press": {
+    "name": "Barbell Push Press",
+    "categories": ["shoulders", "compound", "power"],
+    "movers": ["front-delts", "side-delts", "triceps", "quads", "glutes"],
+    "focus": ["explosive shoulder strength", "full body power"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand with a barbell racked at your upper chest, hands slightly wider than shoulder-width. Initiate the movement with a slight dip of the knees (leg drive), then explosively drive the barbell overhead using leg power and shoulder strength. Control the descent back to the starting position.",
+    "effectiveness": 9,
+    "technicality": 8,
+    "fatigue": 9
+  },
+  "upright_row_barbell": {
+    "name": "Upright Row (Barbell)",
+    "categories": ["shoulders", "traps", "compound"],
+    "movers": ["side-delts", "traps", "biceps"],
+    "focus": ["medial deltoid", "upper traps"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand holding a barbell with an overhand, narrow grip. Keeping the bar close to your body, pull it upwards towards your chin, leading with your elbows. Your elbows should go higher than your shoulders at the top. Slowly lower the bar with control.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "cable_lateral_raise": {
+    "name": "Cable Lateral Raise",
+    "categories": ["shoulders", "isolation"],
+    "movers": ["side-delts"],
+    "focus": ["medial deltoid", "constant tension"],
+    "equipment": "cable machine, single handle attachment",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand sideways to a low cable pulley, grasping the single handle attachment with the hand furthest from the machine. Keep a slight bend in your elbow. Raise your arm out to the side, away from your body, until it's parallel to the floor. Slowly lower with control, feeling the constant tension.",
+    "effectiveness": 9,
+    "technicality": 5,
+    "fatigue": 6
+  },
+  "cable_front_raise": {
+    "name": "Cable Front Raise",
+    "categories": ["shoulders", "isolation"],
+    "movers": ["front-delts"],
+    "focus": ["anterior deltoid", "constant tension"],
+    "equipment": "cable machine, single handle attachment",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand facing a low cable pulley, grasping the single handle attachment with one hand. Keep a slight bend in your elbow. Raise your arm straight up in front of you until it's parallel to the floor. Slowly lower with control, feeling the constant tension. Perform all reps on one arm before switching.",
+    "effectiveness": 8,
+    "technicality": 4,
+    "fatigue": 5
+  },
+  "bent_over_dumbbell_reverse_fly": {
+    "name": "Bent-Over Dumbbell Reverse Fly",
+    "categories": ["shoulders", "upper back", "isolation"],
+    "movers": ["rear-delts", "rhomboids", "traps"],
+    "focus": ["posterior deltoid", "upper back activation"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hinge at your hips until your torso is nearly parallel to the floor (or at a 45-degree angle), holding a dumbbell in each hand with palms facing each other. Keep a slight bend in your elbows. Raise the dumbbells out to the sides, squeezing your shoulder blades together. Slowly lower with control.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 6
+  },
+  "dumbbell_high_pull": {
+    "name": "Dumbbell High Pull",
+    "categories": ["shoulders", "traps", "power", "compound"],
+    "movers": ["traps", "side-delts", "front-delts", "hamstrings", "glutes"],
+    "focus": ["explosive shoulder and trap strength"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand holding two dumbbells in front of your thighs. Initiate with a hip hinge and slight knee bend, then explosively extend your hips and pull the dumbbells upwards, leading with your elbows, until they reach shoulder height or slightly higher. Shrug your shoulders at the top. Control the descent.",
+    "effectiveness": 7,
+    "technicality": 7,
+    "fatigue": 7
+  },
+  "seate_military_press_smith_machine": {
+    "name": "Seated Military Press (Smith Machine)",
+    "categories": ["shoulders", "compound", "strength"],
+    "movers": ["front-delts", "side-delts", "triceps"],
+    "focus": ["shoulder mass and strength", "stability (fixed path)"],
+    "equipment": "smith machine, bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit on a bench under a Smith machine, with the bar racked at shoulder height. Grip the bar slightly wider than shoulder-width. Press the bar directly overhead until your arms are fully extended. Slowly lower the bar back to the starting position with control. The fixed path can help isolate the shoulders.",
+    "effectiveness": 8,
+    "technicality": 5,
+    "fatigue": 8
+  },
+  "landmine_press": {
+    "name": "Landmine Press",
+    "categories": ["shoulders", "chest", "compound", "core"],
+    "movers": ["front-delts", "upper-chest", "triceps", "core"],
+    "focus": ["anterior deltoid", "upper chest", "core stability"],
+    "equipment": "landmine attachment, barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Place one end of a barbell into a landmine attachment. Stand or kneel facing the anchored end. Hold the free end of the barbell with one or both hands at chest height. Press the barbell upwards and forward, extending your arm(s). Slowly lower back to the starting position.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "shrugs_barbell": {
+    "name": "Barbell Shrugs",
+    "categories": ["traps", "shoulders", "isolation"],
+    "movers": ["traps"],
+    "focus": ["upper traps (shoulder elevation)"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand holding a barbell with an overhand grip, hands slightly wider than shoulder-width, letting it hang in front of you. Keeping your arms straight, elevate your shoulders straight up towards your ears. Squeeze your traps at the top, then slowly lower with control.",
+    "effectiveness": 6,
+    "technicality": 3,
+    "fatigue": 5
+  },
+  "cuban_press": {
+    "name": "Cuban Press",
+    "categories": ["shoulders", "rotator cuff", "complex"],
+    "movers": ["front-delts", "side-delts", "rear-delts", "rotator cuff"],
+    "focus": ["shoulder health", "rotator cuff strength", "overall deltoid activation"],
+    "equipment": "light dumbbells",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Start with light dumbbells held in a reverse grip (palms facing forward), performing an upright row. At the top, externally rotate your shoulders so your elbows point forward and dumbbells are at shoulder height. From there, press the dumbbells overhead. Reverse the movement to return to the start.",
+    "effectiveness": 7,
+    "technicality": 9,
+    "fatigue": 6
+  },
+  "face_pull_high_to_low": {
+    "name": "Face Pull (High to Low)",
+    "categories": ["shoulders", "upper back", "isolation"],
+    "movers": ["rear-delts", "rhomboids", "traps"],
+    "focus": ["posterior deltoid", "scapular retraction"],
+    "equipment": "cable machine, rope attachment",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Set a cable pulley to a high position. Grab a rope attachment with an overhand grip. Pull the rope downwards and towards your face, flaring your elbows out and squeezing your rear deltoids and upper back. This angle emphasizes a slightly different pull path than a standard face pull.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "kettlebell_overhead_press_single_arm": {
+    "name": "Single-Arm Kettlebell Overhead Press",
+    "categories": ["shoulders", "compound", "unilateral", "core"],
+    "movers": ["front-delts", "side-delts", "triceps", "core"],
+    "focus": ["shoulder strength", "core stability", "unilateral strength"],
+    "equipment": "kettlebell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand or kneel, holding a kettlebell in one hand in the rack position (bell resting on forearm, elbow tucked). Brace your core and press the kettlebell directly overhead until your arm is fully extended. Slowly lower with control. Perform all reps on one arm before switching.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 7
+  },
+  "barbell_front_raise": {
+    "name": "Barbell Front Raise",
+    "categories": ["shoulders", "isolation"],
+    "movers": ["front-delts"],
+    "focus": ["anterior deltoid"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand holding a barbell with an overhand grip, hands shoulder-width apart, resting on your thighs. Keeping a slight bend in your elbows, raise the barbell straight up in front of you until your arms are parallel to the floor (shoulder height). Slowly lower with control.",
+    "effectiveness": 7,
+    "technicality": 5,
+    "fatigue": 5
+  },
+  "pike_push_ups": {
+    "name": "Pike Push-Ups",
+    "categories": ["shoulders", "bodyweight", "compound"],
+    "movers": ["front-delts", "triceps"],
+    "focus": ["anterior deltoid", "bodyweight strength"],
+    "equipment": "bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Start in a push-up position, then walk your feet closer to your hands, lifting your hips high to form an inverted 'V' shape. Keep your legs and back straight. Bend your elbows and lower your head towards the floor, then push back up by extending your arms and shoulders.",
+    "effectiveness": 7,
+    "technicality": 7,
+    "fatigue": 6
+  },
+  "handstand_push_ups_wall_assisted": {
+    "name": "Handstand Push-Ups (Wall Assisted)",
+    "categories": ["shoulders", "compound", "bodyweight"],
+    "movers": ["front-delts", "side-delts", "triceps"],
+    "focus": ["overall shoulder strength", "upper body stability"],
+    "equipment": "wall, bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Kick up into a handstand against a wall. Lower your body by bending your elbows until your head lightly touches the floor (or a pad). Press back up by extending your arms and shoulders. Control the movement throughout.",
+    "effectiveness": 9,
+    "technicality": 10,
+    "fatigue": 9
+  },
+  "dumbbell_shrugs": {
+    "name": "Dumbbell Shrugs",
+    "categories": ["traps", "shoulders", "isolation"],
+    "movers": ["traps"],
+    "focus": ["upper traps"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand holding a heavy dumbbell in each hand, arms hanging by your sides. Keeping your arms straight, elevate your shoulders straight up towards your ears. Squeeze your traps at the top, then slowly lower with control.",
+    "effectiveness": 6,
+    "technicality": 3,
+    "fatigue": 5
+  },
+  "high_incline_dumbbell_press": {
+    "name": "High Incline Dumbbell Press",
+    "categories": ["shoulders", "chest", "compound"],
+    "movers": ["front-delts", "upper-chest", "triceps"],
+    "focus": ["anterior deltoid", "upper chest"],
+    "equipment": "dumbbell, adjustable bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Set an adjustable bench to a steep incline (60-75 degrees). Lie back with a dumbbell in each hand, resting on your thighs. Kick the dumbbells up to your shoulders, palms facing forward. Press the dumbbells upwards, slightly in front of your face, focusing on your front deltoids and upper chest. Slowly lower with control.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "band_pull_apart": {
+    "name": "Band Pull-Apart",
+    "categories": ["shoulders", "upper back", "rehab"],
+    "movers": ["rear-delts", "rhomboids", "rotator cuff"],
+    "focus": ["posterior deltoid", "rotator cuff health", "scapular stability"],
+    "equipment": "resistance band",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold a resistance band with both hands out in front of you at shoulder height, arms extended and palms facing down. Pull the band apart by squeezing your shoulder blades together, externally rotating your shoulders. Maintain straight arms (slight elbow bend) and control the return.",
+    "effectiveness": 7,
+    "technicality": 5,
+    "fatigue": 4
+  },
+  "single_arm_landmine_press": {
+    "name": "Single-Arm Landmine Press",
+    "categories": ["shoulders", "core", "unilateral", "compound"],
+    "movers": ["front-delts", "upper-chest", "triceps", "obliques", "core"],
+    "focus": ["anterior deltoid", "core stability", "anti-rotation"],
+    "equipment": "landmine attachment, barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Place one end of a barbell into a landmine attachment. Stand or kneel facing the anchored end. Hold the free end of the barbell with one hand at shoulder height, palm facing inward. Press the barbell upwards and forward by extending your arm. Resist rotation and slowly lower back to the starting position.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 7
+  },
+  "arnold_dumbbell_press_standing": {
+    "name": "Standing Arnold Press",
+    "categories": ["shoulders", "compound"],
+    "movers": ["front-delts", "side-delts", "triceps"],
+    "focus": ["anterior and medial deltoid", "rotational strength", "core stability"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand holding dumbbells at shoulder height, palms facing your body. As you press the dumbbells upwards, rotate your wrists so palms face forward at the top. Reverse the rotation as you slowly lower the dumbbells back to the starting position. Requires more core stability than seated version.",
+    "effectiveness": 8,
+    "technicality": 8,
+    "fatigue": 8
+  },
+  "sprint_running_arm_drive": {
+    "name": "Sprint Running (Arm Drive Focus)",
+    "categories": ["cardio", "full body", "power"],
+    "movers": ["quads", "hamstrings", "glutes", "calves", "deltoids", "traps"],
+    "focus": ["explosive arm drive", "deltoid activation"],
+    "equipment": "track, open field",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "While performing maximal sprints, actively focus on powerful and exaggerated arm swings, driving your elbows back and forth. This dynamic movement significantly engages the deltoids, especially the anterior and posterior heads.",
+    "effectiveness": 7,
+    "technicality": 7,
+    "fatigue": 9
+  },
+  "dumbbell_upright_row": {
+    "name": "Dumbbell Upright Row",
+    "categories": ["shoulders", "traps", "compound"],
+    "movers": ["side-delts", "traps", "biceps"],
+    "focus": ["medial deltoid", "upper traps"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand holding a dumbbell in each hand in front of your thighs, palms facing your body. Keeping the dumbbells close to your body, pull them upwards towards your chin, leading with your elbows. Your elbows should go higher than your shoulders. Slowly lower with control.",
+    "effectiveness": 7,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "incline_bench_prone_dumbbell_rear_delt_raise": {
+    "name": "Incline Bench Prone Dumbbell Rear Delt Raise",
+    "categories": ["shoulders", "isolation"],
+    "movers": ["rear-delts", "rhomboids"],
+    "focus": ["posterior deltoid", "minimizing cheating"],
+    "equipment": "dumbbell, incline bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie prone (chest down) on an incline bench set at 30-45 degrees, allowing your arms to hang straight down holding dumbbells with a neutral grip. Keep a slight bend in your elbows. Raise the dumbbells out to the sides, squeezing your rear deltoids and shoulder blades. Slowly lower with control.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 6
+  },
+  "bottom_up_kettlebell_press": {
+    "name": "Bottom-Up Kettlebell Press",
+    "categories": ["shoulders", "core", "stability"],
+    "movers": ["front-delts", "side-delts", "triceps", "rotator cuff"],
+    "focus": ["shoulder stability", "rotator cuff strength", "grip strength"],
+    "equipment": "kettlebell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold a kettlebell upside down by the handle, so the bell faces upwards. Press the kettlebell overhead, focusing intensely on maintaining balance and control of the bell. This heavily engages the shoulder stabilizers and rotator cuff. Slowly lower with control.",
+    "effectiveness": 7,
+    "technicality": 9,
+    "fatigue": 6
+  },
+  "plate_front_raise": {
+    "name": "Plate Front Raise",
+    "categories": ["shoulders", "isolation"],
+    "movers": ["front-delts"],
+    "focus": ["anterior deltoid"],
+    "equipment": "weight plate",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand holding a weight plate with both hands, gripping it on the sides. Keep your arms relatively straight (slight elbow bend) and raise the plate straight up in front of you until it's at shoulder height. Slowly lower with control.",
+    "effectiveness": 7,
+    "technicality": 4,
+    "fatigue": 5
+  },
+  "barbell_wrist_curl": {
+    "name": "Barbell Wrist Curl",
+    "categories": ["forearms", "isolation"],
+    "movers": ["forearms"],
+    "focus": ["forearm flexors", "grip strength"],
+    "equipment": "barbell, bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit on a bench with your forearms resting on your thighs, hands hanging off your knees, palms up, holding a barbell with an underhand grip. Allow the barbell to roll down to your fingertips for a full stretch, then curl your wrist upwards, squeezing your forearms. Slowly lower back down.",
+    "effectiveness": 9,
+    "technicality": 3,
+    "fatigue": 6
+  },
+  "barbell_reverse_wrist_curl": {
+    "name": "Barbell Reverse Wrist Curl",
+    "categories": ["forearms", "isolation"],
+    "movers": ["forearms"],
+    "focus": ["forearm extensors"],
+    "equipment": "barbell, bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit on a bench with your forearms resting on your thighs, hands hanging off your knees, palms down, holding a barbell with an overhand grip. Allow the barbell to drop down, stretching your extensors, then curl your wrist upwards, squeezing your forearms. Slowly lower back down.",
+    "effectiveness": 9,
+    "technicality": 3,
+    "fatigue": 6
+  },
+  "farmers_walk": {
+    "name": "Farmer's Walk",
+    "categories": ["forearms", "core", "full body", "conditioning"],
+    "movers": ["forearms", "traps", "core", "legs"],
+    "focus": ["grip strength", "forearm endurance", "overall stability"],
+    "equipment": "heavy dumbbells, kettlebells",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold a heavy dumbbell or kettlebell in each hand, maintaining an upright posture. Walk for a set distance or time, focusing on keeping a tight grip throughout the movement. Your core should be braced and shoulders back.",
+    "effectiveness": 10,
+    "technicality": 4,
+    "fatigue": 9
+  },
+  "dead_hang": {
+    "name": "Dead Hang",
+    "categories": ["forearms", "back", "grip", "bodyweight"],
+    "movers": ["forearms", "lats"],
+    "focus": ["grip strength", "forearm endurance", "shoulder mobility"],
+    "equipment": "pull-up bar",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hang from a pull-up bar with an overhand or mixed grip, arms fully extended and feet off the ground. Hold this position for as long as possible, focusing on maintaining a strong grip. Can be done with added weight.",
+    "effectiveness": 9,
+    "technicality": 2,
+    "fatigue": 7
+  },
+  "reverse_grip_barbell_curl": {
+    "name": "Reverse Grip Barbell Curl",
+    "categories": ["forearms", "biceps", "compound"],
+    "movers": ["biceps", "forearms"],
+    "focus": ["brachialis", "brachioradialis", "forearm extensors"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand holding a barbell with an overhand (pronated) grip, hands shoulder-width apart. Keeping your elbows tucked, curl the barbell upwards towards your chest, focusing on using your forearms and the muscles on the top of your forearm. Slowly lower the bar back down with control.",
+    "effectiveness": 8,
+    "technicality": 5,
+    "fatigue": 6
+  },
+  "hammer_curl_alternating": {
+    "name": "Alternating Hammer Curl",
+    "categories": ["forearms", "biceps", "isolation"],
+    "movers": ["biceps", "forearms"],
+    "focus": ["forearm thickness", "brachialis"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand or sit holding a dumbbell in each hand with palms facing your body (neutral grip). Keeping your elbow tucked, curl one dumbbell upwards towards your shoulder. Slowly lower it with control while simultaneously curling the other dumbbell up.",
+    "effectiveness": 8,
+    "technicality": 4,
+    "fatigue": 6
+  },
+  "plate_pinch": {
+    "name": "Plate Pinch",
+    "categories": ["forearms", "grip", "isolation"],
+    "movers": ["forearms"],
+    "focus": ["crushing grip strength", "thumb strength"],
+    "equipment": "weight plates",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Pinch two or more smooth weight plates together with your fingers and thumb. Lift the plates off the ground and hold for time, or walk for distance. Increase difficulty by adding more plates or using larger diameter plates.",
+    "effectiveness": 9,
+    "technicality": 4,
+    "fatigue": 7
+  },
+  "towel_pull_ups": {
+    "name": "Towel Pull-Ups",
+    "categories": ["forearms", "back", "grip", "bodyweight"],
+    "movers": ["lats", "forearms", "biceps"],
+    "focus": ["grip strength", "forearm endurance", "back development"],
+    "equipment": "pull-up bar, two towels",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Drape two towels over a pull-up bar, gripping the ends of the towels with an overhand grip. Perform pull-ups as usual, focusing on squeezing the towels tightly throughout the movement. This severely challenges your grip.",
+    "effectiveness": 9,
+    "technicality": 7,
+    "fatigue": 8
+  },
+  "wrist_roller": {
+    "name": "Wrist Roller",
+    "categories": ["forearms", "isolation"],
+    "movers": ["forearms"],
+    "focus": ["forearm endurance", "strength in all planes"],
+    "equipment": "wrist roller, weight plates",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold a wrist roller with both hands, arms extended in front of you. Slowly rotate the handle to roll a weight plate up towards the roller, then slowly unroll it back down. Perform repetitions by rolling up and down. Works both flexors and extensors.",
+    "effectiveness": 9,
+    "technicality": 6,
+    "fatigue": 8
+  },
+  "zottman_curl": {
+    "name": "Zottman Curl",
+    "categories": ["forearms", "biceps", "isolation"],
+    "movers": ["biceps", "forearms"],
+    "focus": ["forearm extensors and flexors", "biceps"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand or sit holding dumbbells with palms facing forward. Curl the dumbbells upwards with an underhand grip, squeezing your biceps. At the top, rotate your wrists so palms face downwards. Slowly lower the dumbbells with this overhand grip. At the bottom, rotate palms forward again for the next rep.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 6
+  },
+  "plate_curl": {
+    "name": "Plate Curl",
+    "categories": ["forearms", "biceps", "isolation"],
+    "movers": ["biceps", "forearms"],
+    "focus": ["grip strength", "forearm flexors", "biceps"],
+    "equipment": "weight plate",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold a weight plate by gripping it on its top and bottom edges with both hands (or just the top edge with fingers if advanced). Keep your elbows tucked and curl the plate upwards towards your chest. Slowly lower with control. This challenges grip significantly.",
+    "effectiveness": 7,
+    "technicality": 5,
+    "fatigue": 5
+  },
+  "dumbbell_wrist_curl": {
+    "name": "Dumbbell Wrist Curl",
+    "categories": ["forearms", "isolation", "unilateral"],
+    "movers": ["forearms"],
+    "focus": ["forearm flexors", "unilateral strength"],
+    "equipment": "dumbbell, bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit on a bench with one forearm resting on your thigh, hand hanging off your knee, palm up, holding a dumbbell. Allow the dumbbell to roll down to your fingertips, then curl your wrist upwards, squeezing your forearm. Slowly lower back down. Perform all reps on one arm before switching.",
+    "effectiveness": 8,
+    "technicality": 3,
+    "fatigue": 5
+  },
+  "dumbbell_reverse_wrist_curl": {
+    "name": "Dumbbell Reverse Wrist Curl",
+    "categories": ["forearms", "isolation", "unilateral"],
+    "movers": ["forearms"],
+    "focus": ["forearm extensors", "unilateral strength"],
+    "equipment": "dumbbell, bench",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit on a bench with one forearm resting on your thigh, hand hanging off your knee, palm down, holding a dumbbell. Allow the dumbbell to drop down, stretching your extensors, then curl your wrist upwards, squeezing your forearm. Slowly lower back down. Perform all reps on one arm before switching.",
+    "effectiveness": 8,
+    "technicality": 3,
+    "fatigue": 5
+  },
+  "deadlift_static_hold": {
+    "name": "Deadlift (Static Hold)",
+    "categories": ["forearms", "full body", "strength", "grip"],
+    "movers": ["forearms", "glutes", "hams", "lowback", "quads"],
+    "focus": ["maximal grip strength", "forearm endurance"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform a deadlift as usual, but once you've reached the top of the lift, simply hold the barbell for a set duration (e.g., 10-30 seconds) before lowering it. This is a very effective way to build static grip strength.",
+    "effectiveness": 9,
+    "technicality": 7,
+    "fatigue": 8
+  },
+  "pull_ups_thick_bar": {
+    "name": "Pull-Ups (Thick Bar)",
+    "categories": ["forearms", "back", "grip", "bodyweight"],
+    "movers": ["lats", "forearms", "biceps"],
+    "focus": ["grip strength", "forearm activation"],
+    "equipment": "thick pull-up bar or fat gripz",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Perform pull-ups on a thicker-than-normal bar, or by using 'Fat Gripz' sleeves on a regular bar. The increased diameter challenges your grip and forearms significantly more than a standard bar.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 8
+  },
+  "barbell_finger_curls": {
+    "name": "Barbell Finger Curls",
+    "categories": ["forearms", "grip", "isolation"],
+    "movers": ["forearms"],
+    "focus": ["finger flexors", "crushing grip"],
+    "equipment": "barbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit on a bench with your forearms resting on your thighs, hands hanging off your knees, palms up, holding a barbell. Allow the barbell to roll down to your fingertips, then close your fingers around the bar to bring it back up, primarily using finger strength. Finish with a wrist curl if desired.",
+    "effectiveness": 8,
+    "technicality": 4,
+    "fatigue": 6
+  },
+  "sledgehammer_levering": {
+    "name": "Sledgehammer Levering",
+    "categories": ["forearms", "grip", "unconventional"],
+    "movers": ["forearms"],
+    "focus": ["rotational strength", "endurance", "overall forearm development"],
+    "equipment": "sledgehammer",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold a sledgehammer by the end of its handle with one hand, arm extended. Slowly raise the head of the hammer up by extending your wrist, then lower it back down with control. Can also be done by lowering the head in front and then raising it back up. Works wrist extensors and flexors through a long lever.",
+    "effectiveness": 7,
+    "technicality": 8,
+    "fatigue": 7
+  },
+  "dumbbell_supination_pronation": {
+    "name": "Dumbbell Supination/Pronation",
+    "categories": ["forearms", "isolation"],
+    "movers": ["forearms"],
+    "focus": ["rotational strength of the forearm"],
+    "equipment": "dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit with your forearm resting on your thigh, holding a light dumbbell vertically (one end pointing up, one pointing down). Slowly rotate your forearm to turn the dumbbell to the left and right, focusing on the rotation rather than wrist movement. Perform all reps on one arm before switching.",
+    "effectiveness": 7,
+    "technicality": 5,
+    "fatigue": 5
+  },
+  "towel_hang": {
+    "name": "Towel Hang",
+    "categories": ["forearms", "grip", "bodyweight"],
+    "movers": ["forearms"],
+    "focus": ["crushing grip strength", "forearm endurance"],
+    "equipment": "pull-up bar, towel",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Drape a towel over a pull-up bar. Grip the ends of the towel and hang from it for as long as possible. This is a progression from a regular dead hang, as the towel diameter makes it harder to grip.",
+    "effectiveness": 8,
+    "technicality": 3,
+    "fatigue": 6
+  },
+  "grippers": {
+    "name": "Hand Grippers",
+    "categories": ["forearms", "grip", "isolation"],
+    "movers": ["forearms"],
+    "focus": ["crushing grip strength", "forearm size"],
+    "equipment": "hand gripper",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold a hand gripper and squeeze it shut, bringing the handles together. Slowly release with control. Can be done for reps or for specific holds. Grippers come in various resistances.",
+    "effectiveness": 7,
+    "technicality": 2,
+    "fatigue": 4
+  },
+  "isometric_neck_flexion": {
+    "name": "Isometric Neck Flexion",
+    "categories": ["neck", "isolation", "isometric"],
+    "movers": ["neck"],
+    "focus": ["front of the neck", "neck flexion strength"],
+    "equipment": "your hand or resistance band",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit or stand with a straight posture. Place your hand on your forehead. Gently press your head forward against your hand, while simultaneously resisting the movement with your neck muscles. Hold for 5-10 seconds. Relax and repeat. Alternatively, loop a resistance band around your head and anchor it behind you, pushing against the band.",
+    "effectiveness": 8,
+    "technicality": 3,
+    "fatigue": 4
+  },
+  "isometric_neck_extension": {
+    "name": "Isometric Neck Extension",
+    "categories": ["neck", "isolation", "isometric"],
+    "movers": ["neck"],
+    "focus": ["back of the neck", "neck extension strength"],
+    "equipment": "your hands or resistance band",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit or stand with a straight posture. Interlace your fingers and place your hands on the back of your head. Gently press your head backward against your hands, while simultaneously resisting the movement with your neck muscles. Hold for 5-10 seconds. Relax and repeat. Alternatively, loop a resistance band around your head and anchor it in front of you, pulling against the band.",
+    "effectiveness": 8,
+    "technicality": 3,
+    "fatigue": 4
+  },
+  "isometric_neck_lateral_flexion": {
+    "name": "Isometric Neck Lateral Flexion (Side Bend)",
+    "categories": ["neck", "isolation", "isometric"],
+    "movers": ["neck"],
+    "focus": ["sides of the neck", "neck lateral flexion strength"],
+    "equipment": "your hand or resistance band",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit or stand with a straight posture. Place one hand on the side of your head above your ear. Gently press your head towards that hand, while simultaneously resisting the movement with your neck muscles. Hold for 5-10 seconds. Relax and repeat on the other side. Alternatively, loop a resistance band around your head and anchor it to the side, pushing against the band.",
+    "effectiveness": 8,
+    "technicality": 3,
+    "fatigue": 4
+  },
+  "neck_flexion_with_weight_plate": {
+    "name": "Neck Flexion (with weight plate)",
+    "categories": ["neck", "isolation"],
+    "movers": ["neck"],
+    "focus": ["front of the neck", "neck flexion strength and hypertrophy"],
+    "equipment": "weight plate, towel (optional)",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie face up on a flat bench with your head hanging slightly off the end. Place a small weight plate on your forehead (use a folded towel for padding if needed). Slowly lower your head, stretching your neck. Then, slowly lift your head by contracting your neck muscles, bringing your chin towards your chest. Control the movement throughout.",
+    "effectiveness": 9,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "neck_extension_with_weight_plate": {
+    "name": "Neck Extension (with weight plate)",
+    "categories": ["neck", "isolation"],
+    "movers": ["neck"],
+    "focus": ["back of the neck", "neck extension strength and hypertrophy"],
+    "equipment": "weight plate, towel (optional)",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie face down on a flat bench with your head hanging slightly off the end. Place a small weight plate on the back of your head (use a folded towel for padding if needed). Slowly lower your head, stretching your neck. Then, slowly lift your head by contracting your neck muscles, looking upwards. Control the movement throughout.",
+    "effectiveness": 9,
+    "technicality": 6,
+    "fatigue": 7
+  },
+  "neck_lateral_flexion_with_weight_plate": {
+    "name": "Neck Lateral Flexion (with weight plate)",
+    "categories": ["neck", "isolation"],
+    "movers": ["neck"],
+    "focus": ["sides of the neck", "neck lateral flexion strength and hypertrophy"],
+    "equipment": "weight plate, towel (optional)",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on your side on a flat bench with your head hanging slightly off the end. Place a small weight plate on the side of your head (use a folded towel for padding if needed). Slowly lower your head towards the floor, stretching the side of your neck. Then, slowly lift your head by contracting the neck muscles on the other side, bringing your ear towards your shoulder. Control the movement throughout. Repeat on both sides.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 6
+  },
+  "chin_tucks": {
+    "name": "Chin Tucks",
+    "categories": ["neck", "posture", "rehab"],
+    "movers": ["neck"],
+    "focus": ["improving forward head posture", "strengthening deep neck muscles"],
+    "equipment": "bodyweight",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit or stand tall. Gently draw your chin straight back as if trying to make a double chin. Keep your head level, don't tilt up or down. Hold for a few seconds, feeling the muscles at the front of your neck engage. Relax and repeat. Can also be done lying on your back.",
+    "effectiveness": 7,
+    "technicality": 4,
+    "fatigue": 3
+  },
+  "neck_bridge_supine": {
+    "name": "Supine Neck Bridge",
+    "categories": ["neck", "bodyweight", "compound"],
+    "movers": ["neck", "traps"],
+    "focus": ["overall posterior neck strength", "stability"],
+    "equipment": "mat/floor",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on your back with knees bent and feet flat on the floor. Place a towel or soft pad under the back of your head. Lift your hips off the floor, forming a bridge with your body. Gently push the back of your head into the floor/pad, lifting your upper back slightly and holding the bridge with your neck and upper back muscles. Hold for a few seconds, then slowly lower. Progress to rolling the head for more dynamic movement if comfortable.",
+    "effectiveness": 8,
+    "technicality": 8,
+    "fatigue": 7
+  },
+  "neck_bridge_prone": {
+    "name": "Prone Neck Bridge",
+    "categories": ["neck", "bodyweight", "compound"],
+    "movers": ["neck", "core"],
+    "focus": ["overall anterior neck strength", "stability"],
+    "equipment": "mat/floor",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie face down on a mat. Place a towel or soft pad under your forehead. Push your forehead into the floor/pad, lifting your chest and shoulders slightly off the ground, essentially bridging on your forehead and toes/knees. Hold this position, feeling the activation in the front of your neck and core. Slowly lower. This is more advanced and requires caution.",
+    "effectiveness": 8,
+    "technicality": 9,
+    "fatigue": 7
+  },
+  "4-way_neck_machine": {
+    "name": "4-Way Neck Machine",
+    "categories": ["neck", "isolation"],
+    "movers": ["neck"],
+    "focus": ["comprehensive neck development", "controlled resistance"],
+    "equipment": "4-way neck machine",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Sit on the neck machine and adjust the pads to fit securely around your head. Perform movements in all four directions: flexion (chin to chest), extension (looking up), and lateral flexion (ear to shoulder on both sides). Control the movement in both the concentric and eccentric phases. This machine provides consistent, isolated resistance.",
+    "effectiveness": 9,
+    "technicality": 4,
+    "fatigue": 7
+  },
+  "cossack_squat": {
+    "name": "Cossack Squat",
+    "categories": ["adductors", "quads", "glutes", "mobility", "compound"],
+    "movers": ["glutes", "quads", "hams"],
+    "focus": ["inner thigh strength", "hip mobility", "unilateral strength"],
+    "equipment": "bodyweight, dumbbell, kettlebell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand with a wide stance, toes pointed slightly out. Shift your weight to one side, bending that knee and keeping the other leg straight, foot flat or toes pointed up (depending on flexibility). Descend into a deep squat on one leg while maintaining the straight leg. Keep your chest up. Push off the squatting leg to return to center, then switch sides. Can be weighted.",
+    "effectiveness": 9,
+    "technicality": 8,
+    "fatigue": 7
+  },
+  "copenhagen_adduction_plank": {
+    "name": "Copenhagen Adduction Plank",
+    "categories": ["adductors", "core", "stability", "bodyweight"],
+    "movers": ["adductors", "core"],
+    "focus": ["adductor strength", "groin injury prevention", "core stability"],
+    "equipment": "bench, box",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on your side next to a bench or elevated surface. Place your top leg's inner ankle or shin on the bench. Support your upper body with your forearm. Lift your bottom leg and hips off the ground, bringing your bottom leg to meet your top leg and squeezing your inner thighs. Hold this plank position, maintaining a straight line from head to heels. Can also be done by lowering and lifting the bottom leg.",
+    "effectiveness": 10,
+    "technicality": 9,
+    "fatigue": 8
+  },
+  "cable_adduction": {
+    "name": "Cable Adduction",
+    "categories": ["adductors", "isolation"],
+    "movers": ["adductors"],
+    "focus": ["adductor isolation", "controlled resistance"],
+    "equipment": "cable machine, ankle strap",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Attach an ankle strap to a low cable pulley. Stand sideways to the machine, attaching the strap to your ankle furthest from the machine. Step away to create tension. Keeping your core stable and leg straight, pull your leg across your body towards the midline, squeezing your inner thigh. Control the movement as you slowly return to the starting position.",
+    "effectiveness": 8,
+    "technicality": 4,
+    "fatigue": 6
+  },
+  "goblet_squat_wide_stance": {
+    "name": "Goblet Squat (Wide Stance)",
+    "categories": ["adductors", "quads", "glutes", "compound"],
+    "movers": ["glutes", "quads", "adductors"],
+    "focus": ["adductor engagement", "squat depth", "mobility"],
+    "equipment": "kettlebell, dumbbell",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Hold a kettlebell or dumbbell vertically against your chest (goblet style). Stand with a wider than shoulder-width stance, toes pointed out. Squat down deeply, keeping your chest up and pushing your knees out in line with your toes. Focus on feeling the stretch and contraction in your inner thighs. Drive through your heels to stand back up.",
+    "effectiveness": 8,
+    "technicality": 5,
+    "fatigue": 7
+  },
+  "band_lateral_walk": {
+    "name": "Band Lateral Walk",
+    "categories": ["abductors", "glutes", "isolation"],
+    "movers": ["glutes"],
+    "focus": ["gluteus medius activation", "hip stability", "warm-up"],
+    "equipment": "resistance band (mini-band)",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Place a resistance band around your ankles or just above your knees. Stand with feet hip-width apart, knees slightly bent, and a slight hinge at your hips. Take small, controlled steps sideways, maintaining tension on the band throughout the movement. Continue for desired distance or reps in one direction, then switch.",
+    "effectiveness": 9,
+    "technicality": 4,
+    "fatigue": 5
+  },
+  "cable_abduction": {
+    "name": "Cable Abduction",
+    "categories": ["abductors", "isolation"],
+    "movers": ["glutes"],
+    "focus": ["abductor isolation", "controlled resistance"],
+    "equipment": "cable machine, ankle strap",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Attach an ankle strap to a low cable pulley. Stand sideways to the machine, attaching the strap to your ankle closest to the machine. Step away to create tension. Keeping your core stable and leg straight, lift your leg directly out to the side, away from your body, squeezing your outer hip. Control the movement as you slowly return to the starting position.",
+    "effectiveness": 8,
+    "technicality": 4,
+    "fatigue": 6
+  },
+  "clamshell": {
+    "name": "Clamshell",
+    "categories": ["abductors", "glutes", "isolation", "rehab"],
+    "movers": ["glutes"],
+    "focus": ["gluteus medius activation", "hip external rotation", "rehab"],
+    "equipment": "bodyweight, resistance band (mini-band)",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on your side with your legs stacked and knees bent at a 45-degree angle. Keep your feet together. Keeping your core engaged and hips stable, lift your top knee away from the bottom knee as high as possible, like a clamshell opening. Slowly lower your knee back down. A resistance band above the knees increases difficulty.",
+    "effectiveness": 8,
+    "technicality": 3,
+    "fatigue": 4
+  },
+  "fire_hydrant": {
+    "name": "Fire Hydrant",
+    "categories": ["abductors", "glutes", "isolation"],
+    "movers": ["glutes"],
+    "focus": ["gluteus medius activation", "hip external rotation"],
+    "equipment": "bodyweight, resistance band (mini-band)",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Start on all fours with your hands under your shoulders and knees under your hips. Keeping one knee bent at 90 degrees, lift that leg out to the side, away from your body, until your thigh is parallel to the floor (or as high as comfortable without rocking your torso). Slowly lower your leg back down. A resistance band above the knees increases difficulty.",
+    "effectiveness": 7,
+    "technicality": 4,
+    "fatigue": 4
+  },
+  "side_lying_leg_raise": {
+    "name": "Side Lying Leg Raise",
+    "categories": ["abductors", "glutes", "isolation", "bodyweight"],
+    "movers": ["glutes"],
+    "focus": ["abductor isolation", "outer hip strength"],
+    "equipment": "bodyweight, ankle weights",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on your side with your legs straight and stacked. Support your head with your hand. Keep your core engaged and avoid rocking your torso. Lift your top leg straight up towards the ceiling, leading with your heel and squeezing your outer hip. Slowly lower with control. Can be done with ankle weights for added resistance.",
+    "effectiveness": 7,
+    "technicality": 3,
+    "fatigue": 5
+  },
+ } }
+
+// to convert the above format to correct format and replace data in the new file
+ JSON.stringify(Object.fromEntries(Object.entries(exerciseDB()).map(([k,{name,...rest}]) => {name = k.replaceAll("_"," ").replaceAll(/\b\w/g,(e)=>e.toUpperCase()); return [k,{name,...rest}]})))

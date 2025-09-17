@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Exercises</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body id="createexercisespage">
+    <header id="header">
+        <img src="" alt="" draggable="true">
+        <h1>logger.One</h1>
+    </header>
+    <section id="exerciselist">
+        <input type="search" name="searchexercise" id="searchexercise" placeholder="Enter exercise, bodypart, category...">
+        <section id="exercises">
+        </section>
+        <span id="doneselection">👍</span>
+    </section>
+    <fieldset id = "exercisedetails">
+        <video id="media" controls>
+            <source src="bench_press.mp4" type="video/mp4"/>
+            Your browers does not support video element.
+        </video>
+        <section id="description"></section>
+        <section id="ratings">
+            <span>
+                <h4>Effectiveness</h4>
+                <p id="effectiveness">⭐⭐⭐⭐</p>
+            </span>
+            <span>
+                <h4>Technicality</h4>
+                <p id="technicality">⭐⭐⭐⭐</p>
+            </span>
+            <span>
+                <h4>Fatigue</h4>
+                <p id="fatigue">⭐⭐⭐⭐</p>
+            </span>    
+        </section>
+        <section id="otherinfo">
+            <span>
+                <h4>Primary</h4>
+                <p id="primary"></p>
+            </span>
+            <span>
+                <h4>Target Muscles</h4>
+                <p id="targets"></p>
+            </span>
+            <span>
+                <h4>Equipment</h4>
+                <p id="equipment"></p>
+            </span>    
+        </section>
+        <div id="tags"></div>
+        <legend id="legend"></legend>
+    </fieldset>
+    <fieldset id="suggestionscontainer">
+        <section id="suggestions">
+            <div>
+                
+            </div>
+        </section>
+        <legend>Suggestions</legend>
+    </fieldset>
+    <section id="selectionlistdisplay">
+        
+    </section>
+    <footer id="footer">
+        <a id="closedetails" href="#top">Close</a>
+        <a id="saveexercises" style="display: none;">Save</a>
+    </footer>
+    <script src="savedworkouts.js"></script>
+    <script id="exercisesJS" src="exercises.js"></script>
+</body>
+</html>

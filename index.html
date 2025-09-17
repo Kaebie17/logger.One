@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logger.One</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header id="header">
+        <img src="" alt="">
+        <h1>logger.One</h1>
+    </header>
+    <div id="container">
+        <section id="summary">
+            <p>TARGET MAP</p>
+            <div id="svgcontainer"></div>
+        </section>
+        <section id="logger">
+            <button id="createworkout">Create Workout</button>
+            <button id="logworkout">Past Workout</button>
+        </section>
+        <section id="schedule">
+            <div><a href="#weeklystatus">7-Day Status</a><a id="loadcalendar" href="#calendar">Calendar</a></div>
+            <section id="calendar">
+                    <div class="label-area"><p onclick="scrollMonth(event)"><<</p><p onclick="scrollMonth(event)">>></p></div>
+            </section>
+            <div id="weeklystatus">
+                <div id="week"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span></div>
+                <div id="streak"><span></span><span></span></div>
+            </div>
+        </section>
+        <section id="templates">
+            <div>
+                <p>No Templates Added.</p>
+            </div>
+        </section>
+    </div>
+    <footer id="footer">
+        <a href="">Profile</a>
+        <a href="history.html">Workouts</a>
+        <a href="trends.html">Trends</a>
+        <a href="">Stats</a>
+        <a href="">Settings</a>
+    </footer>
+    <script async id="indexJS" src="index.js"></script>
+</body>
+</html>
