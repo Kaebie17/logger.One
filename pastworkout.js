@@ -9,6 +9,7 @@ const summaryArea = document.querySelectorAll("div[id^='summary']");
 const logDetails = document.getElementById("exdetails");
 const svgContainer = document.getElementById("svgcontainer");
 const calendarArea = document.getElementById("calendar");
+const deleteWorkoutBtn = document.getElementById("deleteworkout");
 const redirectHome = document.querySelector("#header > h1");
 const pastWorkoutsObject = JSON.parse(localStorage.workoutLogObject);
 const finalLog = Object.fromEntries(JSON.parse(sessionStorage.finalLog));
@@ -30,11 +31,17 @@ heading.textContent = headingVal||date;
 //redirect to home page
 redirectHome.addEventListener("click" , home);
 
+//delete this workout
+deleteWorkoutBtn.addEventListener("click", handleDeleteOperation);
+
 exerciseDetails.lastElementChild.addEventListener("click", ()=>{
     exerciseDisplay.style.display = "flex";
     exerciseDetails.style.display = "none";
     logDetails.replaceChildren();
-    fillShapeColor(exerciseData); 
+    fillShapeColor(exerciseData);
+    calendarArea.firstElementChild.children[1].remove();
+    calendarArea.lastElementChild.remove();
+    createCalendar(date); 
 })
 
 const extractData = () => {
@@ -50,7 +57,6 @@ const extractData = () => {
 }
 
 const handleClick = (event) => {
-    debugger
     const elem = event.target;
     const id = elem.id;
     const currExercise = exerciseData[id];
@@ -157,21 +163,34 @@ function pastVol(targetMovement,targetDate,targetMetric){
     return pastWorkoutsObject.map(([k,v]) => v).map(({workoutExercises,...v})=>workoutExercises).flatMap(({date,time,chooseprogram,...v})=> Object.keys(v).includes(targetMovement) && date!==targetDate ? [v[targetMovement]]:[])[0]?.filter(([k,v])=> k===targetMetric);
 }
 function fillShapeColor(object,bool=false){
+    let combinedTargetsArr ;
+    let volumes;
     if(bool){
-        const combinedTargetsArr =  Object.values(exerciseData).flat().filter(([k,v]) => k==="targets").map(([k,v])=> v).flat();
-        const targetsMap = new Map();
-        combinedTargetsArr.forEach(e => targetsMap.has(e)? targetsMap.set(e,targetsMap.get(e)+1) : targetsMap.set(e,1));
-        Array.from(targetsMap).forEach(([k,v])=>{
-        const elements = svgContainer.querySelectorAll(`svg [data-name=${k.replace("-","")}]`); 
-        elements.forEach(elem => rgbValues(elem,-1))
-    })
+        combinedTargetsArr =  Object.values(exerciseData).flat().filter(([k,v]) => k==="targets").map(([k,v])=> v).flat();
+        volumes = Object.values(exerciseData).map(arr => arr[arr.findIndex(e => e[0] === "vol")][1]);
+    }else{
+        combinedTargetsArr =  Object.values(object).flat().filter(([k,v]) => k==="targets").map(([k,v])=> v).flat();
+        volumes = Object.values(object).map(arr => arr[arr.findIndex(e => e[0] === "vol")][1]);
     }
-    const combinedTargetsArr =  Object.values(object).flat().filter(([k,v]) => k==="targets").map(([k,v])=> v).flat();
+    const movers = Object.values(object).map(arr => arr[0][1]);
+    const totalVol = volumes.reduce((a,b)=> a+b,0);
     const targetsMap = new Map();
-    combinedTargetsArr.forEach(e => targetsMap.has(e)? targetsMap.set(e,targetsMap.get(e)+1) : targetsMap.set(e,1));
-    Array.from(targetsMap).forEach(([k,v])=>{
-        const elements = svgContainer.querySelectorAll(`svg [data-name=${k.replace("-","")}]`); 
-        elements.forEach(elem => rgbValues(elem,v))
+    combinedTargetsArr.forEach(e => {if(e==="traps"||e==="rhomboids"){e="traps/rhomboids"} ; targetsMap.set(e.replace("-",""),0)});
+    movers.forEach(([primary, secondary, tertiary, quaternary, quinary],i) => { 
+        if (primary) {primary = primary.replace("-",""); if(primary==="traps"||primary==="rhomboids"){primary="traps/rhomboids"} };
+        if (secondary) {secondary = secondary.replace("-",""); if(secondary==="traps"||secondary==="rhomboids"){secondary="traps/rhomboids"} };
+        if (tertiary) {tertiary = tertiary.replace("-",""); if(tertiary==="traps"||tertiary==="rhomboids"){tertiary="traps/rhomboids"} };
+        if (quaternary) {quaternary = quaternary.replace("-",""); if(quaternary==="traps"||quaternary==="rhomboids"){quaternary="traps/rhomboids"} };
+        if (quinary) {quinary = quinary.replace("-",""); if(quinary==="traps"||quinary==="rhomboids"){quinary="traps/rhomboids"} };
+        targetsMap.has(primary)? targetsMap.set(primary,Math.round(targetsMap.get(primary)+(0.65*volumes[i]*100)/totalVol)) : "";
+        targetsMap.has(secondary)? targetsMap.set(secondary,Math.round(targetsMap.get(secondary)+(0.25*volumes[i]*100)/totalVol)) : "";
+        targetsMap.has(tertiary)? targetsMap.set(tertiary,Math.round(targetsMap.get(tertiary)+(0.10*volumes[i]*100)/totalVol)) : "";
+        targetsMap.has(quaternary)? targetsMap.set(quaternary,Math.round(targetsMap.get(quaternary)+(0.05*volumes[i]*100)/totalVol)) : "";
+        targetsMap.has(quinary)? targetsMap.set(quinary,Math.round(targetsMap.get(quinary)+(0.05*volumes[i]*100)/totalVol)) : "";
+    });
+    targetsMap.entries().forEach(([key, val])=> {
+        let elemArr = document.querySelectorAll(`svg [data-name='${key}']`) ;
+        elemArr.forEach(elem => rgbValues(elem,val));
     })
 }
 
@@ -220,28 +239,33 @@ function monthlyExerciseDates(){
     let monthnum = months.findIndex(m => m===calendarArea.firstElementChild.children[1].textContent);
     return pastWorkoutsObject.flatMap(([k,{workoutExercises, ...v}])=> { 
         let d = new Date(k);
-        return d.getMonth() === monthnum && Object.keys(workoutExercises).includes("push_up_standard") ? [d.getDate()] : [] ;
+        return d.getMonth() === monthnum && Object.keys(workoutExercises).includes(titleElem.textContent.toLowerCase().replaceAll(" ","_")) ? [d.getDate()] : [] ;
     })
 }
-function rgbValues(el,count){
+
+function rgbValues(el,vol){
     switch(true) {
-        case count>10:{
+        case vol>100:{
             el.setAttribute("fill",`rgb(100%, 0%, 0%)`);
             break;
         };
-        case count>6&&count<=9: {
+        case vol>70&&vol<=100: {
             el.setAttribute("fill",`rgb(100%, 25%, 25%)`)
             break;
         };
-        case count>3&&count<=6: {
+        case vol>40&&vol<=70: {
             el.setAttribute("fill",`rgb(100%, 75%, 50%)`)
             break;
         };
-        case count>0&&count<=3: {
+        case vol>20&&vol<=40: {
             el.setAttribute("fill",`rgb(75%, 100%, 100%)`)
             break;
         };
-        default : {
+        case vol>0&&vol<=20: {
+            el.setAttribute("fill",`rgb(100%, 100%, 100%)`)
+            break;
+        };
+        default: {
             el.setAttribute("fill",`rgb(50%, 50%, 50%)`)
             break;
         }       
@@ -252,4 +276,11 @@ function rgbValues(el,count){
 function home() {
   document.location = "./index.html";
   redirectHome.removeEventListener("click", home);
+}
+
+function handleDeleteOperation(){
+    let newHistory = pastWorkoutsObject.filter(([k,v])=>k!==key);
+    localStorage.templog = JSON.stringify(pastWorkoutsObject);
+    localStorage.workoutLogObject = JSON.stringify(newHistory);
+    document.location = "./history.html";
 }
