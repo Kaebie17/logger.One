@@ -55,13 +55,14 @@ if(new URL(document.location).searchParams.get("eData")){
         intensityScale.value = finalLog;
     }
     finalLog = JSON.parse(sessionStorage.finalLog) ;
-    newTemplateEntries[programDisplay.value] = Object.fromEntries(Object.entries(finalLog).filter(([key,value]) => key!=="start" && key!=="end"));
+    newTemplateEntries[programDisplay.value] = Object.fromEntries(Object.entries(finalLog).filter(([key,value]) => key!=="start" && key!=="end" && key!=="unit"));
     delete sessionStorage.restoreSelection;
     sessionStorage.templates = JSON.stringify(newTemplateEntries);
     [startDate,startTime,startAmPm] = finalLog.start.split(", ").flatMap((e,i) => i===1 ? e.split(" ") : e).map((el,j) => j===1 ? el.split(":").slice(0,2).join(":") : el) ;
     [endDate,endTime,endAmPm] = finalLog.end.split(", ").flatMap((e,i) => i===1 ? e.split(" ") : e).map((el,j) => j===1 ? el.split(":").slice(0,2).join(":") : el) ;
     periodObject.login = startTime + " " + startAmPm ; 
     periodObject.logout = endTime + " " + endAmPm ;
+    
     dateElements[0].value = new Date(startDate).toISOString().split("T")[0];
     dateElements[1].value = new Date(endDate).toISOString().split("T")[0];
     fromClock_output[0].value = startTime.split(":")[0];
@@ -79,6 +80,7 @@ if(new URL(document.location).searchParams.get("eData")){
 
 // Block handles editing template exercises to log as past workout
 else if(new URL(document.location).searchParams.get("temp")){
+    debugger
     const program = new URL(document.location).searchParams.get("temp");
     programDisplay.value = program;
     finalLog = existingTemplates[program] ;
@@ -199,7 +201,6 @@ addExercises.onclick = () => {
     updateTimeRecord();
     const time = periodObject.login ;
     sessionStorage.program = programDisplay.value ;
-
     // block handles editing template exercises to log as past workout
     // if (new URL(document.location).searchParams.get("eData")){
     //     alert("this block") 
@@ -213,27 +214,32 @@ addExercises.onclick = () => {
         // document.querySelector("input[type=date]").value = date;
         // document.querySelectorAll("input[type=date]~span>output").forEach(el => el.value = el.value);
         const loc = new URL("file:///C:/Users/krish/Desktop/Web%20Development/Capstone%20projects/Project%207%20-%20LoggerDotOne/exercises.html");
-        if (!new URL(document.location).searchParams.size) {loc.searchParams.set("new",true);}
-        else {
+        {
             loc.searchParams.set("s", new Date(startDate + " " + periodObject.login).toLocaleString());
             loc.searchParams.set("e", new Date(endDate + " " + periodObject.logout).toLocaleString());
             loc.searchParams.set("temp",sessionStorage.program)
         } //probably not necessary due to sessionstorage property : program
+        if (!new URL(document.location).searchParams.size) {loc.searchParams.set("new",true);}
+        
         document.location = loc;
 }
 
 function saveWorkoutFunction(event) {
+    
     if(!startDate){alert("Workout duration cannot be 0!"); return} 
     const workoutName = programDisplay.value;
     const workoutDate = startDate;
+    
     const workoutStartTime = periodObject.login;
     const workoutEndTime = periodObject.logout;
     const workoutIntensity = document.getElementById("intensity").value;
     const workoutSoreness = document.getElementById("soreness").value;
+    const workoutUnit = finalLog.unit;
+    delete finalLog.start; delete finalLog.end; delete finalLog.unit; 
     const workoutExercises = finalLog;   
     const key = workoutDate + " " + workoutStartTime;                                                                   
     let temp = workoutObject(); 
-    temp.set(key , {workoutName,workoutDate,workoutStartTime,workoutEndTime,workoutIntensity,workoutSoreness,workoutExercises});
+    temp.set(key , {workoutName,workoutDate,workoutStartTime,workoutEndTime,workoutIntensity,workoutSoreness,workoutExercises,workoutUnit});
     localStorage.workoutLogObject =  JSON.stringify(Array.from(temp));
     temp = "";
     event.target.removeEventListener("click",saveWorkoutFunction);
