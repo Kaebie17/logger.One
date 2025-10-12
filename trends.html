@@ -14,9 +14,9 @@
     <div id="container">
         <section id="mainfilters">
             <span>
-                <span><input type="radio" id="option1" value="programs"><label for="option1">Programs</label></span>
-                <span><input type="radio" id="option2" value="exercises"><label for="option2">Exercises</label></span>
-                <span><input type="radio" id="option3" value="bodypart"><label for="option3">Bodypart</label></span>
+                <span><input type="radio" id="option1" value="uniquePrograms" name="mainradios"><label for="option1">Programs</label></span>
+                <span><input type="radio" id="option2" value="exerciseNameIds" name="mainradios"><label for="option2">Exercises</label></span>
+                <span><input type="radio" id="option3" value="uniqueTargets" name="mainradios"><label for="option3">Bodypart</label></span>
             </span>
             <select id="mainfilteroptions">
             </select>
@@ -32,6 +32,7 @@
             </select>
             <div id="svgcustom">
                 <div id="graphics"></div>
+                <div id="dailytoggle" style="z-index: 1;"><a class="prevBtn"><<</a>&nbsp;&nbsp;&nbsp;<a class="nextBtn">>></a></div>
                 <div id="legend">
                     <a>ℹ</a>
                 </div>
@@ -48,7 +49,7 @@
             </select>
             <div id="svgweekly">
                 <div id="graphics"></div>
-                <div style="z-index: 1;"><a id="prev"><<</a>&nbsp;&nbsp;&nbsp;<a id="next">>></a></div>
+                <div id="weeklytoggle" style="z-index: 1;"><a class="prevBtn"><<</a>&nbsp;&nbsp;&nbsp;<a class="nextBtn">>></a></div>
                 <div id="legend">
                     <a>ℹ</a>
                 </div>
@@ -57,9 +58,15 @@
         <h2>Monthly Stats</h2>
         <section id="monthlytrends">
             <select id="monthlyfilteroptions">
+                 <option value="repCount">Reps</option>
+                <option value="weight">Weight</option>
+                <option value="load">Load</option>
+                <option value="vol" selected>Volume</option>
+                <option value="setCount">Sets</option>
             </select>
             <div id="svgmonthly">
                 <div id="graphics"></div>
+                <div id="monthlytoggle" style="z-index: 1;"><a class="prevBtn"><<</a>&nbsp;&nbsp;&nbsp;<a class="nextBtn">>></a></div>
                 <div id="legend">
                     <a>ℹ</a>
                 </div>
