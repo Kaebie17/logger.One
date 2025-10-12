@@ -10,6 +10,7 @@ const switchListsDisp = (num=0) => {
   exerciseList.style.display = num === 0 ? "grid" : "none"
   suggestionsContainer.style.display = num < 2 ? "none" : "block";
   exerciseDetails.style.display = num < 2 ? "none" : "block" ;
+  closeDetails.textContent = num === 1 ? "Add" : "Close"
   closeDetails.style.display = num===0 ? "none" : num===1 ? "flex" : "block";
   selectionListDisplay.style.display = num===0 ? "none" : num === 1 ? "block" : "none" ;
   saveExercises.style.display = num===0 ? "none" : num === 1 ? "flex" : "none" ;
@@ -47,34 +48,39 @@ class CustomOptionElement extends HTMLElement {
     
     function slotEvent(event,type){
       event.stopPropagation();
-      const id = event.target.alt.replaceAll(/[ ]|(?<!\d)-/g,"_").replaceAll(/[^-\w]/g,"").toLowerCase();
+      let id = event.target.alt || event.target.id ;
+      id = id.replaceAll(/[ ]|(?<!\d)-/g,"_").replaceAll(/[^-\w]/g,"").toLowerCase();
       const details = exerciseDB()[id];
-      const {name,desc,video,primary,targets,equipment,ratings,tags} = {name: details.name, desc: details.description, video: details.media.videoLinks, primary:details.categories[0], targets : details.movers, equipment: details.equipment, ratings : [details.effectiveness, details.technicality, details.fatigue], tags: details.categories};
+      const {name,desc,video,categories,targets,equipment,ratings,tags} = {name: details.name, desc: details.description, video: details.media.videolinks || details.media.imagelinks || "./media/images/default-img.png" , categories:details.categories, targets : details.movers, equipment: details.equipment, ratings : [details.effectiveness, details.technicality, details.fatigue], tags: details.categories};
       switchListsDisp(2);
       closeDetails.textContent = "Close";
       legend.textContent = name;
-      exerciseDetails.children["media"].children[0].src = video[0];
+      exerciseDetails.children["media"].children[0].src = video;
       exerciseDetails.children["description"].textContent = desc;
-      exerciseDetails.children["ratings"].children[0].children["effectiveness"].textContent = nConcat(Math.floor((ratings[0])/2),"⭐");
-      exerciseDetails.children["ratings"].children[1].children["technicality"].textContent = nConcat(Math.floor((ratings[1])/2),"⭐");
-      exerciseDetails.children["ratings"].children[2].children["fatigue"].textContent = nConcat(Math.floor((ratings[2])/2),"⭐");
-      exerciseDetails.children["otherinfo"].children[0].children["primary"].textContent = primary;
-      exerciseDetails.children["otherinfo"].children[1].children["targets"].textContent = targets;
-      exerciseDetails.children["otherinfo"].children[2].children["equipment"].textContent = equipment;
+      exerciseDetails.children["ratings"].children[0].style.background =  linearGradient(ratings[0]);
+      exerciseDetails.children["ratings"].children[1].style.background =  linearGradient(ratings[1]);
+      exerciseDetails.children["ratings"].children[2].style.background =  linearGradient(ratings[2]);
+      exerciseDetails.children["otherinfo"].children[0].children["targets"].textContent = targets;
+      exerciseDetails.children["otherinfo"].children[1].children["equipment"].textContent = equipment;
       exerciseDetails.children["tags"].replaceChildren();
       suggestions.firstElementChild.replaceChildren();
-      tags.forEach(tag => {
+      [targets[0],targets[1]].forEach(tag => {
         const _exerciseData = Object.values(exerciseDB());
         const suggestionsArray = [];
         let random = randomBetween(0,3);
-        const taggedExercises = filter(tag,_exerciseData.filter(e => e.name !== event.target.alt.replace("Image_","") && e[["effectiveness","technicalality","fatigue"][random]] >= parseInt(ratings[random])));
+        const taggedExercises = filterer(tag,_exerciseData.filter(e => e.name !== event.target.alt && e[["effectiveness","technicalality","fatigue"][random]] >= parseInt(ratings[random]) && e.categories.some(c => tags.includes(c))));
         const span = document.createElement("span"); 
         span.textContent = tag; 
         exerciseDetails.children["tags"].append(span);
         taggedExercises.slice(0,3).forEach(e => suggestionsArray.push(e));
-        loadOptions(suggestionsArray,"custom-option-element",suggestions.firstElementChild, {display: "image", id:"name", width: ["","","",[0,0,"100%","100%"]], src: ["media","imageLinks",0,"https://tse3.mm.bing.net/th?id=OIP.oJRcDq2AAsFYW1ab_OQJwgHaEK&pid=Api&P=0&h=180"], alt: "name"});
+        loadOptions(suggestionsArray,"custom-option-element",suggestions.firstElementChild, {value:"name", id:"name", width: ["","","",["100%","100%","100%","100%"]], src: ["media","imagelinks",0,"https://tse3.mm.bing.net/th?id=OIP.oJRcDq2AAsFYW1ab_OQJwgHaEK&pid=Api&P=0&h=180"], alt: "name"});
       });
-    event.target.removeEventListener(type, (event,type) => optionEvent(event,type));      
+      suggestions.firstElementChild.childNodes.forEach(el => {
+        el.className = "makegrid" ;
+        el.shadowRoot.children[1].onclick = (e) => slotEvent(e,type);
+        el.shadowRoot.children[1].className = "gridChild";
+      });
+      event.target.removeEventListener(type, (event,type) => optionEvent(event,type));      
     };
   }
     
@@ -109,6 +115,9 @@ class CustomOptionElement extends HTMLElement {
         this.option.setAttribute("style", `display: none`);
       }
     }
+    else if (name==="color"){
+      this.option.style.color = newValue ;
+    }
   }
   get value(){
     return this.getAttribute("value");
@@ -128,6 +137,9 @@ class CustomOptionElement extends HTMLElement {
   get display(){
     return this.getAttribute("display");
   }
+  get color(){
+    return this.getAttribute("color");
+  }
   set value(text){
     return this.setAttribute("value",text);
   }
@@ -146,9 +158,12 @@ class CustomOptionElement extends HTMLElement {
   set display(string){
     return this.setAttribute("display", string);
   }
+  set color(string){
+    return this.setAttribute("color", string);
+  }
 }
 
-CustomOptionElement.observedAttributes = ["value","id","src","alt","width","height","display","click","drag"];
+CustomOptionElement.observedAttributes = ["value","id","src","alt","width","display","color","center"];
 CustomOptionElement.selectedOptionArr = [];
 CustomOptionElement.template = document.createElement("template");
 CustomOptionElement.template.innerHTML = `<style>
@@ -156,16 +171,21 @@ div{
     width: 85%;
     height: 100%;
     display: flex;
-    align-items: center;
+    align-items: center;;
 }
 img{
     width: 15%;
     height: 95%;
     font-size: 0.5rem;
+    grid-area: 1/1/1/1;
 }
 .indent{
     opacity: 80%;
     background-image: linear-gradient(to bottom right,var(--template-color-mid),white) ;
+}
+.gridChild{
+    grid-area: 1/1/1/1;
+    z-index: 1;
 }
 </style>
 
@@ -187,6 +207,7 @@ const selectExercise = document.getElementById("exercises");
 const searchExercise = document.getElementById("searchexercise");
 const redirectHome = document.querySelector("#header > h1");
 const existingTemplates = sessionStorage?.templates?.length>2 ? JSON.parse(sessionStorage.templates) : localStorage?.templates ? JSON.parse(localStorage.templates) : {};
+const unitUsed = !localStorage?.savedSettings ? alert("Please update settings before proceeding") : JSON.parse(localStorage?.savedSettings)["unit"]; 
 
 // A pre-built section to be attached to each option when hovered/dblclicked 
 
@@ -196,10 +217,10 @@ redirectHome.addEventListener("click" , home);
 
 // const showExerciseList
 
-const close = (event) => {
+const close = (event) => {debugger;
   if (exerciseList.style.display === "none" && selectionListDisplay.style.display === "none") {switchListsDisp();}
   else if (exerciseList.style.display === "none" && selectionListDisplay.style.display === "block" && new URL(document.location).searchParams.size > 1) {
-    loadOptions(Object.values(exerciseDB()),"custom-option-element",selectExercise,{value: "name", id:"name", src: ["media","imageLinks",0,""], alt: "name"});
+    loadOptions(Object.values(exerciseDB()),"custom-option-element",selectExercise,{value: "name", id:"name", src: ["media","imagelinks",0,""], alt: "name"});
     switchListsDisp();
     searchExercise.addEventListener("keyup", handleSearch);
   // logging new past workout from workoutlog page based edit workout flow-control
@@ -210,19 +231,20 @@ const close = (event) => {
     }
   } 
   else if (exerciseList.style.display === "none" && selectionListDisplay.style.display === "block"){
-    closeDetails.style.display = "none";
-    const url = new URL(document.location)
-    url.searchParams.set("new",true); // THIS IS CREATING PROBLEM AS ITS NOT ALLOWING POPULATING STORED DATA IN SELECTED EXERCISES
-    url.searchParams.delete("temp")
-    url.searchParams.delete("s")
-    url.searchParams.delete("e")
-    // delete CustomOptionElement.selectedOptionArr  ;
-    // closeDetails.removeEventListener(event.type,close);
-    sessionStorage.restoreSelection = JSON.stringify(CustomOptionElement.selectedOptionArr); 
+    switchListsDisp();
+    // closeDetails.style.display = "none";
+    // const url = new URL(document.location)
+    // url.searchParams.set("new",true); // THIS IS CREATING PROBLEM AS ITS NOT ALLOWING POPULATING STORED DATA IN SELECTED EXERCISES
+    // url.searchParams.delete("temp")
+    // url.searchParams.delete("s")
+    // url.searchParams.delete("e")
+    // // delete CustomOptionElement.selectedOptionArr  ;
+    // // closeDetails.removeEventListener(event.type,close);
+    // sessionStorage.restoreSelection = JSON.stringify(CustomOptionElement.selectedOptionArr); 
+    // // document.location = url;
+    // // selectionListDisplay.style.display = "none";   
+    // // exerciseList.style.display = "block";
     // document.location = url;
-    // selectionListDisplay.style.display = "none";   
-    // exerciseList.style.display = "block";
-    document.location = url;
   }
   else {
     document.location = "index.html"; 
@@ -247,7 +269,7 @@ const doneSelectionFunction = (event) => {
     // loadOptions (exerciseDetails, selectionListDisplay);
     const span = document.createElement("span");
     const button = document.createElement("button");
-    loadOptions(exerciseDetails,"custom-option-element",selectionListDisplay,{value: "name", id:"name", src: ["media","imageLinks",0,""], alt: "name"});
+    loadOptions(exerciseDetails,"custom-option-element",selectionListDisplay,{value: "name", id:"name", src: ["media","imagelinks",0,""], alt: "name"});
     [...selectionListDisplay.children].filter(e => e.nodeName === "CUSTOM-OPTION-ELEMENT").forEach(elm => {
       let container = span.cloneNode("true");
       let delBtn = button.cloneNode("true");
@@ -260,8 +282,8 @@ const doneSelectionFunction = (event) => {
       [...elm.shadowRoot.children].forEach(el => {el.id ? el.onclick = "" : el.childElementCount? el.firstElementChild.onclick = "": ""; });
       elm.addEventListener("click", addData) ;
       elm.addEventListener("pointerdown", dragAction) ;
-      event ? doneSelection.removeEventListener(event.type, doneSelectionFunction) : "" ;  
-      if(window.location.search !== '?new=true'){
+      // event ? doneSelection.removeEventListener(event.type, doneSelectionFunction)  : "" ;  
+      if(!window.location.search.includes('new=true')){
         if(existingTemplates?.[sessionStorage.program] && Object.keys(existingTemplates?.[sessionStorage.program]).includes(elm.id)){elm.addEventListener("click", addData,{once: true}); elm.click(); } ;
       }
     })
@@ -278,7 +300,7 @@ const saveExercisesFunction = (event) => {
   let url;
   if(dataNodes===headerNodes){
     let searchParams = sessionStorage?.searchParams ? JSON.parse(sessionStorage?.searchParams) : "";
-    if (searchParams){
+    if (searchParams.length > 1){
       url = "file:///C:/Users/krish/Desktop/Web%20Development/Capstone%20projects/Project%207%20-%20LoggerDotOne/logworkout.html";
       savedworkouts["start"] = searchParams[0] ; 
       savedworkouts["end"] = searchParams[1] ;
@@ -294,13 +316,13 @@ const saveExercisesFunction = (event) => {
       decendentObj[1].forEach(el => {
         el.name? value.push([el.name,el.value]):"";
       }) 
-      const statsExport = getStats(value,["setnum","reps","weight","rir","rest","tut"]);
-      console.log(statsExport)
+      const statsExport = getStats(value,["setnum","reps","weight","rir","rest","tut"],decendentObj[1]);
       const {totalSets, totalReps, totalWeight, totalVol, avgRIR, avgRest, avgTUT} = statsExport;
       if (totalReps==="error" || totalWeight==="error" || avgRest==="error" ){alert("Incorrect or incomplete data. Please enter correct information to proceed."); proceed=false; return}
       value.push(["setCount", totalSets],["repCount", totalReps],["load", totalWeight], ["vol", totalVol], ["meanRIR", avgRIR], ["meanRest", avgRest], ["MeanTUT", avgTUT] ) ;
       savedworkouts[key] = value;
     })
+    savedworkouts["unit"] = unitUsed;
     if (!proceed) return;
     saveExercises.removeEventListener(event.type,saveExercisesFunction);
     sessionStorage.finalLog = JSON.stringify(savedworkouts);
@@ -317,9 +339,10 @@ const saveExercisesFunction = (event) => {
 exercisesDBpage.onload = (e,urloption) => {
   let location = urloption||document.location;
   if(JSON.parse(new URL(location).searchParams.get("new"))){
-    loadOptions(Object.values(exerciseDB()),"custom-option-element",selectExercise,{value: "name", id:"name", src: ["media","imageLinks",0,""], alt: "name"});
+    loadOptions(Object.values(exerciseDB()),"custom-option-element",selectExercise,{value: "name", id:"name", src: ["media","imagelinks",0,""], alt: "name"});
     switchListsDisp();
     searchExercise.addEventListener("keyup", handleSearch);
+    sessionStorage.searchParams = JSON.stringify([...new URL(document.location).searchParams.values()]);
   // logging new past workout from workoutlog page based edit workout flow-control
     if (sessionStorage?.restoreSelection){
       CustomOptionElement.selectedOptionArr = JSON.parse(sessionStorage.restoreSelection);
@@ -332,7 +355,7 @@ exercisesDBpage.onload = (e,urloption) => {
     // sessionStorage.program = new URL(document.location).searchParams.get("temp");
     let selection = sessionStorage?.restoreSelection ? JSON.parse(sessionStorage?.restoreSelection) : "";
     CustomOptionElement.selectedOptionArr = Object.keys(existingTemplates[sessionStorage.program]);
-    CustomOptionElement.selectedOptionArr = CustomOptionElement.selectedOptionArr.map( el => testRegExp((rx,v)=>v.replaceAll(rx," "),/_/g)(el));
+    CustomOptionElement.selectedOptionArr = CustomOptionElement.selectedOptionArr.map( el => testRegExp((rx,v)=>v.replaceAll(rx," "),"_",{falseVal:el,flags:"g"})(el));
     CustomOptionElement.selectedOptionArr = CustomOptionElement.selectedOptionArr.map(el => testRegExp((rx,v)=>v.replaceAll(rx,(i)=>i.toUpperCase()),/(\b[a-z])/ig)(el)); 
     sessionStorage.searchParams = JSON.stringify([...new URL(document.location).searchParams.values()]);
     doneSelectionFunction();
@@ -348,6 +371,7 @@ exercisesDBpage.onload = (e,urloption) => {
 
 
 function loadOptions (array,element,parentnode,options) {
+  
   const fragment = document.createDocumentFragment();
   const newElement = document.createElement(element);
   for (let i=0; i<array.length;i++){
@@ -358,25 +382,33 @@ function loadOptions (array,element,parentnode,options) {
       nestedObjectArrayVal(array[i][value[0]],value[1],value[2],value[3]) : 
       key === "id" ?
       array[i][value].replaceAll(/[ ]|(?<!\d)-/g,"_").replaceAll(/[^-\w]/g,"").toLowerCase() :
-      array[i][value]) ;
+      array[i][value]||value) ;
 
     fragment.append(clone)
   }
   parentnode.append(fragment)
 }
 
-function filter(string,arr){
+function filterer(string,arr){
   let filteredArr = arr;
   const queryArr = string.match(/\w+/ig);
   for(let queryfragment of queryArr){
     let regex = new RegExp(queryfragment,"i");
-    filteredArr = filteredArr.filter(el => { return regex.test(el.name)||regex.test(el.movers[0])||regex.test(el.category)||regex.test(el.equipment)})    
+    filteredArr = filteredArr.filter(el => { return regex.test(el.name)||regex.test(el.movers[0])||regex.test(el.categories)||regex.test(el.equipment)})    
   }
   return filteredArr;
 }
 
-function nConcat(n, item){
-  return n === 1?  item : nConcat(n-1, item+item[0])
+function linearGradient(n){
+  let k = parseInt(n);
+  let j = parseFloat(n)-parseInt(n);
+  let redVarinant = j!==0 ? "rgb(255 0 0 / j)" : "" ; 
+  let arr = [];
+  for (let i=1; i<=10; i++){
+    let val = i > k && j ? redVarinant : i > k ? "transparent" : ["red","transparent"][i%2]   
+    arr.push(val);
+  }
+  return `linear-gradient(70deg, ${arr[0]} 10%, ${arr[1]} 10% 20%, ${arr[2]} 20% 30%, ${arr[3]} 30% 40%, ${arr[4]} 40% 50%, ${arr[5]} 50% 60%, ${arr[6]} 60% 70%, ${arr[7]} 70% 80%, ${arr[8]} 80% 90%, ${arr[9]} 90%)`
 }
 
 function randomBetween(s,e){
@@ -426,9 +458,29 @@ const timeOptions = (i,id,name,string,loops,placeholder,step) => {
   return elem;
 }
 
-const bodyweight = (refElem,i) => {
+const bodyweight = (e,refElem,i) => {
+  e.stopPropagation();
+  let bw = JSON.parse(localStorage.savedSettings)['bodywt'].split(" ")[1]-0;
   const targetElem = document.querySelector(`div[id="${refElem}"] [name="weight${i}"]`); 
-  !targetElem.disabled ? (targetElem.disabled = true, targetElem.value = 30) : (targetElem.disabled = false, targetElem.value = "")
+  !targetElem.disabled ? (targetElem.disabled = true, targetElem.value = bw) : (targetElem.disabled = false, targetElem.value = "")
+}
+const typeMultiple = (e) => {
+  e.stopPropagation();
+  let targetEl = e.target.nodeName = "I" ? e.target : e.target.firstElementChild;     
+  targetEl.textContent = targetEl.textContent === "1" ? "2" : "1" ;  
+}
+const autoAssignMultiple = (el1,el2,refElem) => {
+  let type = exerciseDB()[refElem]["type"];
+  if (type.length === 2){
+    el1.textContent = "2";
+    el2.textContent = "2";
+  }
+  else if (type[0] === "reps"){
+    el2.textContent = "2";
+  }
+  else if (type[0] === "weight"){
+    el1.textContent = "2";
+  }
 }
 const content = (i,parent) => `
   <span id="line${i}">
@@ -436,11 +488,11 @@ const content = (i,parent) => `
     <input type="number" name="reps${i}" placeholder="Reps" required>
     <p>x<i>1</i></p>
     <input type="number" name="weight${i}" placeholder="Load" required>
-    <span><p onclick = bodyweight("${parent}",${i})><i>BW</i></p><p>x<i>1</i></p></span>
+    <span><p><i>BW</i></p><p>x<i>1</i></p></span>
     ${timeOptions(i,parent,"rest"+i,"Min",60,"Rest",2)}
     ${timeOptions(i,parent,"tut"+i,"Sec",180,"TUT")}
     ${timeOptions(i,parent,"rir"+i,"",11,"RIR")}
-    <input type="submit" class="remove" id="${i}" name="${parent}" onclick="removeSet(event,name)" value="X">
+    <input type="submit" class="remove" id="${i}" name="${parent}" onclick="removeSet(event,name)" value="X" disabled>
   </span>
   ` 
 const addData = (event) => { 
@@ -448,21 +500,33 @@ const addData = (event) => {
   const template = document.createElement("div");
   const button = document.createElement("button");
   template.id = event.target.id.match(/[\d\w]+[a-zA-Z]/g);
+  // const repsMultiple = e
+  // const loadMultiple = 
   let i = 0;
   template.innerHTML = content(i,template.id);
   template.append(button);
-  debugger
+  button.previousElementSibling.children[2].addEventListener("click",(e)=>typeMultiple(e));
+  button.previousElementSibling.children[4].firstElementChild.addEventListener("click",(e)=>bodyweight(e,template.id,i))
+  button.previousElementSibling.children[4].lastElementChild.addEventListener("click",(e)=>typeMultiple(e));
+  autoAssignMultiple(button.previousElementSibling.children[4].lastElementChild.lastElementChild, button.previousElementSibling.children[2].lastElementChild,template.id);
   const keyValPair = existingTemplates?.[sessionStorage.program]?.[template.id] || "";
-  if (keyValPair && window.location.search !== '?new=true'){
+  if (keyValPair && !window.location.search.includes('new=true')){
     repopulateValues(keyValPair,template,button); 
   }
   button.onclick = (e)=>{
     const referenceNode = e.target.parentElement ;
+    let childNum = referenceNode.childElementCount-1; 
     if(Array.from(referenceNode.querySelectorAll(`input[required]`)).some(e => !e.value)){alert("Update sets and weight data to add new column."); return}
     const firstdecendents = decendents(referenceNode.firstElementChild,0,referenceNode.firstElementChild.firstElementChild.name,"remove");
-    button.insertAdjacentHTML("beforebegin",content(referenceNode.childElementCount-1,template.id));
-    const nextdecendents = decendents(referenceNode.querySelector(`#line${(referenceNode.childElementCount-2)}`),0,`setnum${(referenceNode.childElementCount-2)}`,"remove");   
-    nextdecendents[0].forEach((el,i) => el.value = firstdecendents[0][i].value);
+    button.insertAdjacentHTML("beforebegin",content(childNum,template.id));
+    button.previousElementSibling.children[2].addEventListener("click",(e)=>typeMultiple(e));
+    button.previousElementSibling.children[4].firstElementChild.addEventListener("click",(e)=>bodyweight(e,template.id,i))
+    button.previousElementSibling.children[4].lastElementChild.addEventListener("click",(e)=>typeMultiple(e));
+    autoAssignMultiple(button.previousElementSibling.children[4].lastElementChild.lastElementChild, button.previousElementSibling.children[2].lastElementChild,template.id);
+    button.previousElementSibling.children[4].firstElementChild.addEventListener("click",(e)=>bodyweight(e,template.id,childNum))
+    if (childNum > 1){button.previousElementSibling.lastElementChild.disabled = false}
+    const nextdecendents = decendents(referenceNode.querySelector(`#line${(childNum)}`),0,`setnum${(childNum)}`,"remove");   
+    nextdecendents[0].forEach((el,i) => {let pastEl = firstdecendents[0][i]; if (pastEl.disabled){el.disabled=true}; pastEl.value ? el.value = pastEl.value :  pastEl.innerHTML} );
   };
   button.textContent = "Add Set"
   let container = document.getElementById(`${event.target.id}_container`);
@@ -515,10 +579,17 @@ function removeSelectedExercise(event){
   const id = event.target.previousElementSibling.id;
   const container = document.querySelector(`#selectionlistdisplay #${id}_container`) 
   const userInputArea = document.querySelectorAll(`#selectionlistdisplay #${id}`)?.[1];
-  console.log(userInputArea)
   container.remove();
+  CustomOptionElement.selectedOptionArr = CustomOptionElement.selectedOptionArr.filter(name => name.toLowerCase().replaceAll(" ","_") !== id);
+  sessionStorage.restoreSelection = JSON.stringify(JSON.parse(sessionStorage.restoreSelection).filter(name => name.toLowerCase().replaceAll(" ","_") !== id))
+  debugger
+  if(exerciseList.querySelector(`#${id}`)){
+    exerciseList.querySelector(`#${id}`).shadowRoot.children[`${id}`].classList.remove("indent");
+  }
   userInputArea ? userInputArea.remove() : "";
-  !selectionListDisplay.childElementCount ? switchListsDisp() : "";
+  if (!selectionListDisplay.childElementCount) {
+    switchListsDisp()
+  };
 }
 
 function decendents(element,levels,...excludeList){
@@ -550,16 +621,20 @@ function calculateField(AoA,filter,mainF,transform){
  }
 
 
-function getStats(array,exports){
-    return {
-      totalSets: calculateField(array,exports[0],val=>val,arr=>arr.length)(),
-      totalReps: calculateField(array,exports[1],reducer,getValuesfromInputs)(),
-      totalWeight: calculateField(array,exports[2],reducer,getValuesfromInputs)(),
-      totalVol: calculateField([],"",getVolume, () => (arr) => arr.reduce(([k1,v1],[k2,v2])=>["",v1+v2])[1])(array.filter(([k,v])=> k.includes(exports[2])))(array.filter(([k,v])=> k.includes(exports[1]))),
-      avgRIR: calculateField(array,exports[3],reducer,getValuesfromInputs)("average"),
-      avgRest: calculateField(array,exports[4],reducer,getValuesfromInputs)("average"),
-      avgTUT: calculateField(array,exports[5],reducer,getValuesfromInputs)("average"),
-    };
+function getStats(array,exports,lineElms){
+  let repMultiple = lineElms[2].lastElementChild.textContent;
+  let weightMultiple = lineElms[4].lastElementChild.lastElementChild.textContent;
+  let equipmentWt = lineElms[6].id.includes("barbell") ? parseFloat(JSON.parse(localStorage.savedSettings).bweight.split(" ")[0]) : lineElms[6].id.includes("dumbbell") ? parseFloat(JSON.parse(localStorage.savedSettings).dweight.split(" ")[0]) : 0 ;
+  let allSets = calculateField(array,exports[0],val=>val,arr=>arr.length)();
+  return {
+    totalSets: allSets,
+    totalReps: calculateField(array,exports[1],reducer,getValuesfromInputs)()*repMultiple,
+    totalWeight: calculateField(array,exports[2],reducer,getValuesfromInputs)()*weightMultiple+(equipmentWt*allSets),
+    totalVol: calculateField([],"",getVolume, () => (arr) => arr.reduce(([k1,v1],[k2,v2])=>["",v1+v2])[1])(array.filter(([k,v])=> k.includes(exports[2])))(array.filter(([k,v])=> k.includes(exports[1])),equipmentWt,repMultiple,weightMultiple),
+    avgRIR: calculateField(array,exports[3],reducer,getValuesfromInputs)("average"),
+    avgRest: calculateField(array,exports[4],reducer,getValuesfromInputs)("average"),
+    avgTUT: calculateField(array,exports[5],reducer,getValuesfromInputs)("average"),
+  };
 }
 
 function getValuesfromInputs(arr){
@@ -577,10 +652,10 @@ function reducer(arr,operation=""){
 }
 
 function getVolume(f,outerarr){
-    return function(innerarr){
+    return function(innerarr,...multiples){
         let args = [];
         for (let i=0; i<outerarr.length;i++){
-            args.push(["v", outerarr[i][1]*innerarr[i][1]]);
+            args.push(["v", (outerarr[i][1]*multiples[2])*(innerarr[i][1]*multiples[1])+multiples[0]]);
         }
         return f.call(this,args);
     }
@@ -608,9 +683,9 @@ function handleSearch(e){
   if (!/[\w]/.test(e.key) && !e.value) return;
   if(e.target.value){  
     const _exerciseData = Object.values(exerciseDB());
-    let filteredData = filter(e.target.value,_exerciseData)
+    let filteredData = filterer(e.target.value,_exerciseData)
     selectExercise.replaceChildren();
-    loadOptions(filteredData,"custom-option-element",selectExercise,{value: "name", id:"name", src: ["media","imageLinks",0,""], alt: "name"});
+    loadOptions(filteredData,"custom-option-element",selectExercise,{value: "name", id:"name", src: ["media","imagelinks",0,""], alt: "name"});
   }
 }
 // return to the logworkout page using history mgmt and params
