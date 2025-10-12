@@ -148,7 +148,7 @@ function createTemplateItem(program,cover){
     const coverImg = document.createElement("img");
     const label = document.createElement("h1");
     
-    coverImg.src = cover||"default-image.png";
+    coverImg.src = cover||"./media/images/default-image.png";
     coverImg.className = "default-img";
 
     label.textContent = program;
@@ -166,7 +166,7 @@ function createTemplateItem(program,cover){
 }
 
 function displaySnapshot(snapshotdata){
-        debugger
+
         const snapshotdataValues = Object.values(snapshotdata).flat().filter(([k,v])=> k==="setCount"||k==="repCount"||k==="vol");
         const snapshotdatakeys = Object.keys(snapshotdata).map(k => k.replaceAll("_"," "));
 
