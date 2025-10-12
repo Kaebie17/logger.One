@@ -11,10 +11,10 @@ class CustomOptionElement extends HTMLElement {
 
     rightSlot.append(this.slotElem);
 
-    this.option.ontouchleave = (event) => optionEvent(event,"touchleave"); 
-    this.option.onclick = (event) => optionEvent(event,"click");
-    this.slotElem.ontouchleave = (event) => slotEvent(event,"touchleave"); 
-    this.slotElem.onclick = (event) => slotEvent(event,"click");
+    // this.option.ontouchleave = (event) => optionEvent(event,"touchleave"); 
+    // this.option.onclick = (event) => optionEvent(event,"click");
+    // this.slotElem.ontouchleave = (event) => slotEvent(event,"touchleave"); 
+    // this.slotElem.onclick = (event) => slotEvent(event,"click");
     
   }
     
@@ -153,7 +153,7 @@ let numOfWorkouts = pastWorkouts.length;
 //redirect to home page
 redirectHome.addEventListener("click" , home);
 
-logItem.width = ["60vw","fit-content","40vw","fit-content"];
+logItem.width = ["60vw","fit-content","30vw","fit-content"];
 logItem.onclick = null;
 logItem.ontouchend = null;
 let svgcode = document.createElement("script");
@@ -169,7 +169,7 @@ function addContent(i){
   const {date,name,duration,targets,sets,reps,vol,max} = extractData([pastWorkouts[i]]);
   const clone = logItem.cloneNode(true);
   const cloneCover = coverItem.cloneNode(true); 
-  const content = logItem.shadowRoot.getElementById("content");
+  const imgSlot = clone.shadowRoot.querySelector("slot[name='right']").firstElementChild;
   clone.inserthtml = `<fieldset><p>${targets}</p><legend>${name}</legend></fieldset><fieldset><p>200</p><legend>Fatigue</legend></fieldset><fieldset><p>7</p><legend>Intensity</legend></fieldset><fieldset><p>${sets}</p><legend>Sets</legend></fieldset><fieldset><p>${reps}</p><legend>Reps</legend></fieldset><fieldset><p>${max}</p><legend>Max</legend></fieldset><fieldset><p>${vol}</p><legend>Volume</legend></fieldset>`;
   historyElem.firstElementChild.before(clone,cloneCover);
   clone.style.gridArea = `${i+1}/1/${i+2}/1`;
@@ -177,14 +177,18 @@ function addContent(i){
   cloneCover.className = "date-area";
   cloneCover.textContent = date;
   cloneCover.onclick = ()=>handleClick([pastWorkouts[i]]);
-  let h = window.getComputedStyle(clone).height;
-  const divEl = document.createElement("div"); 
-  const {frontsvg, backsvg} =  humanFigure("12vw",h);
-  divEl.append(frontsvg,backsvg);
-  divEl.id = "svgcontainer"
-  divEl.style.width = "fit-content";  
-  divEl.slot= "right"
-  clone.append(divEl);
+  const divEl = document.createElement("img"); 
+  imgSlot.src = "./media/images/default_img.png"
+  imgSlot.id = "imgcontainer"+i;
+  imgSlot.style.height = "10vh";
+  imgSlot.addEventListener("click",(e)=>{
+    let imgFile = document.createElement("input");
+    imgFile.type = "file";
+    imgFile.click();
+    imgFile.addEventListener("change", () => {
+      handleNewImage(imgFile.files[0], e.target);
+    }) 
+  })
 }
 
 function extractData(object){
@@ -215,4 +219,13 @@ function handleClick(object){
 function home() {
   document.location = "./index.html";
   redirectHome.removeEventListener("click", home);
+}
+
+function handleNewImage(imgObject,elem){
+  let reader = new FileReader;
+  reader.onload = () => {
+    let newImage = reader.result;
+    elem.src = newImage;
+  }
+  reader.readAsDataURL(imgObject);
 }
