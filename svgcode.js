@@ -203,6 +203,7 @@ const humanFigure = (w,h) => {
     leftquad.dataset.name = "quads";
     frontsvg.append(leftquad.cloneNode(true))
     backsvg.append(leftquad.cloneNode(true))
+    backsvg.querySelector("#leftquad").dataset.name = "hams";
 
     const rightquad = document.createElementNS(url,"path");
     let drawrightquad = 'M 150,180 Q 175 240 157 280 Q 135 265 130 270 Q 115 260 115 200 Q 135 200 150 180'
@@ -214,6 +215,7 @@ const humanFigure = (w,h) => {
     rightquad.dataset.name = "quads";
     frontsvg.append(rightquad.cloneNode(true))
     backsvg.append(rightquad.cloneNode(true))
+    backsvg.querySelector("#rightquad").dataset.name = "hams"; 
 
     const leftshin = leftquad.cloneNode(true);
     leftshin.setAttribute("transform", "rotate(180) translate(-172 -470) scale(0.7)");
@@ -235,7 +237,7 @@ const humanFigure = (w,h) => {
     upperlefttraps.setAttribute("stroke", "black");
     upperlefttraps.setAttribute("fill","grey");
     upperlefttraps.id = "upperlefttraps";
-    upperlefttraps.dataset.name = "uppertraps";
+    upperlefttraps.dataset.name = "traps/rhomboids";
     backsvg.append(upperlefttraps.cloneNode(true));
 
     const upperrighttraps = document.createElementNS(url,"path");
@@ -244,19 +246,19 @@ const humanFigure = (w,h) => {
     upperrighttraps.setAttribute("stroke", "black");
     upperrighttraps.setAttribute("fill","grey");
     upperrighttraps.id = "upperrighttraps";
-    upperrighttraps.dataset.name = "uppertraps";
+    upperrighttraps.dataset.name = "traps/rhomboids";
     backsvg.append(upperrighttraps.cloneNode(true));
 
     const leftreardelt = upperrighttraps.cloneNode(true);
     leftreardelt.setAttribute("transform", "rotate(180, 112, 85)");
-    leftreardelt.id = "leftreardelt";
-    leftreardelt.dataset.name = "reardelt";
+    leftreardelt.id = "leftreardelts";
+    leftreardelt.dataset.name = "reardelts";
     backsvg.append(leftreardelt.cloneNode(true))
 
     const rightreardelt = upperlefttraps.cloneNode(true);
     rightreardelt.setAttribute("transform", "rotate(180, 110, 85)");
-    rightreardelt.id = "rightreardelt";
-    rightreardelt.dataset.name = "reardelt";
+    rightreardelt.id = "rightreardelts";
+    rightreardelt.dataset.name = "reardelts";
     backsvg.append(rightreardelt.cloneNode(true))
 
     const traps = document.createElementNS(url,"path");
@@ -427,6 +429,7 @@ const graphics = (el,legEl,w,h) => {
     let yaxisPoints = [];
     let scaleW = 1;
     let scaleH = 1;
+    let displayFactor;
     const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
     // svgcontainer.setAttribute("viewBox", `0 0 ${width} ${height}`)
     // el.append(svgcontainer);
@@ -436,7 +439,6 @@ const graphics = (el,legEl,w,h) => {
         const text = document.createElementNS(url,"text");
         const icon =  document.createElementNS(url,"rect");
         const w = parseInt(width/3)
-        
         legend.setAttribute("width", w);
         legend.setAttribute("height", height);
         legend.setAttribute("viewBox",`0 0 ${w} ${height}`);
@@ -445,8 +447,14 @@ const graphics = (el,legEl,w,h) => {
 
         let cloneText = text.cloneNode(true);
         cloneText.setAttribute("y", 10)
+        // arr = arr.map(e => {
+        //     if( /\w{1,2}-\w{3}-\w+/.test(e)){
+        //         return `${new Date().getFullYear()}`.substring(0,2)+e.substring(e.length-2,e.length);
+        //     }
+        //     else if ( /week/.test(e)){
 
-        arr = arr.map(e => e.match(/\d+$/)[0]).map(e => e.match(/\d+$/)[0]).flatMap((a,i,arr)=> a===arr[i+1]?[]:a);
+        //     }
+        // )};
         const currYr = Math.min(...arr)
         const rangeStr = Math.min(...arr)!==Math.max(...arr)? "-"+String(Math.max(...arr)).substring(2,4) : ""; 
         const years = "Year: "+currYr+rangeStr;
@@ -478,7 +486,7 @@ const graphics = (el,legEl,w,h) => {
     }
 
     const createAxis = (width, height, xlabels, ylabels) => {
-
+        
         let xAxis = document.createElementNS(url, "line");
         // let yAxis = document.createElementNS(url, "line");
         
@@ -495,7 +503,6 @@ const graphics = (el,legEl,w,h) => {
         // yAxis.setAttribute("y2", 0)
         // yAxis.setAttribute("stroke","black")
         // yAxis.setAttribute("stroke-width","3")
-
         createMarker(xlabels);
         return {xAxis};
     }
@@ -504,6 +511,7 @@ const graphics = (el,legEl,w,h) => {
         let markerX = document.createElementNS(url,"line");
         let markerY = document.createElementNS(url,"line");
         let text = document.createElementNS(url,"text");
+        textX = textX.map(e => /\w{1,2}-\w{3}-\w+/.test(e) ?  e.substring(0,e.length-5) : e);
         markerX.setAttribute("y1", `${height}`);
         markerX.setAttribute("y2", `${parseInt(height)+4}`);
         markerX.setAttribute("stroke","black");
@@ -512,15 +520,14 @@ const graphics = (el,legEl,w,h) => {
         markerY.setAttribute("x2", -4);
         markerY.setAttribute("stroke","black");
         markerY.setAttribute("stroke-width","2");
-        textX = textX.map(e => {let d = new Date(e); return `${d.getDate()}-${months[d.getMonth()].substring(0,3)}`} )
         let valX = 0;
         let valY = 0;
-        for (i=0; i<=Math.floor(width/5*(textX.length-1));i+=Math.floor(width/5)){
+        for (i=30; i<=Math.floor(width/displayFactor*(textX.length-1)+30);i+=Math.floor(width/displayFactor)){ // hardcoded number accomodates equal number of dates on x-axis. Need to change it to be dynamic for day, week, and month view 
             let cloneMarkerLineX = markerX.cloneNode(true);
             let cloneText = text.cloneNode(true);
             cloneMarkerLineX.setAttribute("x1",i);
             cloneMarkerLineX.setAttribute("x2",i);
-            cloneText.setAttribute("x", cloneMarkerLineX.getAttribute("x1")-Math.floor(width/7-30));
+            cloneText.setAttribute("x", cloneMarkerLineX.getAttribute("x1")-20);
             cloneText.setAttribute("y", parseInt(height)+15);
             cloneText.setAttribute("fill", "white");
             cloneText.append(textX[valX++]);
@@ -542,7 +549,7 @@ const graphics = (el,legEl,w,h) => {
         // 
     }
 
-    return (entries,xLabelArr) => {
+    return (entries,xLabelArr,legendArr) => {
     // let innerObject = Object.values(entries);
     // let innerKeys = Object.values(innerObject).map((o,i)=> Object.keys(o));
     // let values = Object.values(innerObject).map((o,i)=> Object.values(o).reduce((a,b)=>a+b));
@@ -551,12 +558,13 @@ const graphics = (el,legEl,w,h) => {
     // values = inputHeight? values.map(val => Math.round((val/total)*inputHeight,0)) : values ;
     // values = values.sort((x,y)=> x-y)
     // let height = Math.max(...values.flat())+100 ; 
-    // let width = Math.max(...values.flat())+150; 
+    // let width = Math.max(...values.flat())+150;
+    displayFactor = xLabelArr.length; 
     const legendValues = [];
     const yMax = Math.ceil(Math.max(...entries.flatMap(e => Object.values(e).flat())));
-    chart.setAttribute("width", width);
-    chart.setAttribute("height", height);
-    chart.setAttribute("viewBox", `0 0 ${parseInt(width)} ${parseInt(height)+25}`);
+    chart.setAttribute("width", "100%");
+    chart.setAttribute("height", "100%");
+    chart.setAttribute("viewBox", `0 0 ${parseInt(width)} ${parseInt(height)+50}`);
     const {xAxis, yAxis} = createAxis(width,height,xLabelArr); 
     const line = document.createElementNS(url, "line");
     line.setAttribute("fill", "none")
@@ -582,6 +590,7 @@ const graphics = (el,legEl,w,h) => {
         let color = `hsl(${(i*40)%360},${90-3*i}%,${50+2*i}%)`;
         line.setAttribute("stroke", color)
         let valArr = Object.values(obj)[0];
+        
         legendValues.push(Object.keys(obj)[0]);
         let points = [];
         let maxVal = Math.ceil(Math.max(...valArr)); 
@@ -591,7 +600,7 @@ const graphics = (el,legEl,w,h) => {
             let clone = line.cloneNode(true);
             let cloneText = text.cloneNode(true)
             if (!points.length){
-                points = [0,height-Math.floor(val/scaleH)];
+                points = [30,height-Math.floor(val/scaleH)];
                 cloneText.setAttribute("x", points[0]);
                 cloneText.setAttribute("y", points[1]);
                 cloneText.setAttribute("fill", "white");
@@ -601,22 +610,21 @@ const graphics = (el,legEl,w,h) => {
             else{
                 clone.setAttribute("x1", points[0]);
                 clone.setAttribute("y1", points[1]);
-                points = ([points[0]+Math.floor(width/5),height-Math.floor(val/scaleH)])
+                points = ([points[0]+Math.floor(width/displayFactor),height-Math.floor(val/scaleH)]) // hardcoded number to align line chart values to each label on x-axis.
                 clone.setAttribute("x2", points[0]);
                 clone.setAttribute("y2", points[1]);
                 clone.setAttribute("marker-start","url(#points)"); clone.setAttribute("marker-end","url(#points)") ;
-                cloneText.setAttribute("x", clone.getAttribute("x2"));
-                cloneText.setAttribute("y", clone.getAttribute("y2"));
+                cloneText.setAttribute("x", parseInt(clone.getAttribute("x2"))-10);
+                cloneText.setAttribute("y", parseInt(clone.getAttribute("y2"))-15);
                 cloneText.setAttribute("fill", "white");
                 cloneText.append(val);
                 chart.append(clone,cloneText);
             }
-            console.log(points)
         })
     })
 
     el.append(chart);
-    legEl.append(createLegend(legendValues,width,height,xLabelArr));
+    legEl.append(createLegend(legendValues,width,height,legendArr));
     }
 }
 

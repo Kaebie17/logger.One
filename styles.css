@@ -7,7 +7,7 @@
 
 }
 html{
-    font-size: 10px;
+    font-size: 12px;
 }
 ::placeholder{
     color: white;
@@ -484,16 +484,20 @@ svg > path:nth-child(23) {
     #createexercisespage #ratings{
         padding:  2vh 0;
         display: flex;
-        justify-content: center;
+        justify-content: space-between;
     }
     #createexercisespage #ratings > * {
-       display: flex;
+        display: flex;
+        justify-content: start;
         width: 30vw;
-        flex-direction: column;
+        height: fit-content;
     }
-    #createexercisespage #ratings > span > h4 {
+    
+    #createexercisespage #ratings > span  h4 {
         margin: 0;
-        font-size: 1.25rem;
+        padding-left: 1vh;
+        color: white;
+        font-size: 1.5rem;
     }
     #createexercisespage #ratings > span > p {
         margin: 0.5vw 0 1vh 2.5vw;
@@ -508,7 +512,7 @@ svg > path:nth-child(23) {
     }
     #createexercisespage #otherinfo > *{
         display: flex;
-        width: 28vw;
+        width: 50%;
         flex-direction: column;
     }
     #createexercisespage #otherinfo > span > h4{
@@ -536,13 +540,21 @@ svg > path:nth-child(23) {
     {
         display: flex;
         width: fit-content;
-        gap: 1px
+        gap: 1px;
     }
     #createexercisespage > #suggestionscontainer #suggestions > div > *
     {
         width: 50vw;
         height: 24vh;
         border: 0.5px solid white;
+    }
+    .makegrid{
+        display: grid;
+        grid-template-columns: 1;
+        grid-template-rows: 1;
+        font-size: 1.5rem;
+        font-weight: 900;
+        font-family: Georgia, 'Times New Roman', Times, serif;
     }
     #createexercisespage #tags{
         margin: 1vh 1vw;
@@ -615,14 +627,16 @@ svg > path:nth-child(23) {
         display: flex;
         flex-direction: column;
     }
+    #createexercisespage > #selectionlistdisplay > div > span  p {
+        width: 4vw;
+        text-align: center;
+        align-self: center;
+        font-size: 0.5rem;
+        background-color: var(--template-color-light);
+        border: 2px solid white;
+    }
     #createexercisespage > #selectionlistdisplay > div > span > span > p {
         width: 100%;
-    }
-    #createexercisespage > #selectionlistdisplay > div > span  p {
-        margin: 0;
-        padding: 0;
-        align-self: end;
-        font-size: 0.5rem;
     }
     #createexercisespage > #selectionlistdisplay > div > span  p > i{
         font-size: 1rem;
@@ -777,8 +791,8 @@ svg > path:nth-child(23) {
     }
     #historypage #history{
         height: 87.5vh;
-        width: 90%;
-        margin: 1vh;
+        width: 95vw;
+        margin: 1vw;
         padding: 1vw;
         font-size: 2rem;
         font-weight: 900;
@@ -804,14 +818,14 @@ svg > path:nth-child(23) {
         border: 1px white solid;
     }
     #historypage .date-area{
-        width: 100%;
+        width: 65%;
         color:white;
         margin: 0.1vh;
         padding-bottom: 1vh;
         font-size: 2rem;
         font-style: italic;
         display: flex;
-        justify-content: center;
+        justify-content: end;
         align-items: end;
         background-color: #0F0F0F;
         opacity: 25%;
@@ -975,6 +989,15 @@ svg > path:nth-child(23) {
         justify-content: center;
         align-items: center;
      }
+     #pastworkout #deleteworkout{
+        margin: 1vh;
+        background-color: var(--template-color-mid);
+        color : white;
+        width: 97%;
+        font-family: Georgia, 'Times New Roman', Times, serif;
+        font-size: 2rem;
+        height: 5vh;
+     }
      /* trends page */
      #trendspage{
         height: 100vh;
@@ -983,6 +1006,7 @@ svg > path:nth-child(23) {
      }
      #trendspage #container{
         height: 87vh;
+        padding: 0.5vw;
      }
      #trendspage #container #mainfilters{
         display: flex;
@@ -1037,7 +1061,6 @@ svg > path:nth-child(23) {
      }
       #trendspage #container > section > div{
         height: 30vh;
-        padding: 1vw 3vh 1vh 3vh;
         display: grid;
 
       }
@@ -1046,7 +1069,7 @@ svg > path:nth-child(23) {
       }
       #trendspage #container > section > div > #graphics{
         display: flex;
-        justify-content: center;
+        height: inherit;
       }
       #trendspage #container > section > div > #legend{
         display: flex;
@@ -1067,6 +1090,116 @@ svg > path:nth-child(23) {
         display: block;
       }
 
+      /* ___________________ */
+
+    #settingspage{
+        height: 100vh;
+        background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
+    }
+    #settingspage #settingscontainer{
+        display: flex;
+        flex-direction: column;
+        gap: 2vh;
+        height: 87.5vh;
+        padding: 0.5vh;
+        overflow-y: scroll;
+    }
+    #settingspage #personalinfo,#preferences{
+        display: flex;
+        flex-direction: column;
+        gap: 2vh;
+        padding: 2vh 0 ;
+    }
+    #settingspage legend{
+        font-size: 2rem;
+        color: white;
+    }
+    #settingspage #personalinfo > * , #preferences > *{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 0 3vh;
+    }
+    #settingspage #personalinfo > * > input[id="ageval"],input[id="genderval"],input[id="weightval"],input[id="heightval"],  #settingspage #preferences > * > input[id="bodywtval"]{
+        width: 12vw;
+        padding: 0 1vw;
+    }
+    #settingspage #personalinfo > span:nth-child(n+5) > span , #preferences > span:nth-child(n+1) > span{
+        display: flex;
+        align-items: center;
+    }
+    #settingspage #personalinfo > span:nth-child(n+6) > span > * , #preferences > span:nth-child(n+1) > span > *{
+        width: 8vw;
+        height: 3vh;
+        border: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+        color: black;
+    }
+    #settingspage #personalinfo > span:nth-child(n+5) > span > p , #preferences > span:nth-child(n+1) > span > p{
+        width: fit-content;
+        text-align: right;
+        padding: 0 2px;
+        color: white;
+    }
+    #settingspage #personalinfo label, #preferences label{
+        color: white;
+        font-family: Georgia, 'Times New Roman', Times, serif;
+        font-size: 1.5rem;   
+    }
+    #settingspage button {
+        align-self: center;
+        width: 95%;
+        padding: 0.5vh 0;
+        font-size: 1.5rem;
+        color: white;
+        background-color: var(--template-color-black);
+        border: 1px solid var(--template-color-black);
+        box-shadow: 0.5vh 0.5vh 1vh 0 var(--template-color-mid);
+    }
+    #settingspage button:active{
+        box-shadow: 0px 0px;
+        background-color: var(--template-color-mid);
+        border: 1px solid var(--template-color-mid);
+    }
+    #settingspage #importexport {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 1vw;
+        margin: 2vh;
+    }
+    #settingspage > #settingscontainer img {
+        width: 100%;
+        margin-left: 1vw;
+        margin-left: 1vw;
+    }
+    #settingspage dialog > #measurementstable{
+        height: 40vh;
+    }
+    #settingspage dialog > #measurementstable td{
+        border: solid 1px black;
+    }
+    #settingspage dialog > #measurementstable td > *{
+        border: 0;
+        width: 100%;
+        height: 100%;
+    }
+    #settingspage dialog > #measurementstable tr > td:nth-child(2n) > input {
+        width: 20vw;
+        margin: 0;
+        padding: 0;
+    }
+    #settingspage dialog span{
+        padding-top: 1vh;
+        display: flex;
+        justify-content: space-evenly;
+        width: 100%;
+    }
+    #settingspage dialog button{
+        width: 40%;
+        height: 3vh;
+        font-size: 1rem;
+    }
 }
 
 
