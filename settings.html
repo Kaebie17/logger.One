@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>Settings</title>
+</head>
+<body id="settingspage">
+    <header id="header">
+        <img src="" alt="">
+        <h1>logger.One</h1>
+    </header>
+    <form id="settingscontainer" action="">
+        <fieldset id="preferences">
+            <span id="unitspan"><label for="unitval">Select Unit</label><select id="unitval" required><option value="" selected></option><option value="metric">Metric</option><option value="imperial">Imperial</option></select></span>
+            <span id="barbellspan"><label for="barbellval">Barbell weight</label><span><input type="number" id="barbellval" step="0.1" required><p id="barbellunit">kgs</p></span></span>
+            <span id="dumbbellspan"><label for="dumbbellval">Dumbbell weight</label><span><input type="number" id="dumbbellval" step="0.1" required><p id="dumbbellunit">kgs</p></span></span>
+            <span id="bodywtspan"><label for="bodywtval">Bodyweight factor</label><span><input type="number" max="1" min="0.1" step="0.1" id="bodywtval" required><p id="afterfactor" hidden></p></span></span>
+            <legend>Preferences</legend>
+        </fieldset>
+        <fieldset id="personalinfo">
+            <span id="namespan"><label for="nameval">Name</label><input type="text" id="nameval" required></span>
+            <span id="emailspan"><label for="emailval">E-mail</label><input type="email" id="mailval" required></span>
+            <span id="genderspan"><label for="genderval">Gender</label><select id="genderval" required><option value="" selected></option><option value="male">Male</option><option value="female">Female</option><option value="them">Other</option></select></span>
+            <span id="agespan"><label for="ageval">Age</label><input type="number" id="ageval" required></span>
+            <span id="weightspan"><label for="weightval">Weight</label><span><input type="number" id="weightval" step="0.1" required><p id="wtunit">kgs</p></span></span>
+            <span id="heightspan"><label for="heightval">Height</label><span><input type="number" id="heightval" step="0.01" required><p id="ftsymbol" hidden>'</p><input type="number" id="inchesval" min="0" max="11" step="0.1" placeholder="in" hidden><p id="htunit">mts</p></span></span>
+            <!-- <a href="">Log Measurements</a> -->
+            <legend>Personal Info</legend>
+        </fieldset>
+        <button form="settingscontainer" id="donebtn">Done</button>
+        <button id="logmeasurementsbtn">Log Measurements</button>
+        <span id="importexport">
+            <button id="importdata">Import Data</button>
+            <button id="exportdata">Export Data</button>
+            <a href="format_sheet.xlsx"><img src="./media/images/icons8-excel-50.png" alt=""></a>
+        </span>
+    </form>
+    <dialog id="addmeasurements">
+        <table id="measurementstable">
+            <tr>
+                <td><b>Part</b></td><td><b>Average Size</b></td><td><b>Unit</b></td>
+            </tr>
+        </table>
+    </dialog>
+    <footer id="footer">
+        <a href="index.html#weeklystatus">Close</a>
+    </footer>
+    <script src="exercisesDB.js"></script>
+    <script id="settingsJS" src="settings.js"></script>
+</body>
+</html>

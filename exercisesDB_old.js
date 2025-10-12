@@ -1,4 +1,4 @@
-const exerciseDB = () => {return { 
+const oldexerciseDB = () => {return { 
   "barbell_bench_press_flat": {
     "name": "Barbell Bench Press (Flat)",
     "categories": ["chest", "compound", "strength"],
@@ -7934,7 +7934,100 @@ const exerciseDB = () => {return {
     "technicality": 3,
     "fatigue": 5
   },
- } }
+  "plank": {
+    "name": "Plank",
+    "categories": ["core", "bodyweight", "isometric"],
+    "movers": ["core", "obliques", "lower back", "shoulders", "glutes"],
+    "focus": ["core stability", "overall core"],
+    "equipment": "none",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Start in a push-up position, keeping your body in a straight line from head to heels. Hold your core tight and maintain this position without letting your hips drop.",
+    "effectiveness": 8,
+    "technicality": 6,
+    "fatigue": 7
+},
+"plank_tap": {
+    "name": "Plank Tap",
+    "categories": ["core", "bodyweight", "dynamic"],
+    "movers": ["core", "obliques", "shoulders", "glutes"],
+    "focus": ["core stability", "shoulder stability"],
+    "equipment": "none",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Begin in a high plank. Lift one hand to tap the opposite shoulder, alternate sides while keeping your hips level.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 7
+},
+
+"side_plank": {
+    "name": "Side Plank",
+    "categories": ["core", "bodyweight", "isometric"],
+    "movers": ["obliques", "core", "glutes", "shoulders"],
+    "focus": ["lateral core", "obliques"],
+    "equipment": "none",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on your side and prop yourself up on your elbow. Stack your feet and lift your hips, keeping the body straight. Hold this position.",
+    "effectiveness": 8,
+    "technicality": 7,
+    "fatigue": 7
+},
+
+"lock_clam": {
+    "name": "Lock Clam",
+    "categories": ["glutes", "mobility", "bodyweight"],
+    "movers": ["glutes", "hip external rotators"],
+    "focus": ["hip stability", "glute activation"],
+    "equipment": "none",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie on your side with knees bent and feet together. Keeping your feet touching, open your top knee as far as possible without moving your pelvis. Pause, then return.",
+    "effectiveness": 7,
+    "technicality": 5,
+    "fatigue": 6
+},
+"prone_hip_extension": {
+    "name": "Prone Hip Extension",
+    "categories": ["glutes", "hamstrings", "bodyweight"],
+    "movers": ["glutes", "hamstrings", "lower back"],
+    "focus": ["glute strength", "posterior chain"],
+    "equipment": "none",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Lie face down with legs extended. Lift one leg off the ground while keeping your pelvis stable. Lower and repeat with the other leg.",
+    "effectiveness": 7,
+    "technicality": 5,
+    "fatigue": 6
+},
+"poliquin_raise": {
+    "name": "Poliquin Raise",
+    "categories": ["shoulders", "isolation", "strength"],
+    "movers": ["side-delts", "front-delts", "rear-delts", "traps", "rhomboids", "supraspinatus"],
+    "focus": ["shoulder width", "deltoid development"],
+    "equipment": "dumbbells",
+    "media": {
+      "imageLinks": [],
+      "videoLinks": []
+    },
+    "description": "Stand holding a pair of dumbbells at your sides. Lift the dumbbells in front of you with elbows bent at 90 degrees. While maintaining this bend, raise your upper arms out to the sides, then fully extend your arms at shoulder height. Lower the arms slowly under control to the starting position.",
+    "effectiveness": 8,
+    "technicality": 8,
+    "fatigue": 8
+},
+} }
 
 // to convert the above format to correct format and replace data in the new file
- JSON.stringify(Object.fromEntries(Object.entries(exerciseDB()).map(([k,{name,...rest}]) => {name = k.replaceAll("_"," ").replaceAll(/\b\w/g,(e)=>e.toUpperCase()); return [k,{name,...rest}]})))
+JSON.stringify(Object.fromEntries(Object.entries(oldexerciseDB()).map(([k,{name,...rest}]) => {name = k.replaceAll("_"," ").replaceAll(/\b\w/g,(e)=>e.toUpperCase()); return [k,{name,...rest}]})))
+
