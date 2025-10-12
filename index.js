@@ -19,7 +19,7 @@ if (Object.keys(existingTemplates).length){
         createTemplateItem(program);
     }
 }
-const pastWorkoutsObject = JSON.parse(localStorage.workoutLogObject);
+const pastWorkoutsObject = localStorage?.workoutLogObject ? JSON.parse(localStorage.workoutLogObject) : {};
 let dailyWorkoutLog = new Map(); 
 //  debugger
 // render svg content to the application 
@@ -73,18 +73,22 @@ function recentWorkouts(object){
         const movers = Object.values(workoutExercises).map(arr => arr[0][1]);
         const volumes = Object.values(workoutExercises).map(arr => arr[arr.findIndex(e => e[0] === "vol")][1]);
         const totalVol = volumes.reduce((a,b)=> a+b,0);
-        movers.forEach(([primary, secondary, tertiary],i) => { 
-            primary? primary = primary.replace("-","") : "";
-            secondary? secondary = secondary.replace("-","") : "";
-            tertiary? tertiary = tertiary.replace("-","") : "";
-            nameMap.has(primary)? nameMap.set(primary,Math.round(nameMap.get(primary)+(volumes[i]*100)/totalVol)) : "";
-            nameMap.has(secondary)? nameMap.set(secondary,Math.round(nameMap.get(secondary)+(0.30*volumes[i]*100)/totalVol)) : "";
-            nameMap.has(tertiary)? nameMap.set(tertiary,Math.round(nameMap.get(tertiary)+(0.10*volumes[i]*100)/totalVol)) : "";
+        movers.forEach(([primary, secondary, tertiary, quaternary, quinary],i) => { 
+            if (primary) {primary = primary.replace("-",""); if(primary==="traps"||primary==="rhomboids"){primary="traps/rhomboids"} };
+        if (secondary) {secondary = secondary.replace("-",""); if(secondary==="traps"||secondary==="rhomboids"){secondary="traps/rhomboids"} };
+        if (tertiary) {tertiary = tertiary.replace("-",""); if(tertiary==="traps"||tertiary==="rhomboids"){tertiary="traps/rhomboids"} };
+        if (quaternary) {quaternary = quaternary.replace("-",""); if(quaternary==="traps"||quaternary==="rhomboids"){quaternary="traps/rhomboids"} };
+        if (quinary) {quinary = quinary.replace("-",""); if(quinary==="traps"||quinary==="rhomboids"){quinary="traps/rhomboids"} };
+        nameMap.has(primary)? nameMap.set(primary,Math.round(nameMap.get(primary)+(0.65*volumes[i]*100)/totalVol)) : "";
+        nameMap.has(secondary)? nameMap.set(secondary,Math.round(nameMap.get(secondary)+(0.25*volumes[i]*100)/totalVol)) : "";
+        nameMap.has(tertiary)? nameMap.set(tertiary,Math.round(nameMap.get(tertiary)+(0.10*volumes[i]*100)/totalVol)) : "";
+        nameMap.has(quaternary)? nameMap.set(quaternary,Math.round(nameMap.get(quaternary)+(0.05*volumes[i]*100)/totalVol)) : "";
+        nameMap.has(quinary)? nameMap.set(quinary,Math.round(nameMap.get(quinary)+(0.05*volumes[i]*100)/totalVol)) : "";
         });
     })
 
     nameMap.entries().forEach(([key, val])=> {
-        let elemArr = val? document.querySelectorAll(`svg [data-name=${key}]`) : [];
+        let elemArr = val? document.querySelectorAll(`svg [data-name='${key}']`) : [];
         elemArr.forEach(elem => rgbValues(elem,val));
     })
 }
@@ -107,6 +111,10 @@ function rgbValues(el,vol){
             el.setAttribute("fill",`rgb(75%, 100%, 100%)`)
             break;
         };
+        case vol>0&&vol<=20: {
+            el.setAttribute("fill",`rgb(100%, 100%, 100%)`)
+            break;
+        };
         default: {
             el.setAttribute("fill",`rgb(50%, 50%, 50%)`)
             break;
@@ -121,7 +129,7 @@ function createTemplateItem(program,cover){
     const coverImg = document.createElement("img");
     const label = document.createElement("h1");
     
-    coverImg.src = cover||"default-image.png";
+    coverImg.src = cover||"./media/images/default-image.png";
     coverImg.className = "default-img";
 
     label.textContent = program;
@@ -140,7 +148,7 @@ function createTemplateItem(program,cover){
 
 function handleTemplateItemClick(event){
     const loc = new URL("file:///C:/Users/krish/Desktop/Web%20Development/Capstone%20projects/Project%207%20-%20LoggerDotOne/logworkout.html");
-    let program = document.querySelector(`#${event.target.parentElement.id} h1`).textContent;
+    let program = event.target.parentElement.lastElementChild.textContent;
     loc.searchParams.set("temp", program);
     document.location = loc;
 }
