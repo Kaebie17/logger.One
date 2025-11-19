@@ -10,6 +10,7 @@ const logDetails = document.getElementById("exdetails");
 const svgContainer = document.getElementById("svgcontainer");
 const calendarArea = document.getElementById("calendar");
 const deleteWorkoutBtn = document.getElementById("deleteworkout");
+const changeDateBtn = document.getElementById("changedate");
 const redirectHome = document.querySelector("#header > h1");
 const pastWorkoutsObject = JSON.parse(localStorage.workoutLogObject);
 const finalLog = Object.fromEntries(JSON.parse(sessionStorage.finalLog));
@@ -34,6 +35,9 @@ redirectHome.addEventListener("click" , home);
 //delete this workout
 deleteWorkoutBtn.addEventListener("click", handleDeleteOperation);
 
+//change this workout's date
+changeDateBtn.addEventListener("click", handleDateChange);
+
 exerciseDetails.lastElementChild.addEventListener("click", ()=>{
     exerciseDisplay.style.display = "flex";
     exerciseDetails.style.display = "none";
@@ -48,6 +52,9 @@ const extractData = () => {
   const exerciseDataValues = Object.values(exerciseData).flat();
   let ar = [];
   exerciseDataValues.filter(([k,v])=>k==="targets").flatMap(([k,v])=> v ).forEach(v => !ar.includes(v)? ar.push(v) : "") ;
+  const duration = (new Date(date + ", "+ finalLog[key]["workoutEndTime"]) - new Date(date + ", "+ finalLog[key]["workoutStartTime"]))/(60*1000);
+  const intensity = finalLog[key]["workoutIntensity"];
+  const fatigue = Object.keys(exerciseData).map(e => exerciseDB()[e]["fatigue"]).reduce((a,b) => a+b);
   const targets = ar.join(", ");
   const sets = exerciseDataValues.filter(([k,v])=>k.includes("setnum")).flatMap(([k,v])=> parseFloat(v)).reduce((a,b)=>a+b);
   const reps = exerciseDataValues.filter(([k,v])=>k.includes("reps")).flatMap(([k,v])=> parseFloat(v)).reduce((a,b)=>a+b);
@@ -69,11 +76,10 @@ const handleClick = (event) => {
     const labelEl = document.createElement("label")
     const output = document.createElement("output");
     output.className = "output"
-    const dataArray = currExercise.filter(([k,v]) => k.includes("setnum")||k.includes("reps")||k.includes("weight"))
-    let len =  dataArray.length/3;
+    let len =  currExercise.find(([k,v]) => k.includes("setCount"))[1]*1;
     addlabels(labelEl,row);
     displayDetails(len,output,row,currExercise);
-    fillSummary(id);
+    fillSummary(currExercise,id);
     fillShapeColor([currExercise],true)
     calendarArea.firstElementChild.children[1].remove();
     calendarArea.lastElementChild.remove();
@@ -128,8 +134,16 @@ function displayDetails(n,el,outerEl,inputArray){
     for (let i=0; i<n; i++){
         let clone = outerEl.cloneNode(true);
         clone.id = i;
-        inputArray.filter(([k,v])=> k.includes(i)).flatMap(([k,v])=> v).forEach(val => {
+        inputArray.filter(([k,v])=> k.includes(i)).flatMap(([k,v])=> v).forEach((val,k) => {
             let cloneOutput = el.cloneNode(true);
+            if(k===2){
+                let elm = logDetails.firstElementChild.childNodes[k-1];
+                inputArray.find(([label,data])=> label==="repMultiple")?.[1] ? elm.textContent = "Reps x2" : "";
+            }
+            if(k===3){
+                let elm = logDetails.firstElementChild.childNodes[k-1];
+                inputArray.find(([label,data])=> label==="wtMultiple")?.[1] ? elm.textContent = "Load x2" : "";
+            }
             val = val.includes("Min")? val.replace("Min","") : val.includes("TUT") ? "-" : val;
             cloneOutput.value = val;
             clone.append(cloneOutput)
@@ -137,16 +151,17 @@ function displayDetails(n,el,outerEl,inputArray){
         logDetails.append(clone);
     }
 }
-function fillSummary(exercise){
-    const dataArray = exerciseData[exercise];
+function fillSummary(dataArray,exercise){
     summaryArea[0].children[0].children[0].textContent = dataArray.filter(([k,v])=> k.includes("rest")).map(([k,v])=>parseFloat(v.replace("Min",""))).reduce((a,b)=>(a+b)/2);
     summaryArea[0].children[1].children[0].textContent = Math.max(...dataArray.filter(([k,v])=> k.includes("weight")).map(([k,v])=>parseFloat(v)));
     summaryArea[0].children[2].children[0].textContent = dataArray.filter(([k,v])=> k.includes("rir")).map(([k,v])=>parseFloat(v)||parseFloat(v.replaceAll(/\w/g,""))||0).reduce((a,b)=>(a+b)/2)||"-";
     summaryArea[0].children[3].children[0].textContent = dataArray.filter(([k,v])=> k.includes("tut")).map(([k,v])=>parseFloat(v)||parseFloat(v.replaceAll(/\w/g,""))||0).reduce((a,b)=>(a+b)/2)||"-";
-    summaryArea[1].children[0].children[0].textContent = dataArray.filter(([k,v])=> k.includes("setnum")).map(([k,v])=>parseFloat(v)).length||"-";
-    summaryArea[1].children[1].children[0].textContent = dataArray.filter(([k,v])=> k.includes("reps")).map(([k,v])=>parseFloat(v)).reduce((a,b)=>(a+b))||"-";
-    summaryArea[1].children[2].children[0].textContent = getVolume(arr => arr.flatMap(([a,b]) => [a*b]).reduce((a,b)=>a+b), dataArray.filter(([k,v])=> k.includes("reps")).map(([k,v])=>parseFloat(v)))(dataArray.filter(([k,v])=> k.includes("weight")).map(([k,v])=>parseFloat(v)));
-    const lastVolume = pastVol(exercise,date,"vol")?.reverse()[0][1];
+    summaryArea[1].children[0].children[0].textContent = dataArray.find(([k,v])=> k.includes("setCount"))[1]||"-";
+    summaryArea[1].children[1].children[0].textContent = dataArray.find(([k,v])=> k.includes("repCount"))[1]||"-";
+    summaryArea[1].children[2].children[0].textContent = dataArray.find(([k,v])=> k.includes("vol"))[1]||"-";;
+    // summaryArea[1].children[1].children[0].textContent = dataArray.filter(([k,v])=> k.includes("reps")).map(([k,v])=>parseFloat(v)).reduce((a,b)=>(a+b))||"-";
+    // summaryArea[1].children[2].children[0].textContent = getVolume(arr => arr.flatMap(([a,b]) => [a*b]).reduce((a,b)=>a+b), dataArray.filter(([k,v])=> k.includes("reps")).map(([k,v])=>parseFloat(v)))(dataArray.filter(([k,v])=> k.includes("weight")).map(([k,v])=>parseFloat(v)));
+    const lastVolume = findProgress(exercise,date,"vol");
     let progress = !lastVolume ? "↗↗↗" : summaryArea[1].children[2].children[0].textContent === lastVolume ? "⬅➡" : summaryArea[1].children[2].children[0].textContent > lastVolume ? "⬆⬆⬆" : "⬇⬇⬇";  
     summaryArea[1].children[3].children[0].textContent = progress;
 }
@@ -159,8 +174,10 @@ function getVolume(f,reps) {
         return f.call(this,args)
     }
 }
-function pastVol(targetMovement,targetDate,targetMetric){
-    return pastWorkoutsObject.map(([k,v]) => v).map(({workoutExercises,...v})=>workoutExercises).flatMap(({date,time,chooseprogram,...v})=> Object.keys(v).includes(targetMovement) && date!==targetDate ? [v[targetMovement]]:[])[0]?.filter(([k,v])=> k===targetMetric);
+function findProgress(targetMovement,targetDate,targetMetric){
+    let targetWorkouts = pastWorkoutsObject.filter(([k,v])=>v["workoutExercises"].hasOwnProperty(targetMovement) && k.split(",")[0]!==targetDate).sort((a,b)=>new Date(a[0])-new Date(b[0]));
+    let lastItem = targetWorkouts?.[targetWorkouts.length-1];
+    return lastItem ? lastItem[1]["workoutExercises"][targetMovement].find(([k,v])=>k===targetMetric)[1] : "";
 }
 function fillShapeColor(object,bool=false){
     let combinedTargetsArr ;
@@ -283,4 +300,53 @@ function handleDeleteOperation(){
     localStorage.templog = JSON.stringify(pastWorkoutsObject);
     localStorage.workoutLogObject = JSON.stringify(newHistory);
     document.location = "./history.html";
+}
+
+function handleDateChange(){
+    let modalEl = document.createElement("dialog");
+    let datepicker = document.createElement("input");
+    let durationEl = document.createElement("input");
+    let submit = document.createElement("input");
+    let program = document.createElement("input");
+    program.type = "text";
+    program.value = headingVal;
+    submit.type = "submit";
+    submit.textContent = "Done";
+    durationEl.type = "number";
+    durationEl.placeholder = "Enter duration (min)";
+    durationEl.id = "duration";
+    datepicker.type = "datetime-local";
+    datepicker.id = "newKey"
+    modalEl.append(program, datepicker,durationEl,submit);
+    modalEl.className = "changesmodal";
+    modalEl.style.marginTop = "40vh";
+    let newHistory = pastWorkoutsObject.filter(([k,v])=>k!==key);
+    localStorage.templog = JSON.stringify(pastWorkoutsObject);
+    localStorage.workoutLogObject = JSON.stringify(newHistory);
+    submit.addEventListener("click", (e) => {
+        let el2 = e.target.previousElementSibling;
+        let el1 = el2.previousElementSibling;
+        let el0 = el1.previousElementSibling;
+        let thisWorkout = pastWorkoutsObject.filter(([k,v])=>k===key);
+        if (el1.value && el2.value) { 
+            thisWorkout[0][0] = new Date(el1.value).toLocaleString() ;
+            thisWorkout[0][1]["workoutStartTime"] = new Date(el1.value).toLocaleTimeString();
+            thisWorkout[0][1]["workoutEndTime"] = new Date(new Date(el1.value).getTime()+60*el2.value*1000).toLocaleTimeString();  
+            thisWorkout[0][1]["workoutDate"] = new Date(el1.value).toDateString();
+        }
+        thisWorkout[0][1]["workoutName"] = el0.value ; 
+        let bool = pastWorkoutsObject.some(([k,v]) => new Date(k).toDateString() === thisWorkout[0][0]);
+        if (!bool){
+            let newlog =  JSON.parse(localStorage.workoutLogObject).concat(thisWorkout)
+            localStorage.workoutLogObject = JSON.stringify(newlog);
+        }
+        else{
+            alert("A workout already exists on selected date. Please select another date to proceed");
+            return; 
+        }
+        modalEl.close();
+        document.location = "./history.html";
+    })
+    document.body.append(modalEl);
+    modalEl.show();
 }
