@@ -21,13 +21,30 @@
             <button id="logworkout">Past Workout</button>
         </section>
         <section id="schedule">
-            <div><a href="#weeklystatus">7-Day Status</a><a id="loadcalendar" href="#calendar">Calendar</a></div>
+            <div><a href="#week">7-Day Status</a><a id="loadcalendar" href="#calendar">Calendar</a></div>
             <section id="calendar">
                     <div class="label-area"><p onclick="scrollMonth(event)"><<</p><p onclick="scrollMonth(event)">>></p></div>
             </section>
-            <div id="weeklystatus">
+            <div id="status">
                 <div id="week"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span></div>
-                <div id="streak"><span></span><span></span></div>
+                <div id="streak">
+                    <span id="monthlyhighlights">
+                        <span id="leftdirMH"><</span>
+                        <div>
+                            <h3 id="statnameMH">Monthly workouts</h3>
+                            <span id="statvalueMH"><p></p><p></p></span>
+                        </div>
+                        <span id="rightdirMH">></span>
+                    </span>
+                    <span id="lifthighlights">
+                        <span id="leftdirLH"><</span>
+                        <div>
+                            <h3 id="statnameLH">Best Lift</h3>
+                            <span id="statvalueLH"><p></p><p></p></span>
+                        </div>
+                        <span id="rightdirLH">></span>
+                    </span>
+            </div>
             </div>
         </section>
         <section id="templates">
@@ -37,13 +54,13 @@
         </section>
     </div>
     <footer id="footer">
-        <a href="">Profile</a>
+        <a href="profile.html">Profile</a>
         <a href="history.html">Workouts</a>
         <a href="trends.html">Trends</a>
-        <a href="">Stats</a>
+        <a href="stats.html">Stats</a>
         <a href="settings.html">Settings</a>
     </footer>
-    <!-- <script async id="indexJS" src="exercisesDB_updated.js"></script> -->
+    <script async id="indexJS" src="exercisesDB_updated.js"></script>
     <script async id="indexJS" src="index.js"></script>
 </body>
 </html>
