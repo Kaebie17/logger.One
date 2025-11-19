@@ -83,6 +83,9 @@ else if(new URL(document.location).searchParams.get("temp")){
     debugger
     const program = new URL(document.location).searchParams.get("temp");
     programDisplay.value = program;
+    chooseProgram.disabled = true;
+    programDisplay.disabled = true;
+    programDisplay.classList.add("mark");
     finalLog = existingTemplates[program] ;
     currentTime()
     presentStats();
@@ -229,7 +232,6 @@ function saveWorkoutFunction(event) {
     if(!startDate){alert("Workout duration cannot be 0!"); return} 
     const workoutName = programDisplay.value;
     const workoutDate = startDate;
-    
     const workoutStartTime = periodObject.login;
     const workoutEndTime = periodObject.logout;
     const workoutIntensity = document.getElementById("intensity").value;
@@ -242,6 +244,14 @@ function saveWorkoutFunction(event) {
     temp.set(key , {workoutName,workoutDate,workoutStartTime,workoutEndTime,workoutIntensity,workoutSoreness,workoutExercises,workoutUnit});
     localStorage.workoutLogObject =  JSON.stringify(Array.from(temp));
     temp = "";
+    let bool = prompt("Save as template/Replace template");
+    debugger
+    if (bool || bool === ""){
+        let templatesArr = Object.entries(JSON.parse(localStorage.templates));
+        bool ? templatesArr.push([bool,workoutExercises]) : 
+            templatesArr = templatesArr.map(([k,v])=> {k===workoutName ? v = workoutExercises : ""; return [k,v]});
+        localStorage.templates = JSON.stringify(Object.fromEntries(templatesArr));
+    }
     event.target.removeEventListener("click",saveWorkoutFunction);
     document.location = "./index.html"
 }
