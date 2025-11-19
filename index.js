@@ -9,6 +9,7 @@ const loadCalendar = document.getElementById("loadcalendar");
 const dayNumContainers = document.querySelectorAll("#schedule > div > #week > span");
 const monthlyHighlights = document.getElementById("monthlyhighlights");
 const liftHighlights = document.getElementById("lifthighlights");
+let dateSorter = Intl.Collator(undefined,{numeric:true}).compare;
 let monthlyScroll=0;
 let liftsScroll=0;
 
@@ -25,7 +26,7 @@ if (Object.keys(existingTemplates).length){
         createTemplateItem(program);
     }
 }
-const pastWorkoutsObject = localStorage?.workoutLogObject ? JSON.parse(localStorage.workoutLogObject).sort(([k1,v1],[k2,v2])=> new Date(k1)-new Date(k2)) : {};
+const pastWorkoutsObject = localStorage?.workoutLogObject ? JSON.parse(localStorage.workoutLogObject).sort(dateSorter) : {}; 
 const getMonthlyWorkoutData = (i) => pastWorkoutsObject.filter(([k,v])=> new Date(k).getMonth() === date.getMonth()-i); 
 const currentMonthWorkouts = getMonthlyWorkoutData(0);
 const pastMonthWorkouts = getMonthlyWorkoutData(1);
