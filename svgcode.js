@@ -1,5 +1,16 @@
 const url = "http://www.w3.org/2000/svg"
 
+const svgCreator = () => {
+    let container = document.createElementNS(url,"svg");
+    let width = w||"22.5vh";
+    let height = h||"38vh";
+    container.setAttribute("width", width);
+    container.setAttribute("height", height);
+    container.setAttribute ("viewBox", `0,0,225,350`);
+    document.body.append(container)
+
+}
+
 // Human figure SVG
 const humanFigure = (w,h) => {
     const frontsvg = document.createElementNS(url,"svg");
@@ -628,23 +639,737 @@ const graphics = (el,legEl,w,h) => {
     }
 }
 
-// let dim = []
-// function dimF(x,y,r,n,angle=0){
-//     // dim.push([x,y]);
-//     for (let i=0;i<n;i++){
-//     angle += 2*Math.PI/n;
-//     dim.push([x + r*Math.sin(angle), y - r*Math.cos(angle)]);
-// }
-// }
-// dimF(80,300,50,4,90);
-// // dim = dim.map((el,i) => i===0? el : i%2!==0 ? el.concat(dim[i+1]) : "").filter(ar => ar!=="");
-// let dd = dim.map( (ar,i) => { ar = ar.map(e => `${Math.round(parseInt(e))}`); return i===0 ? "M"+ ar.join() : "L"+ ar.join()}).join(' ')+" Z"
+// Muscular man figure svg
 
-// let test = document.createElementNS(url,"path");
+const muscularManSvg = (container,viewbox,w,h) => {
+const controlArea = document.createElement("div");
+const svgarea = document.createElementNS(url,"svg");
+    svgarea.setAttribute("width", `${w||100}%`);
+    svgarea.setAttribute("height", `${h||100}%`);
+    svgarea.setAttribute ("viewBox", `${viewbox?.[0]||0},${viewbox?.[1]||0},${viewbox?.[2]||180},${viewbox?.[3]||150}`);
+const frontView = svgarea.cloneNode(true);
+const backView = svgarea.cloneNode(true); 
+    
+const controls = svgarea.cloneNode(true);
+const circle = document.createElementNS(url,"circle");
+    circle.setAttribute("r", "30");
+    circle.setAttribute("cy", "75");
+    circle.setAttribute("stroke", "black");
+    circle.setAttribute("fill", "white");
+const c1 = circle.cloneNode(true);
+    c1.setAttribute("cx", "0");
+    c1.setAttribute("fill", "black");
+const c2 = circle.cloneNode(true);
+    c2.setAttribute("cx", "200");
 
-// test.setAttribute("d",dd);
-// test.setAttribute("stroke","black");
-// test.setAttribute("fill","white")
+container.append(frontView);
+frontView.id = "frontHumanSVG";
+container.append(backView);
+backView.id = "backHumanSVG";
+backView.classList = "hide";
+container.append(controlArea);
+controlArea.append(controls);
+controls.append(c1,c2);
 
-// frontsvg.append(test)
+let faceImgUrl = ""//prompt("Enter face image url");
+const measurements = Object.fromEntries(Object.entries(Object.values(JSON.parse(localStorage.measuredValues))[0]).map(([k,v])=> [k,v.split(" ")[0]])) ;
 
+let neck = measurements?.["neck"]*1 || 13;
+let arms = measurements?.["arms"]*1 || 13;
+let forearm = measurements?.["forearms"]*1 || 13; 
+let shoulders = measurements?.["shoulders"]*1 || 20;
+let calves = measurements?.["calves"]*1 ||15;
+let thighs = measurements?.["thighs"]*1 || 22;
+let chest = measurements?.["chest"]*1 || 50;
+let fat = measurements?.["abdomen"]-10 || 20
+let latSpread = chest*1.5;
+let color = "grey";
+
+//Head
+let drawHead = defineVars(createDesign,[frontView],"","head",50,-20,25,25,0,28,0,28)
+drawHead({})
+drawHead({},"rev") ;
+drawHead({y1:-21},true);
+drawHead({y1:-22},true);
+drawHead({y1:-23},true);
+drawHead({y1:-23.5,x2:0,y2:-10,t1:-10,t2:-10},"rev");
+drawHead({x1:49},true);
+
+let drawbackHead = defineVars(createDesign,[backView],{"fill":"black"},"head",50,-20,25,25,0,28,0,28)
+drawbackHead({})
+drawbackHead({},"rev") ;
+neck = 10
+
+//Neck
+let drawNeck = defineVars(createDesign,[frontView],"","neck",60,6,-6,12,0,0,0,0)
+drawNeck({s2:2.5,t2:10})
+for (let i=0;i<neck/2;i++){
+    drawNeck({y1:18+i/10,y2:12+i/10,s2:2.5-i/2,delta:[0,0]},"next")
+}
+drawNeck({x1:69,x2:6,s2:-2.5,t2:10},"reset")
+for (let i=0;i<neck/2;i++){
+    drawNeck({y1:18+i/10,y2:12+i/10,s2:-2.5+i/2,delta:[0,0]},"next")
+}
+drawNeck({x1:64,y1:8,y2:12,x2:0,s2:-2.5,t2:10},"reset")
+for (let i=0;i<neck/4;i++){
+    drawNeck({delta:[-0.2,0]},"next")
+}
+drawNeck({x1:65},"rev")
+for (let i=0;i<neck/4;i++){
+    drawNeck({delta:[-0.2,0]},"next")
+}
+drawNeck({x1:60.5,y1:8,y2:12,x2:3},"reset")
+for (let i=0;i<neck;i++){
+    drawNeck({y2:12-i/2,delta:[-0.1,0]},"next")
+}
+drawNeck({x1:68,y1:8,y2:12,x2:-3},"reset")
+for (let i=0;i<neck;i++){
+    drawNeck({y2:12-i/2,delta:[0.1,0]},"next")
+}
+
+let drawNeckBack = defineVars(createDesign,[backView],"","neck",60,6,-6,9,0,0,0,0)
+drawNeckBack({s2:2.5,t2:8})
+for (let i=0;i<neck;i++){
+    drawNeckBack({delta:[0.1,0.2]},"next")
+}
+drawNeckBack({x1:69,x2:6,s2:-2.5,t2:8},"reset")
+for (let i=0;i<neck;i++){
+    drawNeckBack({delta:[-0.1,0.2]},"next")
+}
+
+//traps lines
+let drawTraps = defineVars(createDesign,[frontView,backView],{fill:"black"},"",59,13.5,-5,1,0,0,0,0);
+drawTraps({t2:-0.5});
+for (let i=0;i<5;i++){
+    drawTraps({delta:[0,0.25]},"next")
+}
+drawTraps({x1:70, y1:13.5, y2:-1, t2:0.5}, "rev");
+for (let i=0;i<5;i++){
+    drawTraps({delta:[0,0.25]},"next")
+}
+
+//shoulders
+//lateral delts
+let drawSideDelt = defineVars(createDesign,[frontView,backView],"","sidedelts",54.5,15,-19,8,0,0,0,0);
+drawSideDelt({s2:-shoulders/2,t2:-0})
+for (let i=0;i<shoulders/2;i++){
+    drawSideDelt({x1:35.5,s2:-shoulders/2+i,delta:[0,0.1]},"next")
+}
+drawSideDelt({x1:76,y1:17,x2:15,y2:0,s2:10,t2:-shoulders/6},"reset")
+for (let i=0;i<shoulders/1.5;i++){
+    drawSideDelt({delta:[-0.1,-0.1]},"next")
+}
+//lateral delts back side
+let drawSideDeltBack = defineVars(createDesign,[backView],"","sidedelts",54.5,18.5,-14,3,0,0,0,0);
+drawSideDeltBack({s2:-shoulders/6,t2:-shoulders/6})
+for (let i=0;i<shoulders/2;i++){
+    drawSideDeltBack({t2:-shoulders/6+i/2,delta:[-0.05,0.05]},"next")
+}
+drawSideDeltBack({x1:76,y1:17,x2:14,y2:0,s2:10,t2:-shoulders/6},"reset")
+for (let i=0;i<shoulders/4;i++){
+    drawSideDeltBack({t2:-shoulders/6+i/2,delta:[0,0.05]},"next")
+}
+//rear delts
+let drawRearDelt = defineVars(createDesign,[backView],"","reardelts",53,20,-10,0,0,0,0,0);
+drawRearDelt({y1:20+shoulders/10,s2:-2.5,t2:-shoulders/10},"reset")
+for (let i=0;i<shoulders/4;i++){
+    drawRearDelt({t2:-shoulders/10+i,delta:[-0.05,0.05]},"next")
+}
+drawRearDelt({x1:74,x2:14,y1:18+shoulders/15,y2:-3,s2:2.5,t2:shoulders/10},"reset")
+for (let i=0;i<shoulders/4;i++){
+    drawRearDelt({t2:shoulders/10-i,delta:[-0.05,-0.05]},"next")
+}
+
+//anterior delts
+let drawFrontDelt = defineVars(createDesign,[frontView,],"","frontdelts",52,21,-10,4,0,0,0,0);
+drawFrontDelt({y1:21,s2:-shoulders/4,t2:0 })
+for (let i=0;i<shoulders/3;i++){
+    drawFrontDelt({delta:[-0.2,-0.2]},"next")
+}
+drawFrontDelt({x1:43,y1:28,x2:-7.5,y2:0,s2:0,t2:0},"rev")
+for (let i=0;i<shoulders/3;i++){
+    drawFrontDelt({delta:[0,-0.15]},"next")
+}
+// lines
+drawFrontDelt({x1:90,y1:17,x2:-13,y2:2,s2:-shoulders/5,t2:-shoulders/6},"reset")
+for (let i=0;i<shoulders/3;i++){
+    drawFrontDelt({delta:[0.2,0.15]},"next")
+}
+drawFrontDelt({x1:76,y1:23,x2:-9,y2:-5,s2:0,t2:-5},"rev")
+for (let i=0;i<shoulders/3;i++){
+    drawFrontDelt({delta:[0,-0.15]},"next")
+}
+
+//upper-arms
+    
+let drawTriceps = defineVars(createDesign,[frontView,backView],"","triceps",40,22,-15,20,0,0,0,0)
+let drawBiceps = defineVars(createDesign,[frontView,backView],"","biceps",40,22,-15,20,0,0,0,0)
+
+//left triceps
+drawTriceps({s1: -arms/2, s2:-10, t2:arms/2})
+for (let i=0;i<arms;i++){
+    drawTriceps({x2:-15-i/3,delta:[-0.1,0.15]},"next")
+}
+//left biceps
+drawBiceps({x1:27+arms/10,y1:43,x2:15,y2:-15,s2:arms/3,t2:-10+arms},"reset")//(85,19,20,25,0,0,0,0)
+for (let i=0;i<arms;i++){
+    drawBiceps({t2:-10+arms-i,delta:[0,-0.05]},"next")
+}
+drawBiceps({},"rev")
+for (let i=0;i<arms/2;i++){
+    drawBiceps({t2:-12+arms-i,delta:[0,-0.05]},"next")
+}
+
+// right biceps
+drawBiceps({x1:90,y1:18,x2:15,y2:1,s2:10,t2:-arms/4}, "reset")
+for (let i=0;i<arms/4;i++){
+    drawBiceps({delta:[-0.1,-0.5]},"next")
+}
+drawBiceps({x1:103,y1:21,x2:25,y2:-4,s2:10,t2:0}, "rev")
+for (let i=0;i<arms/2;i++){
+    drawBiceps({t2:-i,delta:[0.2,-0.25]},"next")
+}
+//right triceps
+drawTriceps({x1:112, y1:22+arms/7.5,x2:-32.5, y2:2, s1:-arms/2, s2:-15, t2:arms/3},"reset") //
+for (let i=0;i<arms;i++){
+    drawTriceps({x2:-33.5+i,delta:[0,-0.15]},"next")
+}
+
+
+//forearm
+forearm=14
+let drawforearms = defineVars(createDesign,[frontView,backView],"","forearms",25,45,18,15.5,0,0,0,0)
+drawforearms({s2:-5,t2:forearm/3,t1:5,s1:-5})
+for (let i=0;i<forearm;i++){
+    drawforearms({y2:15.5-i/3,delta:[-0.1,0]},"next")
+}
+drawforearms({x1: 40,y1: 55, x2:12.5, y2:12, s2:5,t2:forearm/2,t1:5,s1:10},"rev")
+for (let i=0;i<forearm;i++){
+    drawforearms({x2:-12.5+i/3,delta:[0.1,0]},"next")
+}
+drawforearms({x1: 103, y1:19, x2: 0, y2:-15, s2:forearm/5}, "reset")
+for (let i=0;i<forearm;i++){
+    drawforearms({x2:0-i/5,delta:[0.1,0.15]},"next")
+}
+drawforearms({x1:112,y1:24,y2:-25,x2:-6}, "true")
+for (let i=0;i<forearm;i++){
+    drawforearms({x2:-3-i/5,delta:[0,-0.1]},"next")
+}
+
+let drawHands = defineVars(createDesign,[frontView,backView],"","",40,60,0,-5,0,0,0,0);
+drawHands({s1:2,t1:5,s2:10,t2:-5})
+drawHands({x1:107.5,y1:0,x2:-10,y2:-2,s2:2.5,t2:-5},"reset")
+drawHands({x1:98,y1:-1,x2:2,y2:-5,s1:2,t1:5,s2:5,t2:-7},"rev")
+drawHands({x2:-7,y2:-2,t2:10},"rev")
+
+//chest
+//upper chest
+let drawUpperChest = defineVars(createDesign,[frontView],"","upperchest",51,22.5,12.5,0,0,0,0,0);
+drawUpperChest({t2:-5,s2:10})
+for (let i=0;i<chest/5;i++){
+    drawUpperChest({s2:chest/10+i,delta:[0,0.25]},"next")
+}
+drawUpperChest({x1:77,x2:-12.5,t2:-5,s2:-10},"reset")
+for (let i=0;i<chest/5;i++){
+    drawUpperChest({s2:-chest/10-i,delta:[0,0.25]},"next")
+}
+//lower chest
+let drawlowerChest = defineVars(createDesign,[frontView],"","lowerchest",50,26,13.5,-2,0,0,0,0);
+drawlowerChest({t2:-5})
+for (let i=0;i<10;i++){
+    let x = chest/100;
+    drawlowerChest({delta:[0,x]},"next")
+}
+drawlowerChest({},"reset")
+for (let i=0;i<10;i++){
+    let x = chest/100
+    drawlowerChest({delta:[0,x]},"next")
+}
+drawlowerChest({t2:chest/5,s2:12},"reset")
+for (let i=0;i<10;i++){
+    let x = chest/100
+    drawlowerChest({delta:[0,x]},"next")
+}
+drawlowerChest({x1:77,x2:-12.5,t2:-5},"reset")
+for (let i=0;i<10;i++){
+    let x = chest/100;
+    drawlowerChest({delta:[0,x]},"next")
+}
+drawlowerChest({x1:77,x2:-12.5},"reset")
+for (let i=0;i<10;i++){
+    let x = chest/100
+    drawlowerChest({delta:[0,x]},"next")
+}
+drawlowerChest({x1:77,x2:-12.5,t2:chest/5,s2:-12},"reset")
+for (let i=0;i<10;i++){
+    let x = chest/100
+    drawlowerChest({delta:[0,x]},"next")
+}
+
+// torso
+//lats front side
+let drawLats = defineVars(createDesign,[frontView],{stroke:"black"},"lats",77,27,0,30,0,0,0,0);
+drawLats({s2:chest/10,t1:5}) 
+for (let i=0;i<chest/5;i++){
+    drawLats({s2:chest/10+i,delta:[0,-0.25]},"next")
+}
+drawLats({x1:50,y1:58,s2:-chest/10,t1:5},true) 
+for (let i=0;i<chest/5;i++){
+    drawLats({s2:-chest/10-i,delta:[0,-0.25]},"next")
+}
+//lats back side
+let drawLatsBack = defineVars(createDesign,[backView],"","lats",50,28,5,30,0,0,0,0);
+drawLatsBack({s2:-5,t2:10})
+for (let i=0;i<latSpread/10;i++){
+    drawLatsBack({x2:5+i,delta:[0,0.2]},"next")
+}
+drawLatsBack({s2:-5,t2:10},"reset")
+for (let i=0;i<latSpread/4;i++){
+    drawLatsBack({x2:5-i/2,y2:30-i,delta:[0,0.1]},"next")
+}
+drawLatsBack({x1:77,y1:26,x2:-5,s2:5,t2:10},"reset")
+for (let i=0;i<latSpread/10;i++){
+    drawLatsBack({x2:-5-i,delta:[0,0.2]},"next")
+}
+drawLatsBack({x1:77,y1:26,x2:-5,s2:6,t2:10},"reset")
+for (let i=0;i<latSpread/4;i++){
+    drawLatsBack({x2:-5+i/2,y2:30-i,delta:[0,0.15]},"next")
+}
+
+//Traps/Rhomboids
+//lower traps
+let drawLowerTraps = defineVars(createDesign,[backView],"","lowertraps",54.5,27,7,27.5,0,0,0,0);
+drawLowerTraps({s2:-5,t2:10})
+for (let i=0;i<33;i++){
+    drawLowerTraps({x2:8-i/2,s2:-1+i/10,delta:[0.1,0]},"next")
+}
+//mid-traps and rhomboids
+let drawMidTraps = defineVars(createDesign,[backView],"","traps/rhomboids",53,21.5,10,5,0,0,0,0);
+drawMidTraps({s2:10,t2:10})
+for (let i=0;i<20;i++){
+    drawMidTraps({t2:10-i/2,delta:[0.1,-0.20]},"next")
+}
+drawMidTraps({x1:74,x2:-10,s2:-10,t2:10},"reset")
+for (let i=0;i<20;i++){
+    drawMidTraps({t2:10-i/2,delta:[-0.1,-0.20]},"next")
+}
+
+//lines
+let drawCore = defineVars(createDesign,[frontView,backView],{stroke:"black"},"",49,49,1,15,0,0,0,0);
+drawCore({s2:-fat/10,t2:30})
+for (let i=0;i<15;i++){
+    let x = 20/100
+    drawCore({s2:-i/3*fat/10,delta:[0,x]},"next")
+}
+drawCore({x1:77,y1:48,x2:1,y2:-15,s2:-fat/10,t2:-30}, "rev")
+for (let i=0;i<15;i++){
+    let x = 20/100
+    drawCore({s2:i/3*fat/10,delta:[0,x]},"next")
+}
+//abs
+let drawAbs = defineVars(createDesign,[frontView],"","core",55,38,7.5,2.5,0,0,0,0);
+drawAbs({t1:-2.5,s2:10,t2:-5})
+for (let i=0;i<15;i++){
+    let x = 20/100
+    drawAbs({t2:-5+i/2,t1:-2.5+i,delta:[-0.05,x]},"next")
+}
+drawAbs({x1:55,y1:50,t1:-2.5,s2:7.5,t2:-5})
+for (let i=0;i<10;i++){
+    let x = 20/100
+    drawAbs({t2:-5+i/2,t1:-2.5+i,delta:[-0.05,x]},"next")
+}
+drawAbs({x1:55,y1:59,y2:1,t1:-2.5,s2:6.5,t2:-5})
+for (let i=0;i<8;i++){
+    let x = 20/100
+    drawAbs({t2:-5+i/2,t1:-2.5+i,delta:[-0.05,x]},"next")
+}
+drawAbs({x1:55,y1:63,y2:0,t2:2.5},"reset")
+for (let i=0;i<100;i++){
+    drawAbs({x2:7.5-i/15,delta:[0,0.15]},"next")
+}
+drawAbs({x1:72.5,y1:38,x2:-7.5,t1:-2.5,s2:-10,t2:-5},"reset")
+for (let i=0;i<15;i++){
+    let x = 20/100
+    drawAbs({t2:-5+i/2,t1:-2.5+i,delta:[0.05,x]},"next")
+}
+drawAbs({x1:71.5,y1:50,x2:-7.5,t1:-2.5,s2:-7.5,t2:-5})
+for (let i=0;i<10;i++){
+    let x = 20/100
+    drawAbs({t2:-5+i/2,t1:-2.5+i,delta:[0.05,x]},"next")
+}
+drawAbs({x1:71.5,y1:59,y2:1,x2:-7.5,t1:-2.5,s2:-6.5,t2:-5})
+for (let i=0;i<8;i++){
+    let x = 20/100
+    drawAbs({t2:-5+i/2,t1:-2.5+i,delta:[0.05,x]},"next")
+}
+drawAbs({x1:71,y1:63,x2:-7.5,y2:0,t2:2.5},"reset")
+for (let i=0;i<100;i++){
+    drawAbs({x2:-7.5+i/15,delta:[0,0.15]},"next")
+}
+//obliques
+let drawObliques = defineVars(createDesign,[frontView],"","obliques",51,40,-1,30,0,0,0,0);
+drawObliques({s2:3,t2:20,s1:-2,t2:30})
+for (let i=0;i<30;i++){
+    let x = 20/100
+     drawObliques({y2:30-i/2,delta:[x/2,0]},"next")
+}
+drawObliques({x1:76,x2:-1,s2:-3,t2:20,s1:2,t2:30},"reset")
+for (let i=0;i<35;i++){
+    let x = 20/100
+     drawObliques({y2:30-i/2,delta:[-x/2,0]},"next")
+}
+
+//lower back
+let drawLowBack = defineVars(createDesign,[backView],"","lowback",60.5,56,5,0,0,0,0,0);
+drawLowBack({})
+for (let i=0;i<15;i++){
+    drawLowBack({x1:65.5+i/10,x2:5+i/5,delta:[0,0.5]},"next")
+}
+
+//lines
+let spineline = defineVars(createDesign,[backView],{stroke:"white",fill:"transparent"},"",63,64,2,-45,0,0,0,0);
+spineline({s2:1,t2:-45,s1:-2,t1:-40})
+
+//glutes
+let drawGlutes = defineVars(createDesign,[backView],"","glutes",50,66,7.5,-2,0,0,0,0);
+drawGlutes({t2:-2.5}) 
+for (let i=0;i<15;i++){
+    drawGlutes({delta:[-0.2,-0.05]},"next")
+}
+drawGlutes({x1:49,y1:67,x2:13.5,t2:-5},"reset") 
+for (let i=0;i<25;i++){
+    drawGlutes({x1:62.5,x2:13.5-i/3,t2:-5+i/2,delta:[-0.2,0.5]},"next")
+}
+drawGlutes({x1:76,x2:-7.5,t2:-2.5},"reset") 
+for (let i=0;i<15;i++){
+    drawGlutes({delta:[0.2,-0.05]},"next")
+}
+drawGlutes({x1:77,y1:67,x2:-14,t2:-5},"reset")
+for (let i=0;i<25;i++){
+    drawGlutes({x1:63,x2:-14+i/3,t2:-5+i/2,delta:[0.2,0.5]},"next")
+}
+
+//quads
+let drawQuadsLeft = defineVars(createDesign,[frontView],"","quads",50,67.5,0,35,0,0,0,0);
+drawQuadsLeft({s2:-1})
+for (let i=0;i<15;i++){
+    let x = thighs/100
+     drawQuadsLeft({s2:-i/2,t2:i/2,delta:[-x/2,0]},"next")
+}
+drawQuadsLeft({x1:48.5,y2:35,s2:1},"reset")
+for (let i=0;i<20;i++){
+    let x = thighs/100
+     drawQuadsLeft({s2:i,t1:i,delta:[x/2,0]},"next")
+}
+drawQuadsLeft({x1:50.5,y1:104,x2:0,s2:0,t2:0},true)
+for (let i=0;i<15;i++){
+    let x = thighs/100
+     drawQuadsLeft({s2:-i/2,t2:i,delta:[-x,0]},"next")
+}
+drawQuadsLeft({x1:56,y1:86.5,x2:-2.5,y2:15,s2:-thighs/5,t2:20},"reset")
+for (let i=0;i<20;i++){
+    let x = thighs/100
+    drawQuadsLeft({delta:[x/2,0]},"next")
+}
+
+let drawQuadsRight = defineVars(createDesign,[frontView],{fill:"black"},"quads",76,67.5,0,35,0,0,0,0);
+drawQuadsRight({s2:1})
+for (let i=0;i<15;i++){
+    let x = thighs/100
+     drawQuadsRight({s2:i/2,t2:i/2,delta:[x/2,0]},"next")
+}
+drawQuadsRight({x1:77,y2:35,s2:1},"reset")
+for (let i=0;i<20;i++){
+    let x = thighs/100
+     drawQuadsRight({s2:-i,t1:i,delta:[-x/2,0]},"next")
+}
+drawQuadsRight({x1:75,y1:104,x2:0,s2:0,t2:0},true)
+for (let i=0;i<15;i++){
+    let x = thighs/100
+     drawQuadsRight({s2:i/2,t2:i,delta:[x,0]},"next")
+}
+drawQuadsRight({x1:67,y1:86.5,x2:2.5,y2:15,s2:thighs/5,t2:20},"reset")
+for (let i=0;i<20;i++){
+    let x = thighs/100
+    drawQuadsRight({delta:[x/2,0]},"next")
+}
+
+//hams
+let drawHamsRight = defineVars(createDesign,[backView],"","hams",50,70,0,35,0,0,0,0);
+drawHamsRight({s2:-5,t2:20})
+for (let i=0;i<15;i++){
+    let x = thighs/100
+     drawHamsRight({s2:-5+i/2,delta:[0,0]},"next")
+}
+drawHamsRight({x1:53,s2:-5},"rev")
+for (let i=0;i<15;i++){
+    let x = thighs/100
+    drawHamsRight({s2:-4+i/2,delta:[0,0]},"next")
+}
+
+
+let drawHamsLeft = defineVars(createDesign,[backView],"","hams",77,70,0,35,0,0,0,0);
+drawHamsLeft({s2:5,t2:20})
+for (let i=0;i<15;i++){
+    let x = thighs/100
+     drawHamsLeft({s2:5-i/2,delta:[0,0]},"next")
+}
+drawHamsLeft({x1:74,s2:5},"rev")
+for (let i=0;i<15;i++){
+    let x = thighs/100
+     drawHamsLeft({s2:4-i/2,delta:[0,0]},"next")
+}
+
+// quads back side
+let drawQuadsRightBack = defineVars(createDesign,[backView],"","quads",54,75,1,30,0,0,0,0);
+drawQuadsRightBack({s2:1},"reset")
+for (let i=0;i<10;i++){
+    let x = thighs/100
+     drawQuadsRightBack({s2:i,t1:i,delta:[x/2,0]},"next")
+}
+drawQuadsRightBack({x1:50,y1:90,y2:20,x2:2,s2:2.5,t2:5,t1:0},true)
+for (let i=0;i<10;i++){
+    let x = thighs/150
+     drawQuadsRightBack({s2:2.5-i/2,delta:[-x,0]},"next")
+}
+
+let drawQuadsLeftBack = defineVars(createDesign,[backView],"","quads",73,75,-1,30,0,0,0,0);
+drawQuadsLeftBack({s2:1},"reset")
+for (let i=0;i<10;i++){
+    let x = thighs/100
+     drawQuadsLeftBack({s2:-i,t1:i,delta:[-x/2,0]},"next")
+}
+drawQuadsLeftBack({x1:77,y1:90,y2:20,x2:-2,s2:-2.5,t2:5,t1:0},true)
+for (let i=0;i<10;i++){
+    let x = thighs/150
+     drawQuadsLeftBack({s2:-2.5+i/2,t2:i,delta:[x,0]},"next")
+}
+
+//shin lines
+let drawLeftShinBack = defineVars(createDesign,[backView],"","",50,107.5,2,30,0,0,0,0);
+let drawRightShinBack = drawLeftShinBack;
+drawLeftShinBack({s2:-2.5,t2:7.5})
+drawLeftShinBack({x1:57,y1:122,x2:-2,y2:16,s2:1},"reset")
+drawRightShinBack({x1:77,y1:108,x2:-1,s1:5,t1:10,s2:0,t2:20},"reset")
+drawRightShinBack({x1:71.5,x2:0,s2:calves/4,t2:10,s1:-5,t1:15},"reset")
+
+let drawLeftShin = defineVars(createDesign,[frontView],"","",48,107.5,2,30,0,0,0,0);
+let drawRightShin = drawLeftShin;
+drawLeftShin({s2:-2.5,t2:7.5})
+drawLeftShin({x1:55,y1:122,x2:-2,y2:16,s2:1},"reset")
+drawRightShin({x1:77,y1:108,x2:-1,s1:5,t1:10,s2:0,t2:20},"reset")
+drawRightShin({x1:71.5,x2:0,s2:calves/4,t2:10,s1:-5,t1:15},"reset")
+
+//calves
+let drawCalvesFront = defineVars(createDesign,[frontView],"","calves",56,108,0,15,0,0,0,0);
+drawCalvesFront({y1:108,y2:15+calves/5,s2:calves/3,t2:7.5},"reset")
+for (let i=0;i<calves/2;i++){
+    drawCalvesFront({x1:56,s2:-calves/5+i,delta:[0,0]},"next")
+}
+drawCalvesFront({x1:71.5,y2:15+calves/5,x2:2,s2:-calves/5,t2:10},"reset")
+for (let i=0;i<calves/2;i++){
+    drawCalvesFront({x1:73,s2:-calves/5+i,delta:[0,0]},"next")
+}
+drawCalvesFront({x1:78,s2:-calves/5},"rev")
+for (let i=0;i<calves/4;i++){
+    drawCalvesFront({x1:76,s2:calves/5-i,delta:[-0.1,0]},"next")
+}
+
+let drawCalvesBack = defineVars(createDesign,[backView],"","calves",50,104.5,0,22.5,0,0,0,0);
+drawCalvesBack({s2:-5,t2:7.5})
+for (let i=0;i<calves/1.5;i++){
+    drawCalvesBack({x1:50,s2:-5+i,delta:[0,0]},"next")
+}
+drawCalvesBack({x1:57,x2:1,s2:-5,t2:7.5},true)
+for (let i=0;i<calves/1.5;i++){
+    drawCalvesBack({x1:57,s2:-5+i,delta:[0,0]},"next")
+}
+drawCalvesBack({x1:71.5,y2:17+calves/5,x2:0,s2:-calves/4,t2:10},"reset")
+for (let i=0;i<calves/1.5;i++){
+    drawCalvesBack({x1:71.5,s2:-calves/4+i,delta:[0,0]},"next")
+}
+drawCalvesBack({x1:77.5,y1:108-calves/5,y2:17+calves/5,x2:1,s2:calves/4,t2:10},"reset")
+for (let i=0;i<calves/1.5;i++){
+    drawCalvesBack({x1:78.5,s2:calves/4-i,delta:[0,0]},"next")
+}
+//lines
+let drawFeet = defineVars(createDesign,[frontView],{"stroke":"black",fill:"transparent"},"",52,137,-7.5,5,0,0,0,0);
+drawFeet({s1:-5,t1:5,s2:-7.5,t2:5})
+drawFeet({x2:-1})
+drawFeet({x1:42.5 ,y1:147,x2:12.5,y2:-10,t2:2.5,s2:15,s1:18,t1:-10},"reset")
+drawFeet({x1:71.5,x2:5,y2:7.5,t2:2.5}, "reset")
+drawFeet({y2:3,s2:-3})
+drawFeet({x2:6, y2:10},"rev")
+
+let drawFeetBack = defineVars(createDesign,[backView],"","",52,135,-9,0,0,0,0,0);
+drawFeetBack({s2:-5, t2:-5})
+drawFeetBack({x1:55,y1:135,x2:12,y2:0,t2:-12}, "rev")
+drawFeetBack({x1:85,y1:138, s2:-5, t2:-5},"reset")
+drawFeetBack({x1:85,y1:138,x2:13,y2:1,s2:20, t2:-10, t1:0}, "rev");
+
+controls.addEventListener("click",(e)=> {
+    if(e.target.nodeName === "circle"){
+        [...e.target.parentNode.children].filter(el => el !== e.target).forEach(elm => elm.setAttribute("fill","white"));
+        e.target.setAttribute("fill","black");
+        if(e.target.getAttribute("cx") === "0"){
+            frontView.classList = [];
+            backView.classList[0] !== "hide" ? backView.classList.toggle("hide") : "";
+        }
+        else if(e.target.getAttribute("cx")*1 > 0){
+            backView.classList = [];
+            frontView.classList[0] !== "hide" ? frontView.classList.toggle("hide") : "";
+        }
+    }
+})
+}
+
+function createDesign(parent,options,id,x,y,w,h,...pts){
+        let frag = document.createElementNS(url,"path");
+        let d = !pts[4] ? `M ${x} ${y} c ${pts[0]} ${pts[1]}, ${pts[2]} ${pts[3]}, ${w} ${h}` : `M ${x} ${y} c ${pts[0]} ${pts[1]}, ${pts[2]} ${pts[3]}, ${w} ${h} ${pts[4]}`;
+        frag.setAttribute("d", d);
+        frag.dataset.name = id;
+        let attributes = Object.keys(options);
+        if (attributes.length && !Array.isArray(options)){
+            attributes.forEach(attr => {
+                frag.setAttribute(attr,options[attr]) 
+            })
+        }
+        else{
+            frag.setAttribute("stroke", "black");
+            frag.setAttribute("stroke-width", "1");
+            frag.setAttribute("fill","transparent");
+        }
+    !Array.isArray(parent)? parent.append(frag) : parent.forEach(p => p.append(frag.cloneNode(true)));
+        
+}
+
+function defineVars(fn,parent,options,id,...params){
+    let [x,y,w,h,a,b,c,d] = params ;
+    return ({x1,y1,x2,y2,s1,t1,s2,t2,z,delta},bool) => {
+        let points = [x1,y1,x2,y2,s1,t1,s2,t2].filter(e => e);
+        if(points.length){
+            [x,y,w,h,a,b,c,d] = [x1??x,y1??y,x2??w,y2??h,s1??a,t1??b,s2??c,t2??d];
+        }
+        let temp = [];
+        if (bool === true){
+            temp.push (x-w,y-h)
+        }
+        if (bool === "rev"){
+            temp.push (x,y,-w,-h,-a,-b,-c,-d)
+        }
+        if(bool==="reset"){
+            [x,y,w,h,a,b,c,d] = params;
+            [x,y,w,h,a,b,c,d] = [x1??x,y1??y,x2??w,y2??h,s1??a,t1??b,s2??c,t2??d];
+        }
+        if(bool==="next"){
+            temp.push(x-w+delta[0]||0,y-h+delta[1]||0) ; 
+        }
+        x = temp?.[0] || (x1? x1 : x) ;
+        y = temp?.[1] || (y1 ? y1 : y) ;
+        w = temp?.[2] || (x2 ? x2 : w) ;
+        h = temp?.[3] || (y2 ? y2 : h) ;
+        a = temp?.[4] || a ;
+        b = temp?.[5] || b ;
+        c = temp?.[6] || c ;
+        d = temp?.[7] || d ;
+        fn.call(this,parent,options,id,x,y,w,h,a,b,c,d,z)
+        x = x+w;
+        y = y+h;
+    }
+}
+
+
+const statsWebGraph = (container,array,title,unit="%") => {
+    const createMarker = (textX) => {
+        let valX = 0;
+        let valY = 0;
+        for (i=30; i<=Math.floor(width/displayFactor*(textX.length-1)+30);i+=Math.floor(width/displayFactor)){ // hardcoded number accomodates equal number of dates on x-axis. Need to change it to be dynamic for day, week, and month view 
+            cloneText.append(textX[valX++]);
+            chart.append(cloneMarkerLineX,cloneText)
+        }
+    }   
+    const fieldset = document.createElement("fieldset");
+    const legend = document.createElement("legend");
+    const webContainer = document.createElementNS(url,"svg");
+    webContainer.setAttribute("width","100%");
+    // webContainer.setAttribute("height","100%");
+    webContainer.setAttribute("viewBox","0 0 125 150");
+    let labels = array.map(arr => arr[0]);
+    let values = array.map(arr => arr[1]).map(e => e);   
+    let points;
+    let text = document.createElementNS(url,"text");    
+    let center = [50,80];
+    let lineEl = document.createElementNS(url,"path");
+    let n = array.length;
+    const drawShape = (startpts,len,vertices,angle=0) => {
+        let x  = startpts[0];
+        let y  = startpts[1];
+        points = `M ${Math.round(x+(len+values[n-1])*Math.sin(angle))} ${Math.round(y-(len+values[n-1])*Math.cos(angle))}` ;
+        let delta = 2*Math.PI/vertices;
+        for (let i=1; i<vertices; i++){    
+            angle += delta;
+            points = points + ` L ${Math.round(x+(len+values[i-1])*Math.sin(angle))} ${Math.round(y-(len+values[i-1])*Math.cos(angle))}`;
+        }
+        points = points + ` Z` ; 
+        lineEl.setAttribute("d",points);
+        lineEl.setAttribute("stroke","black");
+        lineEl.setAttribute("stroke-width", "1");
+        lineEl.setAttribute("fill", "transparent");
+        webContainer.append(lineEl);
+    }
+    drawShape(center,25,n)
+    // let d = `M ${x-values[7]} ${y} L ${x} ${y-5-values[0]} L ${x+5+values[1]} ${y-10-values[1]} L ${x+11+values[2]} ${y-10+values[2]} L ${x+16+values[3]} ${y-5+values[3]} L ${x+16+values[4]} ${y+values[4]} L ${x+11-values[5]} ${y+5+values[5]} L ${x+5-values[6]} ${y+5+values[6]} L ${x-values[7]} ${y}`;
+    // let d = `M ${x-values[7]} ${y+values[7]} L ${x-values[0]} ${y-5-values[0]} L ${x+5+values[1]} ${y-10-values[1]} L ${x+11+values[2]} ${y-10} L ${x+16+values[3]} ${y-5+values[3]} L ${x+16+values[4]} ${y+values[4]} L ${x+11} ${y+5+values[5]} L ${x+5} ${y+5+values[6]} L ${x-values[7]} ${y+values[7]}`;
+    
+    for (let i=0; i<10; i++){
+        let pathClone = lineEl.cloneNode(true);
+        pathClone.setAttribute("transform",`scale(${1-i/10})`)
+        pathClone.setAttribute("transform-origin",`50 80`)     
+        webContainer.append(pathClone);
+    }
+    
+    let labelCoords = points.split("L").slice(1)
+    labelCoords.push(` ${center[0]+(25+values[n-1])*Math.sin(0)} ${center[1]-(25+values[n-1])*Math.cos(0)} `);
+    let i=0;
+    for (let el of labelCoords){
+        let cloneText = text.cloneNode(true);
+        let [x,y] = el.split(" ").filter(e => e);
+        cloneText.append(`${labels[i]}, ${values[i++]}${unit}`) 
+        cloneText.setAttribute("x", x-7);
+        cloneText.setAttribute("y", y);
+        cloneText.setAttribute("fill", "white");
+        webContainer.append(cloneText);
+    }
+    fieldset.append(webContainer)
+    fieldset.append(legend)
+    container.lastElementChild.before(fieldset);
+    legend.textContent = title;
+    // webContainer.setAttribute("height", container.lastElementChild?.getBBox().height*4)
+}
+
+const addScroll = (controlArea, array) => {
+    const svgarea = document.createElementNS(url,"svg");
+    svgarea.setAttribute("viewBox", "-45 0 100 10")
+    const controls = svgarea.cloneNode(true);
+    const circle = document.createElementNS(url,"circle");
+        circle.setAttribute("r", "1");
+        circle.setAttribute("cy", "5");
+        circle.setAttribute("stroke-width", "0.5");
+        circle.setAttribute("fill", "white");
+    for (let el of array){
+        let i = array.findIndex(e => e===el );
+        const c1 = circle.cloneNode(true);
+        c1.setAttribute("cx", `${c1.getAttribute("r")*3*i}`);
+        i===0 ? c1.setAttribute("fill", "black") : c1.setAttribute("fill", "white");
+        c1.id = el.lastElementChild.textContent;
+        c1.addEventListener("click",(e)=>{
+            let allElem = [...controlArea.parentElement.children];
+            let scrollArea = allElem.pop();
+            let targetEl = allElem.find(c => c.lastElementChild.textContent === e.target.id);
+            allElem.forEach(f => f!==targetEl ? f.style.display = "none" : f.style.display = "block");
+            [...scrollArea.firstElementChild.children].forEach(s => s!==e.target ? s.setAttribute("fill","white") : s.setAttribute("fill","black"));
+        })
+        controls.append(c1);
+    }
+    controlArea.append(controls);
+}
