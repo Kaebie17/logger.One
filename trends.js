@@ -31,6 +31,7 @@ redirectHome.addEventListener("click" , home);
 // let exerciesRepsArr = {}
 
 const allDatesArr = getDateRange(7);
+const monthSequence = allDatesArr.map(arr => Math.min(...arr.map(e => e.match(/^\d+(?=\/)/)[0]))).flatMap((e,i,arr) => e !== arr?.[i+1] ? [e] : []);
 let currentIndex = allDatesArr.length-1;
 let customDates;
 let xAxisLabelArr , chartLegend=[];
@@ -42,7 +43,7 @@ const reducer = (arr) => arr.length? arr.reduce((a,b)=>a+b) : 0 ;
 const statsByChunk = (stat,chunk,index = currentIndex) => {
     let dataArr = [];
     let label = dailyFilterOptions.selectedOptions[0].textContent.toLowerCase();
-    let weeklyDates = allDatesArr.length > 7 ? allDatesArr.slice(index-7,index) :  allDatesArr ;
+    let weeklyDates = allDatesArr.length > 7 ? allDatesArr.slice(index-6,index+1) :  allDatesArr ;
     
     if (chunk==="daily"){
         let dates = allDatesArr[index];
@@ -107,16 +108,7 @@ const statsByChunk = (stat,chunk,index = currentIndex) => {
 
 prevButtons.forEach((elem)=> elem.addEventListener("click", handleDirClick));
 nextButtons.forEach((elem)=> elem.addEventListener("click", handleDirClick));
-nextButtons.forEach((elem)=> {
-    elem.style.color = "grey";
-    let filterElement =  elem.parentElement.id.includes("daily") ?  dailyFilterOptions : elem.parentElement.id.includes("weekly") ? weeklyFilterOptions : monthlyFilterOptions ;
-    let chunk = filterElement.id.replace("filteroptions","");
-    if (chunk !== "daily" && currentIndex <= 7) {
-        elem.previousElementSibling.style.color = "grey";
-        elem.previousElementSibling.removeEventListener("click",handleDirClick);
-    }  
-    elem.removeEventListener("click",handleDirClick);
-})
+
 dailyFilterOptions.addEventListener("change",handleStatChange)
 weeklyFilterOptions.addEventListener("change",handleStatChange)
 monthlyFilterOptions.addEventListener("change",handleStatChange)
@@ -128,6 +120,20 @@ svgcode.addEventListener ("load", () => {
     graphics(dailyOrCustom.lastElementChild.firstElementChild,dailyOrCustom.lastElementChild.lastElementChild)([{volume: statsByChunk(dailyFilterOptions.value,"daily")}],xAxisLabelArr,chartLegend);
     graphics(weeklyTrends.lastElementChild.firstElementChild,weeklyTrends.lastElementChild.lastElementChild)([{volume: statsByChunk(weeklyFilterOptions.value,"weekly")}],xAxisLabelArr,chartLegend);
     graphics(monthlyTrends.lastElementChild.firstElementChild,monthlyTrends.lastElementChild.lastElementChild)([{volume: statsByChunk(monthlyFilterOptions.value,"monthly")}],xAxisLabelArr,chartLegend);
+})
+nextButtons.forEach((elem)=> {
+    elem.style.color = "grey";
+    let filterElement =  elem.parentElement.id.includes("daily") ?  dailyFilterOptions : elem.parentElement.id.includes("weekly") ? weeklyFilterOptions : monthlyFilterOptions ;
+    let chunk = filterElement.id.replace("filteroptions","");
+    if (chunk === "monthly" && monthSequence.length < 7) {
+        elem.previousElementSibling.style.color = "grey";
+        elem.previousElementSibling.removeEventListener("click",handleDirClick);
+    }  
+    if (chunk === "weeekly" && currentIndex < 7) {
+        elem.previousElementSibling.style.color = "grey";
+        elem.previousElementSibling.removeEventListener("click",handleDirClick);
+    }  
+    elem.removeEventListener("click",handleDirClick);
 })
 }
 else{
