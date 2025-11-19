@@ -112,25 +112,9 @@ function getParamStats(arr,param){
    return arr.filter(([k,v])=>k===param).map(([k,v])=>v).reduce((a,b)=> a+b)
 }
 
-function typedArrayToURL(typedArray, mimeType) {
-    const url =  URL.createObjectURL(
-      new Blob([typedArray.buffer], { type: mimeType }),
-    );
-    const canvas = document.createElement("canvas");
-    ctx = canvas.getContext("2d");
-//   link.innerText = "Open the array URL";
-    coverImage.after(canvas);
-
-  }
-  const bytes = new Uint8Array(59);
-
-  for (let i = 0; i < 59; i++) {
-    bytes[i] = 65 + i;
-  }
-
 function handleTemplateItemClick(event){
-    // document.location
-    const labelElem = document.querySelector(`#${event.target.parentElement.id} > h1`);
+    // debugger
+    const labelElem = event.target.parentElement.lastElementChild;
     const exercisesLog = existingTemplates[labelElem.textContent] ;
     programDisplay.value = labelElem.textContent;
     programDisplay.disabled = true;

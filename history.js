@@ -146,7 +146,7 @@ const historyElem = document.getElementById("history");
 const logItem = document.createElement("custom-option-element");
 const coverItem = document.createElement("span");
 const redirectHome = document.querySelector("#header > h1");
-const pastWorkouts = JSON.parse(localStorage?.workoutLogObject||"[]");
+const pastWorkouts = JSON.parse(localStorage?.workoutLogObject||"[]").sort(([k1,v1],[k2,v2])=> new Date(k1) - new Date(k2));
 let numOfWorkouts = pastWorkouts.length; 
 // historyElem.style.gridTemplateRows = `repeat(${numOfWorkouts})`
 
@@ -166,11 +166,11 @@ svgcode.addEventListener ("load", () => {
 })
 
 function addContent(i){
-  const {date,name,duration,targets,sets,reps,vol,max} = extractData([pastWorkouts[i]]);
+  const {date,name,duration,targets,sets,reps,vol,max,intensityValue,fatigueValue} = extractData([pastWorkouts[i]]);
   const clone = logItem.cloneNode(true);
   const cloneCover = coverItem.cloneNode(true); 
   const imgSlot = clone.shadowRoot.querySelector("slot[name='right']").firstElementChild;
-  clone.inserthtml = `<fieldset><p>${targets}</p><legend>${name}</legend></fieldset><fieldset><p>200</p><legend>Fatigue</legend></fieldset><fieldset><p>7</p><legend>Intensity</legend></fieldset><fieldset><p>${sets}</p><legend>Sets</legend></fieldset><fieldset><p>${reps}</p><legend>Reps</legend></fieldset><fieldset><p>${max}</p><legend>Max</legend></fieldset><fieldset><p>${vol}</p><legend>Volume</legend></fieldset>`;
+  clone.inserthtml = `<fieldset><p>${targets}</p><legend>${name}</legend></fieldset><fieldset><p>${fatigueValue}</p><legend>Fatigue</legend></fieldset><fieldset><p>${intensityValue}</p><legend>Intensity</legend></fieldset><fieldset><p>${sets}</p><legend>Sets</legend></fieldset><fieldset><p>${reps}</p><legend>Reps</legend></fieldset><fieldset><p>${max}</p><legend>Max</legend></fieldset><fieldset><p>${vol}</p><legend>Volume</legend></fieldset>`;
   historyElem.firstElementChild.before(clone,cloneCover);
   clone.style.gridArea = `${i+1}/1/${i+2}/1`;
   cloneCover.style.gridArea = `${i+1}/1/${i+2}/1`;
@@ -195,8 +195,10 @@ function extractData(object){
   const logEntry = Object.fromEntries(object);
   let date = Object.keys(logEntry)[0];
   const name = logEntry[date]["workoutName"];
-  const duration = (logEntry[date]["workoutEndTime"] - logEntry[date]["workoutStartTime"])/3600;
+  const duration = (new Date(logEntry[date]["workoutDate"] + ", "+ logEntry[date]["workoutEndTime"]) - new Date(logEntry[date]["workoutDate"] + ", "+ logEntry[date]["workoutStartTime"]))/(60*1000);
   const exerciseData = logEntry[date]["workoutExercises"];
+  const intensityValue = logEntry[date]["workoutIntensity"];
+  const fatigueValue = Object.keys(exerciseData).map(e => exerciseDB()[e]["fatigue"]).reduce((a,b) => a+b);
   delete exerciseData.date;
   delete exerciseData.time;
   const exerciseDataValues = Object.values(exerciseData).flat();
@@ -208,7 +210,7 @@ function extractData(object){
   const vol = exerciseDataValues.filter(([k,v])=>k.includes("vol")).flatMap(([k,v])=> parseFloat(v)).reduce((a,b)=>a+b);
   const max = Math.max(...exerciseDataValues.filter(([k,v])=>k.includes("weight")).flatMap(([k,v])=> parseFloat(v)));
   date = new Date(date).toLocaleDateString();
-  return {date,name,duration,targets,sets,reps,vol,max};
+  return {date,name,duration,targets,sets,reps,vol,max,intensityValue,fatigueValue};
 }
 
 function handleClick(object){
