@@ -219,7 +219,7 @@ redirectHome.addEventListener("click" , home);
 
 const close = (event) => {debugger;
   if (exerciseList.style.display === "none" && selectionListDisplay.style.display === "none") {switchListsDisp();}
-  else if (exerciseList.style.display === "none" && selectionListDisplay.style.display === "block" && new URL(document.location).searchParams.size > 1) {
+  else if (exerciseList.style.display === "none" && selectionListDisplay.style.display === "block" && new URL(document.location).searchParams.get("new")!=="true") {
     loadOptions(Object.values(exerciseDB()),"custom-option-element",selectExercise,{value: "name", id:"name", src: ["media","imagelinks",0,""], alt: "name"});
     switchListsDisp();
     searchExercise.addEventListener("keyup", handleSearch);
@@ -259,12 +259,12 @@ const doneSelectionFunction = (event) => {
   const prevSelection = sessionStorage?.restoreSelection ? JSON.parse(sessionStorage.restoreSelection) : []; 
   if(allSelection.join("") === prevSelection.join("")) {switchListsDisp(1); return;}
   const newSelection = prevSelection.length ? allSelection.filter(el => !prevSelection.includes(el)) : allSelection;
-  const _exerciseData = Object.values(exerciseDB());
+  const _exerciseData = exerciseDB();
   if (!CustomOptionElement.selectedOptionArr.length) {
     alert("Please select at least one exercise to proceed.")
   }else{
     switchListsDisp(1);
-    const exerciseDetails = newSelection.map(name => _exerciseData.find(e => e.name === name))
+    const exerciseDetails = newSelection.map(e => e.toLowerCase().replaceAll(" ", "_")).map(k => _exerciseData[k])
     sessionStorage.restoreSelection = JSON.stringify(CustomOptionElement.selectedOptionArr);
     // loadOptions (exerciseDetails, selectionListDisplay);
     const span = document.createElement("span");
@@ -315,6 +315,14 @@ const saveExercisesFunction = (event) => {
       value.push(["targets", exercises[key]["movers"]])
       decendentObj[1].forEach(el => {
         el.name? value.push([el.name,el.value]):"";
+        if(el.nodeName==="SPAN") {
+          let i = value.findIndex(([k,v])=> k==="wtMultiple") 
+          i>=0 ? "" : value.push(["wtMultiple", el.lastElementChild.lastElementChild.textContent]);
+        }
+        if(el.nodeName==="P") {
+          let i = value.findIndex(([k,v])=> k==="repMultiple") 
+          i>=0 ? "" : value.push(["repMultiple", el.lastElementChild.textContent]);
+        }
       }) 
       const statsExport = getStats(value,["setnum","reps","weight","rir","rest","tut"],decendentObj[1]);
       const {totalSets, totalReps, totalWeight, totalVol, avgRIR, avgRest, avgTUT} = statsExport;
@@ -353,8 +361,11 @@ exercisesDBpage.onload = (e,urloption) => {
   // Editing exercise selection of a pre-defined workout template via template page
   else {
     // sessionStorage.program = new URL(document.location).searchParams.get("temp");
-    let selection = sessionStorage?.restoreSelection ? JSON.parse(sessionStorage?.restoreSelection) : "";
-    CustomOptionElement.selectedOptionArr = Object.keys(existingTemplates[sessionStorage.program]);
+    // let selection = sessionStorage?.restoreSelection ? JSON.parse(sessionStorage?.restoreSelection) : "";
+    let templateData = existingTemplates[sessionStorage.program];
+    sessionStorage.unit = templateData?.["unit"];
+    sessionStorage.unit ? delete templateData["unit"] : ""
+    CustomOptionElement.selectedOptionArr = Object.keys(templateData);
     CustomOptionElement.selectedOptionArr = CustomOptionElement.selectedOptionArr.map( el => testRegExp((rx,v)=>v.replaceAll(rx," "),"_",{falseVal:el,flags:"g"})(el));
     CustomOptionElement.selectedOptionArr = CustomOptionElement.selectedOptionArr.map(el => testRegExp((rx,v)=>v.replaceAll(rx,(i)=>i.toUpperCase()),/(\b[a-z])/ig)(el)); 
     sessionStorage.searchParams = JSON.stringify([...new URL(document.location).searchParams.values()]);
@@ -371,7 +382,7 @@ exercisesDBpage.onload = (e,urloption) => {
 
 
 function loadOptions (array,element,parentnode,options) {
-  
+  array = array.filter(o => typeof o !== "undefined");
   const fragment = document.createDocumentFragment();
   const newElement = document.createElement(element);
   for (let i=0; i<array.length;i++){
@@ -459,6 +470,7 @@ const timeOptions = (i,id,name,string,loops,placeholder,step) => {
 }
 
 const bodyweight = (e,refElem,i) => {
+  debugger
   e.stopPropagation();
   let bw = JSON.parse(localStorage.savedSettings)['bodywt'].split(" ")[1]-0;
   const targetElem = document.querySelector(`div[id="${refElem}"] [name="weight${i}"]`); 
@@ -466,7 +478,7 @@ const bodyweight = (e,refElem,i) => {
 }
 const typeMultiple = (e) => {
   e.stopPropagation();
-  let targetEl = e.target.nodeName = "I" ? e.target : e.target.firstElementChild;     
+  let targetEl = e.target.nodeName === "I" ? e.target : e.target.firstElementChild;     
   targetEl.textContent = targetEl.textContent === "1" ? "2" : "1" ;  
 }
 const autoAssignMultiple = (el1,el2,refElem) => {
@@ -486,9 +498,9 @@ const content = (i,parent) => `
   <span id="line${i}">
     <input type="text" name="setnum${i}" value = ${i} disabled>
     <input type="number" name="reps${i}" placeholder="Reps" required>
-    <p>x<i>1</i></p>
+    <p>x<i name="repX${i}">1</i></p>
     <input type="number" name="weight${i}" placeholder="Load" required>
-    <span><p><i>BW</i></p><p>x<i>1</i></p></span>
+    <span><p><i>BW</i></p><p>x<i name="wtX${i}">1</i></p></span>
     ${timeOptions(i,parent,"rest"+i,"Min",60,"Rest",2)}
     ${timeOptions(i,parent,"tut"+i,"Sec",180,"TUT")}
     ${timeOptions(i,parent,"rir"+i,"",11,"RIR")}
@@ -500,18 +512,18 @@ const addData = (event) => {
   const template = document.createElement("div");
   const button = document.createElement("button");
   template.id = event.target.id.match(/[\d\w]+[a-zA-Z]/g);
-  // const repsMultiple = e
-  // const loadMultiple = 
   let i = 0;
   template.innerHTML = content(i,template.id);
   template.append(button);
-  button.previousElementSibling.children[2].addEventListener("click",(e)=>typeMultiple(e));
-  button.previousElementSibling.children[4].firstElementChild.addEventListener("click",(e)=>bodyweight(e,template.id,i))
-  button.previousElementSibling.children[4].lastElementChild.addEventListener("click",(e)=>typeMultiple(e));
-  autoAssignMultiple(button.previousElementSibling.children[4].lastElementChild.lastElementChild, button.previousElementSibling.children[2].lastElementChild,template.id);
   const keyValPair = existingTemplates?.[sessionStorage.program]?.[template.id] || "";
   if (keyValPair && !window.location.search.includes('new=true')){
     repopulateValues(keyValPair,template,button); 
+  }
+  else{
+    button.previousElementSibling.children[2].addEventListener("click",(e)=>typeMultiple(e));
+    button.previousElementSibling.children[4].firstElementChild.addEventListener("click",(e)=>bodyweight(e,template.id,i))
+    button.previousElementSibling.children[4].lastElementChild.addEventListener("click",(e)=>typeMultiple(e));
+    autoAssignMultiple(button.previousElementSibling.children[4].lastElementChild.lastElementChild, button.previousElementSibling.children[2].lastElementChild,template.id);
   }
   button.onclick = (e)=>{
     const referenceNode = e.target.parentElement ;
@@ -520,10 +532,10 @@ const addData = (event) => {
     const firstdecendents = decendents(referenceNode.firstElementChild,0,referenceNode.firstElementChild.firstElementChild.name,"remove");
     button.insertAdjacentHTML("beforebegin",content(childNum,template.id));
     button.previousElementSibling.children[2].addEventListener("click",(e)=>typeMultiple(e));
-    button.previousElementSibling.children[4].firstElementChild.addEventListener("click",(e)=>bodyweight(e,template.id,i))
+    button.previousElementSibling.children[4].firstElementChild.addEventListener("click",(e)=>bodyweight(e,template.id,childNum))
     button.previousElementSibling.children[4].lastElementChild.addEventListener("click",(e)=>typeMultiple(e));
     autoAssignMultiple(button.previousElementSibling.children[4].lastElementChild.lastElementChild, button.previousElementSibling.children[2].lastElementChild,template.id);
-    button.previousElementSibling.children[4].firstElementChild.addEventListener("click",(e)=>bodyweight(e,template.id,childNum))
+    // button.previousElementSibling.children[4].firstElementChild.addEventListener("click",(e)=>bodyweight(e,template.id,childNum))
     if (childNum > 1){button.previousElementSibling.lastElementChild.disabled = false}
     const nextdecendents = decendents(referenceNode.querySelector(`#line${(childNum)}`),0,`setnum${(childNum)}`,"remove");   
     nextdecendents[0].forEach((el,i) => {let pastEl = firstdecendents[0][i]; if (pastEl.disabled){el.disabled=true}; pastEl.value ? el.value = pastEl.value :  pastEl.innerHTML} );
@@ -670,11 +682,27 @@ function testRegExp(f,input,options = {falseVal: "",flags: ""}){
 
 function repopulateValues(arr,elem,refElem){
   let sets = arr.filter(([k,v]) => k.includes("setnum"));
+  let repX = arr.find(([k,v]) => k.includes("repMultiple"))?.[1]||1;
+  let wtX = arr.find(([k,v]) => k.includes("wtMultiple"))?.[1]||1;
   let children = decendents(elem.querySelector(`#line0`),0,`setnum0`,"remove","span","p")[0];
+  refElem.previousElementSibling.children[2].addEventListener("click",(e)=>typeMultiple(e));
+  refElem.previousElementSibling.children[4].firstElementChild.addEventListener("click",(e)=>bodyweight(e,elem.id,0))
+  refElem.previousElementSibling.children[4].lastElementChild.addEventListener("click",(e)=>typeMultiple(e));
+  // autoAssignMultiple(refElem.previousElementSibling.children[4].lastElementChild.lastElementChild, refElem.previousElementSibling.children[2].lastElementChild, elem.id);
+  refElem.previousElementSibling.children[2].lastElementChild.textContent = repX;
+  refElem.previousElementSibling.children[4].lastElementChild.lastElementChild.textContent = wtX;
   children.forEach(el => el.value = arr.find(([n,v]) => n===el.name)[1]);
   for (let i = 1; i<sets.length; i++){
     refElem.insertAdjacentHTML("beforebegin",content(i,elem.id));
-    let children = decendents(elem.querySelector(`#line${i}`),0,`setnum${i}`,"remove","span","p")[0];
+    refElem.previousElementSibling.children[2].addEventListener("click",(e)=>typeMultiple(e));
+    refElem.previousElementSibling.children[4].firstElementChild.addEventListener("click",(e)=>bodyweight(e,elem.id,i))
+    refElem.previousElementSibling.children[4].lastElementChild.addEventListener("click",(e)=>typeMultiple(e));
+    // autoAssignMultiple(refElem.previousElementSibling.children[4].lastElementChild.lastElementChild, refElem.previousElementSibling.children[2].lastElementChild, elem.id);
+    refElem.previousElementSibling.children[2].lastElementChild.textContent = repX;
+    refElem.previousElementSibling.children[4].lastElementChild.lastElementChild.textContent = wtX;
+    let children = decendents(elem.querySelector(`#line${i}`),0,`setnum${i}`,"span","p")[0];
+    let remSymbol = children.pop(); 
+    remSymbol.disabled = false;
     children.forEach(el => el.value = arr.find(([n,v]) => n===el.name)[1]);
   }
 }
