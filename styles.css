@@ -238,7 +238,16 @@ svg > path:nth-child(23) {
         margin: 0;
         padding: 0 2%  ;
         width: fit-content;
-        font-family:fantasy;
+        /* Was "fantasy" -- a generic CSS keyword the browser maps to
+           whatever decorative font the OS happens to have (turned out to be
+           Impact on this Windows machine -- a Windows-bundled font that
+           doesn't exist on iOS/Android at all, so it could never actually
+           show up on the phone this app is for). Anton is a free Google Font
+           built as an open alternative to Impact -- same heavy, condensed
+           look, but an actual embedded web font that renders identically on
+           every platform instead of depending on what the OS has installed.
+           Loaded via <link> in every page's <head>. */
+        font-family: 'Anton', Impact, sans-serif;
         font-size: 3rem;
         color: white;
     }
@@ -256,8 +265,17 @@ svg > path:nth-child(23) {
     } */
     #summary #svgcontainer{
         display: grid;
-        height: 87.5vh;
-        padding: 0.5vh;   
+        /* Was a fixed 87.5vh -- taller than #summary itself (65vh), so this
+           was always forcing itself past its own parent's bottom edge and
+           pushing/overlapping whatever comes after it in the layout. #summary
+           is a flex column with just this and the "TARGET MAP" label above
+           it, so filling whatever space actually remains (flex:1) is correct
+           here, not a fixed vh guess. min-height:0 is required for a flex
+           column child to actually shrink to fit rather than keep forcing
+           its content's natural size regardless of flex:1. */
+        flex: 1;
+        min-height: 0;
+        padding: 0.5vh;
     }
     #summary #svgcontainer div{
         margin: 0 33.3vw;
@@ -486,7 +504,15 @@ svg > path:nth-child(23) {
 
     /* Styling for create workout page */
     #createworkoutpage{
+        /* iOS Safari sizes 100vh against the viewport with its address bar
+           and toolbar collapsed, not what's actually visible on load -- so
+           content pinned to exactly 100vh (here, ultimately the footer)
+           renders below the fold until the toolbars collapse on the first
+           scroll/touch and the visual viewport catches up. 100dvh tracks the
+           real visible height live and fixes it; the 100vh above stays as a
+           fallback for browsers that don't support dvh. */
         height: 100vh;
+        height: 100dvh;
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
     }
     #createworkoutform{
@@ -629,6 +655,7 @@ svg > path:nth-child(23) {
    /* Styling for exercises list page */
     #createexercisespage{
         height: 100vh;
+        height: 100dvh;
         width: 100vw;
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
     }
@@ -900,6 +927,7 @@ svg > path:nth-child(23) {
     /* ---------------- */
     #createtemplatepage{
         height: 100vh;
+        height: 100dvh;
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
     }
     #createtemplateform{
@@ -1000,6 +1028,7 @@ svg > path:nth-child(23) {
     /* history page */
     #historypage{
         height: 100vh;
+        height: 100dvh;
         width: 100vw;
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
     }
@@ -1051,6 +1080,7 @@ svg > path:nth-child(23) {
     /* past wprlout page */
     #pastworkout{
         height: 100vh;
+        height: 100dvh;
         width: 100vw;
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
     }
@@ -1241,6 +1271,7 @@ svg > path:nth-child(23) {
      /* trends page */
      #trendspage{
         height: 100vh;
+        height: 100dvh;
         width: 100vw;
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
      }
@@ -1343,6 +1374,7 @@ svg > path:nth-child(23) {
 
     #settingspage{
         height: 100vh;
+        height: 100dvh;
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
     }
     #settingspage #settingscontainer{
@@ -1455,6 +1487,7 @@ svg > path:nth-child(23) {
 
     #profilepage{
         height: 100vh;
+        height: 100dvh;
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
     }
     #profilepage #container{
@@ -1482,6 +1515,7 @@ svg > path:nth-child(23) {
 
   #statspage{
         height: 100vh;
+        height: 100dvh;
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
     }
     #statspage #container{

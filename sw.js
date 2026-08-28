@@ -13,7 +13,7 @@
 // pushes an update out -- browsers only re-check this script's own bytes
 // for changes, they don't know when styles.css or exercisesDB.js changed
 // unless this version string changes too.
-const CACHE_NAME = "logger-one-v2";
+const CACHE_NAME = "logger-one-v3";
 
 const PRECACHE_URLS = [
   "index.html", "exercises.html", "exercisedetails.html", "history.html",
@@ -26,8 +26,8 @@ const PRECACHE_URLS = [
 
   "styles.css", "manifest.json",
 
-  "media/icons/icon180.jpg", "media/icons/icon192.jpg",
-  "media/icons/icon512.jpg", "media/icons/icons8-excel-50.png",
+  "media/icons/icon180.png", "media/icons/icon192.png",
+  "media/icons/icon512.png", "media/icons/icons8-excel-50.png",
 ];
 
 self.addEventListener("install", (event) => {
