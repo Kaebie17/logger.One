@@ -56,6 +56,17 @@
     font-size: clamp(0.95rem, 3.6vw, 1.2rem);
     cursor: pointer;
 }
+/* Without this, an element's declared width/height excludes its own
+   padding and border, so anything with both a fixed size AND padding (e.g.
+   #header's height: max(8vh,44px) plus its safe-area padding-top) silently
+   grows past the size it was given instead of the padding eating into it --
+   which is exactly what was pushing page content taller than its 100dvh
+   container and making the whole page scroll instead of just the inner
+   content area. border-box folds padding/border into the declared size
+   everywhere, closing that gap at the source. */
+*, *::before, *::after{
+    box-sizing: border-box;
+}
 html{
     /* Was a fixed 12px, so every rem-sized element in this file (nearly all
        of them) never actually scaled with the phone's screen size -- only
@@ -513,6 +524,7 @@ svg > path:nth-child(23) {
            fallback for browsers that don't support dvh. */
         height: 100vh;
         height: 100dvh;
+        overflow: hidden;
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
     }
     #createworkoutform{
@@ -656,6 +668,7 @@ svg > path:nth-child(23) {
     #createexercisespage{
         height: 100vh;
         height: 100dvh;
+        overflow: hidden;
         width: 100vw;
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
     }
@@ -928,6 +941,7 @@ svg > path:nth-child(23) {
     #createtemplatepage{
         height: 100vh;
         height: 100dvh;
+        overflow: hidden;
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
     }
     #createtemplateform{
@@ -1029,6 +1043,7 @@ svg > path:nth-child(23) {
     #historypage{
         height: 100vh;
         height: 100dvh;
+        overflow: hidden;
         width: 100vw;
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
     }
@@ -1081,6 +1096,7 @@ svg > path:nth-child(23) {
     #pastworkout{
         height: 100vh;
         height: 100dvh;
+        overflow: hidden;
         width: 100vw;
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
     }
@@ -1272,6 +1288,7 @@ svg > path:nth-child(23) {
      #trendspage{
         height: 100vh;
         height: 100dvh;
+        overflow: hidden;
         width: 100vw;
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
      }
@@ -1375,6 +1392,7 @@ svg > path:nth-child(23) {
     #settingspage{
         height: 100vh;
         height: 100dvh;
+        overflow: hidden;
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
     }
     #settingspage #settingscontainer{
@@ -1488,6 +1506,7 @@ svg > path:nth-child(23) {
     #profilepage{
         height: 100vh;
         height: 100dvh;
+        overflow: hidden;
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
     }
     #profilepage #container{
@@ -1516,6 +1535,7 @@ svg > path:nth-child(23) {
   #statspage{
         height: 100vh;
         height: 100dvh;
+        overflow: hidden;
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
     }
     #statspage #container{
