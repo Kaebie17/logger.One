@@ -672,7 +672,7 @@ controlArea.append(controls);
 controls.append(c1,c2);
 
 let faceImgUrl = ""//prompt("Enter face image url");
-const measurements = Object.fromEntries(Object.entries(Object.values(JSON.parse(localStorage.measuredValues))[0]).map(([k,v])=> [k,v.split(" ")[0]])) ;
+const measurements = localStorage?.measuredValues ? Object.fromEntries(Object.entries(Object.values(JSON.parse(localStorage.measuredValues))[0]).map(([k,v])=> [k,v.split(" ")[0]])) : "" ;
 
 let neck = measurements?.["neck"]*1 || 13;
 let arms = measurements?.["arms"]*1 || 13;
@@ -1329,7 +1329,7 @@ const statsWebGraph = (container,array,title,unit="%") => {
     }
     
     let labelCoords = points.split("L").slice(1)
-    labelCoords.push(` ${center[0]+(25+values[n-1])*Math.sin(0)} ${center[1]-(25+values[n-1])*Math.cos(0)} `);
+    labelCoords.push(` ${center[0]+(15+values[n-1])*Math.sin(0)} ${center[1]-(15+values[n-1])*Math.cos(0)} `);
     let i=0;
     for (let el of labelCoords){
         let cloneText = text.cloneNode(true);

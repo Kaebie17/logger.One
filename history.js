@@ -1,114 +1,4 @@
-class CustomOptionElement extends HTMLElement {
-  constructor(){
-    super();
-        
-    this.attachShadow({mode:"open"});
-    this.shadowRoot.append(CustomOptionElement.template.content.cloneNode(true));
-
-    this.option = this.shadowRoot.querySelector("#content");
-    let rightSlot = this.shadowRoot.querySelector("slot[name='right']");
-    this.slotElem = document.createElement("img");
-
-    rightSlot.append(this.slotElem);
-
-    // this.option.ontouchleave = (event) => optionEvent(event,"touchleave"); 
-    // this.option.onclick = (event) => optionEvent(event,"click");
-    // this.slotElem.ontouchleave = (event) => slotEvent(event,"touchleave"); 
-    // this.slotElem.onclick = (event) => slotEvent(event,"click");
-    
-  }
-    
-  attributeChangedCallback(name,oldValue,newValue){
-    if (name==="value"){
-      this.option.textContent = newValue;
-    }
-    else if (name==="id"){
-      this.option.id = newValue;
-      this.slotElem.id = `${newValue}_image`;
-    }
-    else if (name==="src"){
-      this.slotElem.src = newValue;
-    }
-    else if (name==="alt"){
-      this.slotElem.alt = newValue;
-    }
-    else if (name==="width"){
-      newValue = newValue.split(",");
-      if (newValue.length === 4 && newValue.every(e=>e!=='')){
-        this.option.style.width = newValue[0];
-        this.option.style.height = newValue[1];
-        this.slotElem.style.width =  newValue[2];
-        this.slotElem.style.height = newValue[3] ;
-      }
-    }
-    else if (name==="display"){
-      if (newValue === "content"){
-        this.slotElem.setAttribute("style", `display: none`);
-      }
-      else if (newValue === "image"){
-        this.option.setAttribute("style", `display: none`);
-      }
-    }
-    else if (name==="node"){
-        this.option.append(document.createElement(newValue));
-    }
-    else if (name==="inserthtml"){
-        this.option.innerHTML = newValue;
-    }
-  }
-  get value(){
-    return this.getAttribute("value");
-  }
-  get id(){
-    return this.getAttribute("id");
-  }
-  get src(){
-    return this.getAttribute("src");
-  }
-  get alt(){
-    return this.getAttribute("alt");
-  }
-  get width(){
-    return this.getAttribute("width");
-  }
-  get display(){
-    return this.getAttribute("display");
-  }
-  get node(){
-    return this.getAttribute("node");
-  }
-  get inserthtml(){
-    return this.getAttribute("inserthtml");
-  }
-  set value(text){
-    return this.setAttribute("value",text);
-  }
-  set id(text){
-    return this.setAttribute("id",text);
-  }
-  set src(link){
-    return this.setAttribute("src",link);
-  }
-  set alt(text){
-    return this.setAttribute("alt",text);
-  }
-  set width(array){
-    return this.setAttribute("width",array);
-  }
-  set display(string){
-    return this.setAttribute("display", string);
-  }
-  set node(nodename){
-    return this.setAttribute("node", nodename);
-  }
-  set inserthtml(htmlstring){
-    return this.setAttribute("inserthtml", htmlstring);
-  }
-}
-
-CustomOptionElement.observedAttributes = ["value","id","src","alt","width","display","node","inserthtml"];
-CustomOptionElement.template = document.createElement("template");
-CustomOptionElement.template.innerHTML = `<style>
+const styleStr = `
 div{
     display: flex;
     flex-wrap:wrap;
@@ -134,12 +24,15 @@ p{
     opacity: 80%;
     background-image: linear-gradient(to bottom right,var(--template-color-mid),white) ;
 }
-</style>
+`
+class CustomOptionElement extends CustomHTMLElement {
+  constructor(){
+    super();
+    CustomOptionElement.template.content.children[0].innerHTML = styleStr;
+  }
+}
 
-<div id="content"></div><slot name="right"></slot>`
-
-
-customElements.define("custom-option-element" , CustomOptionElement );
+customElements.define("custom-option-element" , CustomOptionElement);
 
 const defaultScript = document.getElementById("historyJS")
 const historyElem = document.getElementById("history");
@@ -215,7 +108,7 @@ function extractData(object){
 
 function handleClick(object){
   sessionStorage.finalLog = JSON.stringify(object);
-  document.location = "file:///C:/Users/krish/Desktop/Web%20Development/Capstone%20projects/Project%207%20-%20LoggerDotOne/pastworkout.html"
+  document.location = "./pastworkout.html"
 }
 
 function home() {

@@ -80,7 +80,6 @@ if(new URL(document.location).searchParams.get("eData")){
 
 // Block handles editing template exercises to log as past workout
 else if(new URL(document.location).searchParams.get("temp")){
-    debugger
     const program = new URL(document.location).searchParams.get("temp");
     programDisplay.value = program;
     chooseProgram.disabled = true;
@@ -216,7 +215,7 @@ addExercises.onclick = () => {
         const date = startDate;
         // document.querySelector("input[type=date]").value = date;
         // document.querySelectorAll("input[type=date]~span>output").forEach(el => el.value = el.value);
-        const loc = new URL("file:///C:/Users/krish/Desktop/Web%20Development/Capstone%20projects/Project%207%20-%20LoggerDotOne/exercises.html");
+        const loc = new URL("exercises.html", document.location);
         {
             loc.searchParams.set("s", new Date(startDate + " " + periodObject.login).toLocaleString());
             loc.searchParams.set("e", new Date(endDate + " " + periodObject.logout).toLocaleString());
@@ -245,7 +244,6 @@ function saveWorkoutFunction(event) {
     localStorage.workoutLogObject =  JSON.stringify(Array.from(temp));
     temp = "";
     let bool = prompt("Save as template/Replace template");
-    debugger
     if (bool || bool === ""){
         let templatesArr = Object.entries(JSON.parse(localStorage.templates));
         bool ? templatesArr.push([bool,workoutExercises]) : 
@@ -270,22 +268,6 @@ function currentTime(){
     updateTimeRecord();
 }
 
-function selectProgram(){ 
-    // debugger
-    // if(chooseProgram.value === chooseProgram[0].value) {
-    //     programDisplay.classList.remove("mark");
-    //     chooseProgram.classList.add("mark");
-    //     programDisplay.value = "";
-    // }
-    // else{
-    //     programDisplay.classList.add("mark")
-    //     chooseProgram.classList.remove("mark");
-    //     programDisplay.value = chooseProgram.value
-    // }
-    console.log(chooseProgram.onchange)
-    // chooseProgram.removeEventListener("change", selectProgram);
-    
-}
 
 function updateTimeRecord(){
     [startDate,startTime,startAmPm] = [new Date(dateElements[0].value).toLocaleDateString(),`${fromClock_output[0].value}:${fromClock_output[1].value}:00`, fromClock_AMorPM[0].value];

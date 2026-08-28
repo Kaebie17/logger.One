@@ -2,9 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Add Exercises</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="media/icons/icon180.jpg">
+    <link rel="icon" href="media/icons/icon192.jpg">
+    <meta name="theme-color" content="#0F0F0F">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Logger.One">
 </head>
 <body id="createexercisespage">
     <header id="header">
@@ -62,7 +69,7 @@
         <a id="closedetails" href="#top">Close</a>
         <a id="saveexercises" style="display: none;">Save</a>
     </footer>
-    <script src="savedworkouts.js"></script>
+    <script id="functionJS" src="functions.js"></script>
     <script id="exercisesJS" src="exercises.js"></script>
 </body>
 </html>

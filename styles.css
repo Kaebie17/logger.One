@@ -6,8 +6,131 @@
     font-family: Georgia, 'Times New Roman', Times, serif;
 
 }
+/* This app is built strictly to portrait mobile specifications and isn't
+   meant to adapt to landscape -- rather than trying to reflow every page's
+   layout for a orientation it was never designed for, block landscape with
+   a plain message instead. Pure CSS (body::before), so it works on every
+   page with no HTML changes, and it works in a normal browser tab too, not
+   just once this becomes an installed PWA. screen.orientation.lock() in
+   functions.js is a best-effort companion to this -- it can actively hold
+   the device in portrait on Android, but has no effect on iOS Safari (never
+   implemented there), so this overlay is what actually guarantees the
+   behavior everywhere. */
+@media (orientation: landscape){
+    body::before{
+        content: "Please rotate your device back to portrait -- this app is designed for portrait use only.";
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 10vw;
+        background-color: var(--template-color-black);
+        color: white;
+        font-family: Georgia, 'Times New Roman', Times, serif;
+        font-size: clamp(1.1rem, 4vw, 1.6rem);
+    }
+    /* ::before is generated content, not a real DOM node, so it's never
+       matched by this -- only body's actual element children are hidden. */
+    body > *{
+        display: none;
+    }
+}
+/* Created by functions.js when a new service-worker version has installed
+   and is waiting for permission to take over. Sits above the app's own
+   header regardless of which page is open; deliberately under the landscape
+   overlay's z-index (9999) rather than fighting it for top priority. */
+#sw-update-banner{
+    position: fixed;
+    top: env(safe-area-inset-top, 0px);
+    left: 0;
+    right: 0;
+    z-index: 500;
+    padding: 1.5vh 4vw;
+    text-align: center;
+    background-color: var(--template-color-soft);
+    color: white;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    font-size: clamp(0.95rem, 3.6vw, 1.2rem);
+    cursor: pointer;
+}
 html{
-    font-size: 12px;
+    /* Was a fixed 12px, so every rem-sized element in this file (nearly all
+       of them) never actually scaled with the phone's screen size -- only
+       the vw/vh-sized containers did, throwing text out of proportion with
+       its container the further a phone's width sat from whatever it was
+       tuned on. This keeps 12px at ~375px width (the size everything here
+       was designed against, so nothing shifts on a typical phone) and lets
+       it scale fluidly a bit smaller on narrow phones, a bit larger on
+       wide ones, without ever leaving the 11-15px band. */
+    font-size: clamp(11px, 3.2vw, 15px);
+}
+/* Mobile-app polish -- makes this feel like an installed app rather than a
+   website in a frame, now that it's meant to be installed as one. */
+html, body{
+    /* Stops the browser's own pull-to-refresh / rubber-band bounce at the
+       top and bottom of the page. Without this, dragging down at the top of
+       any page triggers the OS's native refresh gesture instead of just
+       scrolling the app's own content. */
+    overscroll-behavior: none;
+}
+*{
+    /* The gray flash every browser shows on tap by default -- suppressing it
+       is one of the more noticeable "this reads as a website" tells. Has no
+       effect on layout, so safe to apply everywhere rather than hunting down
+       every tappable element individually. */
+    -webkit-tap-highlight-color: transparent;
+}
+body{
+    /* This app has no long-form text meant to be selected/copied -- it's
+       numbers, labels and buttons. Defaulting to non-selectable everywhere
+       stops the copy/paste bubble popping up from an accidental long-press
+       on a button or nav link, then re-enabling it below specifically for
+       the few elements users actually need to type or select text in. */
+    -webkit-user-select: none;
+    user-select: none;
+}
+input, textarea{
+    -webkit-user-select: text;
+    user-select: text;
+}
+/* Form controls don't inherit font-size/font-family from their parent in any
+   browser's default stylesheet -- they use the platform's own native control
+   size instead (often 16px+ on mobile). None of the <select> rules below ever
+   set an explicit font-size, so they've always rendered at that fixed native
+   size regardless of screen width; it only became obvious once the text
+   around them started scaling. This ties them back into the same scale
+   everything else uses -- any rule below that sets its own font-size on a
+   specific control still wins, since an explicit value always beats an
+   inherited one. */
+select, input, button, textarea{
+    font: inherit;
+    /* Native OS/browser chrome (default padding, border-radius, minimum
+       height, and -- for selects -- the built-in dropdown widget) is drawn
+       ON TOP of whatever padding/border this stylesheet already sets, which
+       is what made these controls look chunkier than plain text even when
+       their font-size genuinely matched. This removes that native layer so
+       only this file's own sizing applies. */
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+/* appearance:none also removes a select's native dropdown arrow, so it needs
+   a replacement or there's no visual sign it's tappable. Drawn with two
+   gradients rather than an image file; sized in em so it scales with the
+   same font-size every other fix in this file ties into. */
+select{
+    background-image:
+        linear-gradient(45deg, transparent 50%, currentColor 50%),
+        linear-gradient(135deg, currentColor 50%, transparent 50%);
+    background-position:
+        calc(100% - 1.1em) center,
+        calc(100% - 0.75em) center;
+    background-size: 0.35em 0.35em, 0.35em 0.35em;
+    background-repeat: no-repeat;
+    padding-right: 2em;
 }
 ::placeholder{
     color: white;
@@ -95,7 +218,20 @@ svg > path:nth-child(23) {
         overflow-y: scroll;
     }
     #header{
-        height: 8vh;
+        /* max() gives this a floor: it keeps scaling with 8vh normally in
+           portrait (unchanged), but in landscape -- where the viewport
+           height shrinks to a fraction of what this was tuned against --
+           8vh alone could squeeze the header (and the logo/title inside it)
+           down to almost nothing. 44px is the standard minimum comfortable
+           tap-target size, so this never gets smaller than that regardless
+           of orientation. */
+        height: max(8vh, 44px);
+        /* env() falls back to 0 on a device with no notch/dynamic island, so
+           this is a no-op there and only does anything on hardware that
+           actually needs it. Only relevant once installed standalone --
+           inside a normal browser tab the browser's own UI already occupies
+           that space. */
+        padding-top: env(safe-area-inset-top, 0px);
         background-image: linear-gradient(-60deg, var(--template-color-black), var(--template-color-mid), var(--template-color-soft));
     }
     #header > h1{
@@ -140,12 +276,15 @@ svg > path:nth-child(23) {
     }
     
     #logger{
-        height: 7vh;
+        height: max(7vh, 44px);
         display: flex;
         justify-content: space-around;
     }
     #logger > button{
-        height: 7vh;
+        /* Same floor as the header, and more important here -- these are
+           the two primary buttons on the page. Without it, landscape could
+           shrink real tap targets below what's comfortable to hit. */
+        height: max(7vh, 44px);
         width: 48vw;
         background-image: linear-gradient(60deg , var(--template-color-light),var(--template-color-soft));
         border-width: 2px;
@@ -330,10 +469,13 @@ svg > path:nth-child(23) {
     }
   
     #footer{
-        height: 5vh;
+        height: max(5vh, 40px);
         display: flex;
         justify-content: space-around;
         align-items: center;
+        /* Keeps the nav links clear of the home-indicator swipe bar on
+           notched iPhones once installed standalone. */
+        padding-bottom: env(safe-area-inset-bottom, 0px);
         background-image: linear-gradient(-60deg, var(--template-color-black), var(--template-color-mid), var(--template-color-soft));
     }
     #footer > a{
@@ -528,7 +670,7 @@ svg > path:nth-child(23) {
         grid-area: 2/1/3/2;
         width: 5rem;
         height: 5rem;
-        font-size: 30px;
+        font-size: 2.5rem;
         background-color: transparent;
         position: relative;
         top: 72vh;
@@ -1122,6 +1264,15 @@ svg > path:nth-child(23) {
      #trendspage #container #mainfilters span > span{
         display: flex;
         justify-content: space-around;
+      }
+     /* Native radio buttons don't scale with font-size at all by default in
+        most browsers -- they render at a small fixed physical size regardless
+        of page zoom or root font-size. Sizing them in em ties them to the
+        same font context (1.5rem span above) they sit inside, so they scale
+        the same way everything else on this row does. */
+     #trendspage #container #mainfilters input[type="radio"]{
+        width: 1em;
+        height: 1em;
       }
      #trendspage #container #mainfilters span > span > label{
         margin-top: 0.5vw;

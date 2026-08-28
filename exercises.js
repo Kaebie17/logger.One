@@ -1,4 +1,4 @@
-// debugger
+
 const indexScript = document.getElementById("exercisesJS")
 const script = document.createElement("script");
 let exercises;
@@ -17,182 +17,66 @@ const switchListsDisp = (num=0) => {
 }
 
 // Creating custom element to choose workout program while displaying additional details.
-
-class CustomOptionElement extends HTMLElement {
-  constructor(){
-    super();
+   
+class CustomOptionElement extends CustomHTMLElement{
+    constructor(){
+        super();
+        this.option.ontouchleave = (event) => optionEvent(event,"touchleave"); 
+        this.option.onclick = (event) => optionEvent(event,"click");
+        this.slotElem.ontouchleave = (event) => slotEvent(event,"touchleave"); 
+        this.slotElem.onclick = (event) => slotEvent(event,"click");
         
-    this.attachShadow({mode:"open"});
-    this.shadowRoot.append(CustomOptionElement.template.content.cloneNode(true));
-
-    this.option = this.shadowRoot.querySelector("#content");
-    let rightSlot = this.shadowRoot.querySelector("slot[name='right']");
-    this.slotElem = document.createElement("img");
-
-    rightSlot.append(this.slotElem);
-
-    this.option.ontouchleave = (event) => optionEvent(event,"touchleave"); 
-    this.option.onclick = (event) => optionEvent(event,"click");
-    this.slotElem.ontouchleave = (event) => slotEvent(event,"touchleave"); 
-    this.slotElem.onclick = (event) => slotEvent(event,"click");
-    
-    function optionEvent(event,type){
-      // Add a property in the exercise DB to count the number of lifetime clicks on each exercise by user to sort bt most frequently done exercises..
-      //counter increment logic to be implemented here and sorting to be done in loadOptions function. 
-      event.target.classList.toggle("indent");
-      event.target.classList.value.includes("indent") ? 
-        (!CustomOptionElement.selectedOptionArr.includes(event.target.textContent) ? CustomOptionElement.selectedOptionArr.push(event.target.textContent) : "" ) : 
-          CustomOptionElement.selectedOptionArr = CustomOptionElement.selectedOptionArr.filter(el => el !== event.target.textContent);
-      event.target.removeEventListener(type, (event,type) => optionEvent(event,type));
-    };
-    
-    function slotEvent(event,type){
-      event.stopPropagation();
-      let id = event.target.alt || event.target.id ;
-      id = id.replaceAll(/[ ]|(?<!\d)-/g,"_").replaceAll(/[^-\w]/g,"").toLowerCase();
-      const details = exerciseDB()[id];
-      const {name,desc,video,categories,targets,equipment,ratings,tags} = {name: details.name, desc: details.description, video: details.media.videolinks || details.media.imagelinks || "./media/images/default-img.png" , categories:details.categories, targets : details.movers, equipment: details.equipment, ratings : [details.effectiveness, details.technicality, details.fatigue], tags: details.categories};
-      switchListsDisp(2);
-      closeDetails.textContent = "Close";
-      legend.textContent = name;
-      exerciseDetails.children["media"].children[0].src = video;
-      exerciseDetails.children["description"].textContent = desc;
-      exerciseDetails.children["ratings"].children[0].style.background =  linearGradient(ratings[0]);
-      exerciseDetails.children["ratings"].children[1].style.background =  linearGradient(ratings[1]);
-      exerciseDetails.children["ratings"].children[2].style.background =  linearGradient(ratings[2]);
-      exerciseDetails.children["otherinfo"].children[0].children["targets"].textContent = targets;
-      exerciseDetails.children["otherinfo"].children[1].children["equipment"].textContent = equipment;
-      exerciseDetails.children["tags"].replaceChildren();
-      suggestions.firstElementChild.replaceChildren();
-      [targets[0],targets[1]].forEach(tag => {
-        const _exerciseData = Object.values(exerciseDB());
-        const suggestionsArray = [];
-        let random = randomBetween(0,3);
-        const taggedExercises = filterer(tag,_exerciseData.filter(e => e.name !== event.target.alt && e[["effectiveness","technicalality","fatigue"][random]] >= parseInt(ratings[random]) && e.categories.some(c => tags.includes(c))));
-        const span = document.createElement("span"); 
-        span.textContent = tag; 
-        exerciseDetails.children["tags"].append(span);
-        taggedExercises.slice(0,3).forEach(e => suggestionsArray.push(e));
-        loadOptions(suggestionsArray,"custom-option-element",suggestions.firstElementChild, {value:"name", id:"name", width: ["","","",["100%","100%","100%","100%"]], src: ["media","imagelinks",0,"https://tse3.mm.bing.net/th?id=OIP.oJRcDq2AAsFYW1ab_OQJwgHaEK&pid=Api&P=0&h=180"], alt: "name"});
-      });
-      suggestions.firstElementChild.childNodes.forEach(el => {
-        el.className = "makegrid" ;
-        el.shadowRoot.children[1].onclick = (e) => slotEvent(e,type);
-        el.shadowRoot.children[1].className = "gridChild";
-      });
-      event.target.removeEventListener(type, (event,type) => optionEvent(event,type));      
-    };
-  }
-    
-  attributeChangedCallback(name,oldValue,newValue){
-    if (name==="value"){
-      this.option.textContent = newValue;
+        function optionEvent(event,type){
+        // Add a property in the exercise DB to count the number of lifetime clicks on each exercise by user to sort bt most frequently done exercises..
+        //counter increment logic to be implemented here and sorting to be done in loadOptions function. 
+        event.target.classList.toggle("indent");
+        event.target.classList.value.includes("indent") ? 
+            (!CustomOptionElement.selectedOptionArr.includes(event.target.textContent) ? CustomOptionElement.selectedOptionArr.push(event.target.textContent) : "" ) : 
+            CustomOptionElement.selectedOptionArr = CustomOptionElement.selectedOptionArr.filter(el => el !== event.target.textContent);
+        event.target.removeEventListener(type, (event,type) => optionEvent(event,type));
+        };
+        
+        function slotEvent(event,type){
+        event.stopPropagation();
+        let id = event.target.alt || event.target.id ;
+        id = id.replaceAll(/[ ]|(?<!\d)-/g,"_").replaceAll(/[^-\w]/g,"").toLowerCase();
+        const details = exerciseDB()[id];
+        const {name,desc,video,categories,targets,equipment,ratings,tags} = {name: details.name, desc: details.description, video: details.media.videolinks || details.media.imagelinks || "./media/images/default-img.png" , categories:details.categories, targets : details.movers, equipment: details.equipment, ratings : [details.effectiveness, details.technicality, details.fatigue], tags: details.categories};
+        switchListsDisp(2);
+        closeDetails.textContent = "Close";
+        legend.textContent = name;
+        exerciseDetails.children["media"].children[0].src = video;
+        exerciseDetails.children["description"].textContent = desc;
+        exerciseDetails.children["ratings"].children[0].style.background =  linearGradient(ratings[0]);
+        exerciseDetails.children["ratings"].children[1].style.background =  linearGradient(ratings[1]);
+        exerciseDetails.children["ratings"].children[2].style.background =  linearGradient(ratings[2]);
+        exerciseDetails.children["otherinfo"].children[0].children["targets"].textContent = targets;
+        exerciseDetails.children["otherinfo"].children[1].children["equipment"].textContent = equipment;
+        exerciseDetails.children["tags"].replaceChildren();
+        suggestions.firstElementChild.replaceChildren();
+        [targets[0],targets[1]].forEach(tag => {
+            const _exerciseData = Object.values(exerciseDB());
+            const suggestionsArray = [];
+            let random = randomBetween(0,3);
+            const taggedExercises = filterer(tag,_exerciseData.filter(e => e.name !== event.target.alt && e[["effectiveness","technicalality","fatigue"][random]] >= parseInt(ratings[random]) && e.categories.some(c => tags.includes(c))));
+            const span = document.createElement("span"); 
+            span.textContent = tag; 
+            exerciseDetails.children["tags"].append(span);
+            taggedExercises.slice(0,3).forEach(e => suggestionsArray.push(e));
+            loadOptions(suggestionsArray,"custom-option-element",suggestions.firstElementChild, {value:"name", id:"name", width: ["","","",["100%","100%","100%","100%"]], src: ["media","imagelinks",0,"https://tse3.mm.bing.net/th?id=OIP.oJRcDq2AAsFYW1ab_OQJwgHaEK&pid=Api&P=0&h=180"], alt: "name"});
+        });
+        suggestions.firstElementChild.childNodes.forEach(el => {
+            el.className = "makegrid" ;
+            el.shadowRoot.children[1].onclick = (e) => slotEvent(e,type);
+            el.shadowRoot.children[1].className = "gridChild";
+        });
+        event.target.removeEventListener(type, (event,type) => optionEvent(event,type));      
+        };
     }
-    else if (name==="id"){
-      this.option.id = newValue;
-      this.slotElem.id = `${newValue}_image`;
-    }
-    else if (name==="src"){
-      this.slotElem.src = newValue;
-    }
-    else if (name==="alt"){
-      this.slotElem.alt = newValue;
-    }
-    else if (name==="width"){
-      newValue = newValue.split(",");
-      if (newValue.length === 4 && newValue.every(e=>e!=='')){
-        this.option.style.width = newValue[0];
-        this.option.style.height = newValue[1];
-        this.slotElem.style.width =  newValue[2];
-        this.slotElem.style.height = newValue[3] ;
-      }
-    }
-    else if (name==="display"){
-      if (newValue === "content"){
-        this.slotElem.setAttribute("style", `display: none`);
-      }
-      else if (newValue === "image"){
-        this.option.setAttribute("style", `display: none`);
-      }
-    }
-    else if (name==="color"){
-      this.option.style.color = newValue ;
-    }
-  }
-  get value(){
-    return this.getAttribute("value");
-  }
-  get id(){
-    return this.getAttribute("id");
-  }
-  get src(){
-    return this.getAttribute("src");
-  }
-  get alt(){
-    return this.getAttribute("alt");
-  }
-  get width(){
-    return this.getAttribute("width");
-  }
-  get display(){
-    return this.getAttribute("display");
-  }
-  get color(){
-    return this.getAttribute("color");
-  }
-  set value(text){
-    return this.setAttribute("value",text);
-  }
-  set id(text){
-    return this.setAttribute("id",text);
-  }
-  set src(link){
-    return this.setAttribute("src",link);
-  }
-  set alt(text){
-    return this.setAttribute("alt",text);
-  }
-  set width(array){
-    return this.setAttribute("width",array);
-  }
-  set display(string){
-    return this.setAttribute("display", string);
-  }
-  set color(string){
-    return this.setAttribute("color", string);
-  }
 }
-
-CustomOptionElement.observedAttributes = ["value","id","src","alt","width","display","color","center"];
-CustomOptionElement.selectedOptionArr = [];
-CustomOptionElement.template = document.createElement("template");
-CustomOptionElement.template.innerHTML = `<style>
-div{
-    width: 85%;
-    height: 100%;
-    display: flex;
-    align-items: center;;
-}
-img{
-    width: 15%;
-    height: 95%;
-    font-size: 0.5rem;
-    grid-area: 1/1/1/1;
-}
-.indent{
-    opacity: 80%;
-    background-image: linear-gradient(to bottom right,var(--template-color-mid),white) ;
-}
-.gridChild{
-    grid-area: 1/1/1/1;
-    z-index: 1;
-}
-</style>
-
-<div id="content"></div><slot name="right"></slot>`
-
 
 customElements.define("custom-option-element" , CustomOptionElement );
+CustomOptionElement.selectedOptionArr = [];
 
 
 const exerciseList = document.getElementById("exerciselist");
@@ -217,7 +101,7 @@ redirectHome.addEventListener("click" , home);
 
 // const showExerciseList
 
-const close = (event) => {debugger;
+const close = (event) => {
   if (exerciseList.style.display === "none" && selectionListDisplay.style.display === "none") {switchListsDisp();}
   else if (exerciseList.style.display === "none" && selectionListDisplay.style.display === "block" && new URL(document.location).searchParams.get("new")!=="true") {
     loadOptions(Object.values(exerciseDB()),"custom-option-element",selectExercise,{value: "name", id:"name", src: ["media","imagelinks",0,""], alt: "name"});
@@ -301,12 +185,12 @@ const saveExercisesFunction = (event) => {
   if(dataNodes===headerNodes){
     let searchParams = sessionStorage?.searchParams ? JSON.parse(sessionStorage?.searchParams) : "";
     if (searchParams.length > 1){
-      url = "file:///C:/Users/krish/Desktop/Web%20Development/Capstone%20projects/Project%207%20-%20LoggerDotOne/logworkout.html";
-      savedworkouts["start"] = searchParams[0] ; 
+      url = "logworkout.html";
+      savedworkouts["start"] = searchParams[0] ;
       savedworkouts["end"] = searchParams[1] ;
     }
     else {
-      url = "file:///C:/Users/krish/Desktop/Web%20Development/Capstone%20projects/Project%207%20-%20LoggerDotOne/template.html";
+      url = "template.html";
     }
     dataNodeObj.forEach(dataEl => {
       const value = []
@@ -335,7 +219,7 @@ const saveExercisesFunction = (event) => {
     saveExercises.removeEventListener(event.type,saveExercisesFunction);
     sessionStorage.finalLog = JSON.stringify(savedworkouts);
     sessionStorage.restoreSelection = JSON.stringify(CustomOptionElement.selectedOptionArr);
-    loc = new URL(url);
+    loc = new URL(url, document.location);
     loc.searchParams.set("eData","true");
     document.location = loc;
   }
@@ -366,8 +250,7 @@ exercisesDBpage.onload = (e,urloption) => {
     sessionStorage.unit = templateData?.["unit"];
     sessionStorage.unit ? delete templateData["unit"] : ""
     CustomOptionElement.selectedOptionArr = Object.keys(templateData);
-    CustomOptionElement.selectedOptionArr = CustomOptionElement.selectedOptionArr.map( el => testRegExp((rx,v)=>v.replaceAll(rx," "),"_",{falseVal:el,flags:"g"})(el));
-    CustomOptionElement.selectedOptionArr = CustomOptionElement.selectedOptionArr.map(el => testRegExp((rx,v)=>v.replaceAll(rx,(i)=>i.toUpperCase()),/(\b[a-z])/ig)(el)); 
+    CustomOptionElement.selectedOptionArr = CustomOptionElement.selectedOptionArr.map( el => el.capitalizeAllFirst("_"));
     sessionStorage.searchParams = JSON.stringify([...new URL(document.location).searchParams.values()]);
     doneSelectionFunction();
   }
@@ -470,7 +353,6 @@ const timeOptions = (i,id,name,string,loops,placeholder,step) => {
 }
 
 const bodyweight = (e,refElem,i) => {
-  debugger
   e.stopPropagation();
   let bw = JSON.parse(localStorage.savedSettings)['bodywt'].split(" ")[1]-0;
   const targetElem = document.querySelector(`div[id="${refElem}"] [name="weight${i}"]`); 
@@ -536,9 +418,9 @@ const addData = (event) => {
     button.previousElementSibling.children[4].lastElementChild.addEventListener("click",(e)=>typeMultiple(e));
     autoAssignMultiple(button.previousElementSibling.children[4].lastElementChild.lastElementChild, button.previousElementSibling.children[2].lastElementChild,template.id);
     // button.previousElementSibling.children[4].firstElementChild.addEventListener("click",(e)=>bodyweight(e,template.id,childNum))
-    if (childNum > 1){button.previousElementSibling.lastElementChild.disabled = false}
-    const nextdecendents = decendents(referenceNode.querySelector(`#line${(childNum)}`),0,`setnum${(childNum)}`,"remove");   
-    nextdecendents[0].forEach((el,i) => {let pastEl = firstdecendents[0][i]; if (pastEl.disabled){el.disabled=true}; pastEl.value ? el.value = pastEl.value :  pastEl.innerHTML} );
+    // if (childNum > 1){button.previousElementSibling.lastElementChild.disabled = false}
+    const nextdecendents = decendents(referenceNode.querySelector(`#line${(childNum)}`),0,`setnum${(childNum)}`);   
+    nextdecendents[0].forEach((el,i) => {let pastEl = firstdecendents[0][i]; if (!pastEl){el.disabled=false} else {if (pastEl.disabled){el.disabled=true} ; pastEl.value ? el.value = pastEl.value : el.lastElementChild?.textContent?.length === 1 ?  el.lastElementChild.textContent =  pastEl.lastElementChild.textContent : el.lastElementChild?.textContent?.length > 1 ?  el.lastElementChild.lastElementChild.textContent =  pastEl.lastElementChild.lastElementChild.textContent : ""}} );
   };
   button.textContent = "Add Set"
   let container = document.getElementById(`${event.target.id}_container`);
@@ -578,8 +460,20 @@ const removeSet = (event, parent) => {
     el.name? el.name = el.name.replace(/\d+$/,el.name.match(/\d+$/g)[0]-1) : "";
     el.id? el.id = el.id.replace(/\d+$/,el.id.match(/\d+$/g)[0]-1) : "";
     Array.from(el.children).forEach (elchild => {
-      if(elchild.name.includes("setnum")){
+      if(elchild.name?.includes("setnum")){
         elchild.value = parseInt(elchild.value) - 1;
+      }
+      if (elchild.childElementCount){
+        let child = elchild.lastElementChild;
+        if (child.localName === "p" || child.localName === "i") {
+        let name = child.getAttribute("name");
+        if (name) child.setAttribute("name", name.replace(/\d+$/,name.match(/\d+$/g)?.[0]-1)) ;
+        else {
+          child = elchild.lastElementChild.lastElementChild;
+          name = child.getAttribute("name");
+          child.setAttribute("name", name.replace(/\d+$/,name.match(/\d+$/g)?.[0]-1)) ;
+        }
+      }
       }
       elchild.id? elchild.id = elchild.id.replace(/\d+$/,elchild.id.match(/\d+$/g)[0]-1) : "";
       elchild.name? elchild.name = elchild.name.replace(/\d+$/,elchild.name.match(/\d+$/g)?.[0]-1||"") : "";
@@ -594,7 +488,6 @@ function removeSelectedExercise(event){
   container.remove();
   CustomOptionElement.selectedOptionArr = CustomOptionElement.selectedOptionArr.filter(name => name.toLowerCase().replaceAll(" ","_") !== id);
   sessionStorage.restoreSelection = JSON.stringify(JSON.parse(sessionStorage.restoreSelection).filter(name => name.toLowerCase().replaceAll(" ","_") !== id))
-  debugger
   if(exerciseList.querySelector(`#${id}`)){
     exerciseList.querySelector(`#${id}`).shadowRoot.children[`${id}`].classList.remove("indent");
   }

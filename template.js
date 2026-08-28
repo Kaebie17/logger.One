@@ -37,13 +37,13 @@ addExercises.onclick = () => {
     if (!sessionStorage?.finalLog && !sessionStorage?.restoreSelection){
         if (!programDisplay.value){alert("Choose a program name to proceed."); return}
         sessionStorage.program = programDisplay.value ;
-        const loc = new URL("file:///C:/Users/krish/Desktop/Web%20Development/Capstone%20projects/Project%207%20-%20LoggerDotOne/exercises.html");
+        const loc = new URL("exercises.html", document.location);
         loc.searchParams.set("new",true);
         document.location = loc;
     }
     else{
         sessionStorage.program = programDisplay.value ;
-        const loc = new URL("file:///C:/Users/krish/Desktop/Web%20Development/Capstone%20projects/Project%207%20-%20LoggerDotOne/exercises.html");
+        const loc = new URL("exercises.html", document.location);
         loc.searchParams.set("new",false);
         document.location = loc;
     }
@@ -53,7 +53,7 @@ createTemplate.onclick = () => {
     if (new URL(document.location).searchParams.get("eData")){
         existingTemplates[programDisplay.value] = JSON.parse(sessionStorage.finalLog);
         localStorage.templates = JSON.stringify(existingTemplates);
-        const loc = new URL("file:///C:/Users/krish/Desktop/Web%20Development/Capstone%20projects/Project%207%20-%20LoggerDotOne/index.html");
+        const loc = new URL("index.html", document.location);
         document.location = loc;
         return
     }

@@ -18,45 +18,46 @@ function home() {
 }
 
 const pastWorkoutsObject = localStorage?.workoutLogObject ? JSON.parse(localStorage.workoutLogObject).sort(([k1,v1],[k2,v2])=> new Date(k1)-new Date(k2)) : {};
+let d = new DataInterface();
+d.new(Object.fromEntries(pastWorkoutsObject));
 
-const partsObject = {delts: ["side-delts","front-delts","rear-delts"],chest:["upper-chest","lower-chest"],neck:["neck"],core:["core","obliques"],back:["lats","lower-traps","traps/rhomboids","low-back"],arms:["triceps","biceps","forearms"], legs:["quads","hams","calves"],glutes:["glutes"]}
+const partsObject = {delts: ["side-delts","front-delts","rear-delts"],chest:["upper-chest","lower-chest"],neck:["neck"],core:["core","obliques"],back:["lats","lower-traps","traps","rhomboids","low-back"],arms:["triceps","biceps","forearms"], legs:["quads","hams","calves"],glutes:["glutes"]}
 
 const nameMap =  new Map(JSON.parse(localStorage.nameMap))
 
 let partsMap = new Map()//Object.entries(partsObject).map(([part,arr])=> [part,arr.map(e => nameMap.get(e)).reduce((a,b)=>a+b)]) 
-
-const getStat = (key,fn,index=0,factor=1,g= ar => ar,r = ((a,b)=>a+b), res = "relative") => {
-    
-  pastWorkoutsObject.forEach(([k,obj]) => {
-  let workoutMetric = obj[key];
-  const movers = Object.values(workoutMetric).map(arr => arr[0][1][index]);
-  const metricArr = g.call(this,Object.entries(workoutMetric).map(([k,arr],i) => fn(arr,k,i)));
-  let combined = movers.map((e,i) => [e,metricArr[i]]).filter(([k,v])=> typeof v === "number");
-  Object.entries(partsObject).forEach(([part,arr])=> arr.forEach(e => {let res = combined.find(([k,v])=> k===e); let exVal = partsMap.get(part); res ? partsMap.set(part, exVal ? [res[1]*factor,exVal].reduce(r) : (res[1]*factor).toFixed(2)*1) : ""}));
-  // Object.entries(partsObject).forEach(([part,arr])=> partsMap.get(part) ? partsMap.set(part, Math.round(partsMap.get(part)+arr.map(e => combined.find(([k,v])=> k===e)[1]).reduce(r))) : partsMap.set(part, Math.round(arr.map(e => metricArr[movers.findIndex(i => i===e)]*factor||0).reduce(r))))
-})
-  if (res === "relative"){
+// (key,fn,index=0,factor=1,g= ar => ar,r = ((a,b)=>a+b), res = "relative")
+const getStat = ({stat,factor=1,r=((a,b) => (a*1||0)+(b*1||0)),e=1,s=0,res=""}) => {
+  Object.entries(partsObject).forEach(([part,groups]) => groups.forEach(target => {
+      let totalVal = d.getValue(target,stat,r,e,s);
+      partsMap.get(part)? partsMap.set(part, partsMap.get(part)+totalVal*factor) : partsMap.set(part,totalVal*factor);
+    })
+  )
+  if (!res){
     let sum = [...partsMap.values()].reduce((a,b)=>a+b)
     return [...partsMap].map(([k,v])=>[k,Math.round((v/sum)*100)])
   }
-  if(res === "absolute"){
-    return [...partsMap];
+  else{
+    return [...partsMap].map(([k,v])=>[k,Math.round(v)]);
   }
 }
 
-const labelStatArrVol = getStat("workoutExercises",(arr)=>arr[arr.findIndex(e => e[0] === "vol")][1],0,0.65)
+const labelStatArrVol = getStat({stat:"vol",factor:0.65});
 partsMap = new Map();
-const labelStatArrVolSec = getStat("workoutExercises",(arr)=>arr[arr.findIndex(e => e[0] === "vol")][1],1,0.25)
+const labelStatArrVolSec = getStat({stat:"vol",factor:0.25,e:2,s:1});
 partsMap = new Map();
-const labelStatArrReps = getStat("workoutExercises",(arr)=>arr[arr.findIndex(e => e[0] === "repCount")][1])
+const labelStatArrReps = getStat({stat:"repCount"});
 partsMap = new Map();
-const labelStatArrSets = getStat("workoutExercises",(arr)=>arr[arr.findIndex(e => e[0] === "setCount")][1])
+const labelStatArrSets = getStat({stat:"setCount"});
 partsMap = new Map();
-const labelStatArrLoad = getStat("workoutExercises",(arr)=>arr[arr.findIndex(e => e[0] === "load")][1])
+const labelStatArrLoad = getStat({stat:"load"});
 partsMap = new Map();
-const labelStatArr1RM = getStat("workoutExercises",arr => arr.filter(([k,v]) => k.includes("rir")).map(([k,v])=>v).reduce((a,b)=>a*1+b*1)/arr[arr.findIndex(e => e[0] === "repCount")][1],0,1,ar => ar.map(e => e? (100-e.toFixed(2)*100)/10:""),(a,b)=>((a+b)/2).toFixed(1)*1,"absolute")
+const repsCountArr = getStat({stat:"repCount", res:"abs",e:2,r:(a,b)=>((a*1||0)+(b*1||0))/2}).filter(arr => arr[1]>=10);
+partsMap = new Map()
+const labelStatArr1RM = getStat({stat:"rir",res:"abs",e:2,r:(a,b)=>((a*1||0)+(b*1||0))/2}).filter(arr => arr[1]).flatMap(([k,v])=> {let ar = repsCountArr.find(([p,q])=>k===p) ; return ar ? [[k,(10*(1-v*10/ar[1]).toFixed(2)*1).toFixed(2)*1]] : []}) ;
 partsMap = new Map();
-const labelStatArrIntensity = getStat("workoutExercises", (arr,k,i) => (allExercises[k]["technicality"]*1 + allExercises[k]["fatigue"]*1)/2 + (pastWorkoutsObject[i][1]["workoutIntensity"]*1)/(arr.length*10),0,1, (ar,i) =>  ar.map(e=> e),(a,b)=>((a+b)/2).toFixed(1)*1,"absolute");
+const labelStatArrIntensity = Object.entries(partsObject).map(([part,groups]) => {let arr = groups.map(target => d.byTarget(target).map(a =>{ return Object.keys(a[1]).map(k => (allExercises[k]["technicality"]*1 + allExercises[k]["fatigue"]*1 + d.get(a[0])["workoutIntensity"]*1)/3)}).flat()) ; return arr.length? [part,arr.flat().reduce((a,b)=>(((a*1||0)+(b*1||0))/2).toFixed(1)*1)] : 0});
+partsMap = new Map();
 
 svgloader.addEventListener("load",()=>{
   statsWebGraph(container,labelStatArrVol.sort((a,b) => b[1]-a[1]),"Primary Volume Distribution");

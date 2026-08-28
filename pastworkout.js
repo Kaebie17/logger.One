@@ -12,7 +12,7 @@ const calendarArea = document.getElementById("calendar");
 const deleteWorkoutBtn = document.getElementById("deleteworkout");
 const changeDateBtn = document.getElementById("changedate");
 const redirectHome = document.querySelector("#header > h1");
-const pastWorkoutsObject = JSON.parse(localStorage.workoutLogObject);
+const pastWorkoutsObject = JSON.parse(localStorage.workoutLogObject).sort((a,b)=>new Date(a[0])-new Date(b[0]));
 const finalLog = Object.fromEntries(JSON.parse(sessionStorage.finalLog));
 const key = Object.keys(finalLog)[0];
 const date = new Date(key).toLocaleDateString();
@@ -20,10 +20,14 @@ const intensity = finalLog[key]["workoutIntensity"];
 const fatigue = "";
 const headingVal = finalLog[key]["workoutName"];
 const duration = durationCalc(date);
-const exerciseData = finalLog[key]["workoutExercises"];
+const dWt = JSON.parse(localStorage.savedSettings)["dweight"].split(" ")[0]*1;
+const bWt = JSON.parse(localStorage.savedSettings)["bweight"].split(" ")[0]*1;
+let exerciseData = finalLog[key]["workoutExercises"];
 const totalVol = Object.values(finalLog[key]["workoutExercises"]).flat().filter(([k,v])=> k === "vol").map(([k,v])=>v).reduce((a,b)=>a+b);
 delete finalLog[key]["workoutExercises"]['chooseprogram']
 const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const propNames = ["setnum","reps","repMultiple","weight","wtMultiple","rest","tut","rir"];
+let targetExercise;
 // const scroll = document.querySelectorAll(".label-area");
 // scroll.forEach(el => el.addEventListener("click",scrollMonth));
 
@@ -67,6 +71,7 @@ const handleClick = (event) => {
     const elem = event.target;
     const id = elem.id;
     const currExercise = exerciseData[id];
+    targetExercise = id;
     titleElem.textContent = id.replaceAll("_"," ").replaceAll(/\b\w/g,(e)=>e.toUpperCase());
     exerciseDetails.style.display = "flex";
     exerciseDisplay.style.display= "none" 
@@ -121,9 +126,9 @@ function durationCalc(date){
     return Math.round((endMS-startMS)/(60*60*1000));
 }
 function addlabels(el,outerEl){
-    let labels = ["Sets", "Reps", "Load", "Rest", "TUT", "RIR"];
+    let labels = ["Sets", "Reps", "xR", "Load","xW", "Rest", "TUT", "RIR"];
     let labelsRow = outerEl.cloneNode(true);
-    labels.forEach(label => {
+    labels.forEach((label,i) => {
         let clone = el.cloneNode(true); 
         clone.textContent = label;
         labelsRow.append(clone);
@@ -131,19 +136,20 @@ function addlabels(el,outerEl){
     logDetails.append(labelsRow);
 }
 function displayDetails(n,el,outerEl,inputArray){
-    for (let i=0; i<n; i++){
+    let copyArr = inputArray
+    copyArr = copyArr.some(arr => arr[0]==="repMultiple") ? copyArr : copyArr.concat([["repMultiple","1"]]);
+    copyArr = copyArr.some(arr => arr[0]==="wtMultiple") ? copyArr : copyArr.concat([["wtMultiple","1"]]);   
+    let start = inputArray[1][0][6]*1;  
+    for (let i=start; i<n+start; i++){
         let clone = outerEl.cloneNode(true);
         clone.id = i;
-        inputArray.filter(([k,v])=> k.includes(i)).flatMap(([k,v])=> v).forEach((val,k) => {
+        sortedArr = copyArr.filter(([key,v])=> key.includes(i) || key.includes("Multiple")).sort((a,b) => {let i = propNames.findIndex(e => a[0].includes(e)) ; let j = propNames.findIndex(e => b[0].includes(e)); return i-j} );
+        // debugger
+        sortedArr.forEach((arr,k) => {
+            let val = arr[1];
             let cloneOutput = el.cloneNode(true);
-            if(k===2){
-                let elm = logDetails.firstElementChild.childNodes[k-1];
-                inputArray.find(([label,data])=> label==="repMultiple")?.[1] ? elm.textContent = "Reps x2" : "";
-            }
-            if(k===3){
-                let elm = logDetails.firstElementChild.childNodes[k-1];
-                inputArray.find(([label,data])=> label==="wtMultiple")?.[1] ? elm.textContent = "Load x2" : "";
-            }
+            cloneOutput.id = arr[0];
+            if (k!==0){cloneOutput.addEventListener("touchend",handleEditData)}
             val = val.includes("Min")? val.replace("Min","") : val.includes("TUT") ? "-" : val;
             cloneOutput.value = val;
             clone.append(cloneOutput)
@@ -162,7 +168,7 @@ function fillSummary(dataArray,exercise){
     // summaryArea[1].children[1].children[0].textContent = dataArray.filter(([k,v])=> k.includes("reps")).map(([k,v])=>parseFloat(v)).reduce((a,b)=>(a+b))||"-";
     // summaryArea[1].children[2].children[0].textContent = getVolume(arr => arr.flatMap(([a,b]) => [a*b]).reduce((a,b)=>a+b), dataArray.filter(([k,v])=> k.includes("reps")).map(([k,v])=>parseFloat(v)))(dataArray.filter(([k,v])=> k.includes("weight")).map(([k,v])=>parseFloat(v)));
     const lastVolume = findProgress(exercise,date,"vol");
-    let progress = !lastVolume ? "↗↗↗" : summaryArea[1].children[2].children[0].textContent === lastVolume ? "⬅➡" : summaryArea[1].children[2].children[0].textContent > lastVolume ? "⬆⬆⬆" : "⬇⬇⬇";  
+    let progress = !lastVolume ? "↗↗↗" : summaryArea[1].children[2].children[0].textContent*1 === lastVolume ? "⬅➡" : summaryArea[1].children[2].children[0].textContent*1 > lastVolume ? "⬆⬆⬆" : "⬇⬇⬇";  
     summaryArea[1].children[3].children[0].textContent = progress;
 }
 function getVolume(f,reps) {
@@ -175,8 +181,8 @@ function getVolume(f,reps) {
     }
 }
 function findProgress(targetMovement,targetDate,targetMetric){
-    let targetWorkouts = pastWorkoutsObject.filter(([k,v])=>v["workoutExercises"].hasOwnProperty(targetMovement) && k.split(",")[0]!==targetDate).sort((a,b)=>new Date(a[0])-new Date(b[0]));
-    let lastItem = targetWorkouts?.[targetWorkouts.length-1];
+    let targetWorkouts = pastWorkoutsObject.filter(([k,v])=>v["workoutExercises"].hasOwnProperty(targetMovement) && k.split(",")[0]!==targetDate);
+    let lastItem = targetWorkouts?.[targetWorkouts.length-2];
     return lastItem ? lastItem[1]["workoutExercises"][targetMovement].find(([k,v])=>k===targetMetric)[1] : "";
 }
 function fillShapeColor(object,bool=false){
@@ -349,4 +355,48 @@ function handleDateChange(){
     })
     document.body.append(modalEl);
     modalEl.show();
+}
+
+function handleEditData(e){
+    e.stopPropagation();
+    let modalEl = document.createElement("dialog");
+    let doneBtn = document.createElement("button");
+    let input = document.createElement("input");
+    input.type = "number";
+    doneBtn.textContent = "Done";
+    doneBtn.addEventListener("touchend",()=>{
+        if(e.target.id.includes("Multiple")) {
+            document.querySelectorAll(`#${e.target.id}`).forEach(el => el.value = input.value)
+        }
+        else{
+            e.target.value = input.value;
+        }
+        let val = e.target.id.includes("rir") ? (e.target.value*1).toFixed(1)+"Min" : e.target.id.includes("tut") ? (e.target.value*1).toFixed(1)+"Sec" : e.target.value ;  
+        let dataArray = exerciseData[targetExercise].map(([k,v])=>[k, k===e.target.id ? v = val : v]);
+        if(e.target.id.includes("weight") || e.target.id.includes("reps") || e.target.id.includes("Multiple")){
+            let eqwt = targetExercise.includes("dumbbell") ? dWt : targetExercise.includes("barbell") ? bWt : 0;  
+            let rx = dataArray.find(arr => arr[0]==="repMultiple")[1]*1;
+            let wx = dataArray.find(arr => arr[0]==="wtMultiple")[1]*1
+            let repsValArr = dataArray.filter(([k,v])=> k.includes("reps")).map(arr => arr[1]*rx)
+            let totalReps = repsValArr.reduce((a,b)=>a*1+b*1);
+            let weightValArr = dataArray.filter(([k,v])=> k.includes("weight")).map(arr => (arr[1]*1+eqwt)*wx)
+            let totalLoad = weightValArr.reduce((a,b)=>a*1+b*1);
+            let volTotal = repsValArr.crossMult(weightValArr);
+            dataArray = dataArray.map(arr => [arr[0], arr[0]==="repCount" ? arr[1] = totalReps : arr[0]==="load" ? arr[1] = totalLoad : arr[0]==="vol" ? arr[1] = volTotal : arr[1]]);
+        }
+        if(e.target.id.includes("rir") || e.target.id.includes("tut") || e.target.id.includes("rest") ){
+            let totalRIR = dataArray.filter(([k,v])=> k.includes("rir")).flatMap(arr => {let val = arr[1]; return val === "-" ? [0] : val*1 ? [val*1] : []}).reduce((a,b)=>(a*1+b*1)/2);
+            let totalTUT = dataArray.filter(([k,v])=> k.includes("tut")).flatMap(arr => {let val = arr[1].replace("Sec",""); return val = val==="-" ? [0] : val*1 ? [val*1] : []}).reduce((a,b)=>(a*1+b*1)/2);
+            let totalRest = dataArray.filter(([k,v])=> k.includes("rest")).flatMap(arr => {let val = arr[1].replace("Min",""); return val = val==="-" ? [0] : val*1 ? [val*1] : []}).reduce((a,b)=>(a*1+b*1)/2);
+            dataArray = dataArray.map(arr => arr[0]==="meanRIR" ? arr[1] = totalRIR : arr[0]==="meanTUT" ? arr[1] = totalTUT : arr[0]==="meanRest" ? arr[1] = totalRest : arr[1]);
+        }
+        finalLog[key]["workoutExercises"][targetExercise] = dataArray;
+        sessionStorage.finalLog = JSON.stringify(Object.entries(finalLog));
+        let updatedLog = pastWorkoutsObject.map(arr=> arr[0] === key ? [arr[0],arr[1] = finalLog[key]] : arr);
+        localStorage.workoutLogObject = JSON.stringify(updatedLog);
+        modalEl.close();
+    })
+    modalEl.append(input,doneBtn);
+    document.body.append(modalEl);
+    modalEl.showModal();
 }
