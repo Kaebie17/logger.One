@@ -225,7 +225,14 @@ svg > path:nth-child(23) {
         background-image: linear-gradient(60deg, var(--template-color-black), var(--template-color-mid), var(--template-color-soft));
     }
     body #container{
-        height: 87vh;
+        /* flex:1, not a fixed vh: now that #header/#footer size themselves
+           to their actual content (min-height, can grow), a fixed 87vh here
+           would either leave a gap or get squeezed under/over them depending
+           on the device. flex:1 always takes exactly what's left; min-height:0
+           is required for a flex child to still shrink/scroll instead of
+           forcing its content's natural size. */
+        flex: 1;
+        min-height: 0;
         overflow-y: scroll;
     }
     #header{
@@ -236,7 +243,15 @@ svg > path:nth-child(23) {
            down to almost nothing. 44px is the standard minimum comfortable
            tap-target size, so this never gets smaller than that regardless
            of orientation. */
-        height: max(8vh, 44px);
+        /* min-height, not height: with border-box, a hard height plus the
+           safe-area padding below could together leave less room than the
+           h1 actually needs, so the h1 would spill out past the header's
+           bottom edge into whatever comes next (e.g. the SVG on the home
+           page). min-height guarantees this floor without ever clipping
+           content that needs more; flex-shrink:0 stops the flex-column body
+           from squeezing it back down regardless. */
+        min-height: max(8vh, 44px);
+        flex-shrink: 0;
         /* env() falls back to 0 on a device with no notch/dynamic island, so
            this is a no-op there and only does anything on hardware that
            actually needs it. Only relevant once installed standalone --
@@ -498,7 +513,11 @@ svg > path:nth-child(23) {
     }
   
     #footer{
-        height: max(5vh, 40px);
+        /* Same min-height + flex-shrink:0 reasoning as #header above -- a
+           hard height plus safe-area padding was leaving too little room for
+           the nav links, squeezing/clipping them. */
+        min-height: max(5vh, 40px);
+        flex-shrink: 0;
         display: flex;
         justify-content: space-around;
         align-items: center;
