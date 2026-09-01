@@ -641,16 +641,59 @@ const graphics = (el,legEl,w,h) => {
 
 // Muscular man figure svg
 
-const muscularManSvg = (container,viewbox,w,h) => {
+// Was appending a fresh <script> tag on every call with no memory of
+// previous loads -- fine for a page that only calls muscularManSvg once,
+// but anything that re-renders the figure repeatedly (profile.js's
+// renderPhysique, now called on every head-image upload/remove) re-fetched
+// and re-executed frontsvg.js/backsvg.js each time, which redeclare their
+// top-level `const frontpaths`/`backpaths` and throw "already declared" on
+// every load past the first. Harmless in effect (the original binding
+// stays, and it's the same file so the value doesn't change) but noisy,
+// and left stale <script> tags accumulating in the DOM. Tracking what's
+// already loaded skips the redundant re-fetch/re-throw entirely.
+const loadedScripts = new Set();
+function loadScript(src) {
+  if (loadedScripts.has(src)) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const el = document.createElement("script");
+    el.src = src;
+    el.onload = () => { loadedScripts.add(src); resolve(); };
+    el.onerror = reject;
+    document.body.append(el);
+  });
+}
+
+const muscularManSvg = async (container,viewbox,w,h) => {
 const controlArea = document.createElement("div");
 const svgarea = document.createElementNS(url,"svg");
-    svgarea.setAttribute("width", `${w||100}%`);
-    svgarea.setAttribute("height", `${h||100}%`);
-    svgarea.setAttribute ("viewBox", `${viewbox?.[0]||0},${viewbox?.[1]||0},${viewbox?.[2]||180},${viewbox?.[3]||150}`);
+svgarea.setAttribute("width", `${w||100}%`);
+svgarea.setAttribute("height", `${h||100}%`);
 const frontView = svgarea.cloneNode(true);
-const backView = svgarea.cloneNode(true); 
-    
-const controls = svgarea.cloneNode(true);
+const backView = svgarea.cloneNode(true);
+// Front and back are two independently-traced pieces of artwork -- they
+// don't share a common size or registration point within any nominal
+// viewBox (front's content is 526x1005 centered at 659,671; back's is
+// 538x1073 centered at 625,657 -- verified from the actual path data,
+// not assumed). Giving both the same fixed viewBox made toggling jump:
+// each figure sat at its own absolute position/scale rather than the
+// same framing. Each view instead gets its own viewBox, centered on
+// THAT view's own content, but both the same 640x1160 size -- so the
+// zoom level matches and switching holds size and framing steady.
+frontView.setAttribute("viewBox", "339 91 640 1160");
+backView.setAttribute("viewBox", "305 77 640 1160");
+ await Promise.all([
+    loadScript("media/muscularman/frontsvg.js"),
+    loadScript("media/muscularman/backsvg.js"),
+  ]);
+// controls is its OWN svg, not a clone of svgarea: the toggle circles
+// below (r=30, cx 0/200, cy=75) were sized for a small ~200-unit space,
+// which is unrelated to the body diagram's 1254-unit viewBox svgarea now
+// carries -- cloning that in would leave these circles tiny and stuck in
+// one corner instead of filling this control's own area.
+const controls = document.createElementNS(url,"svg");
+controls.setAttribute("width", "100%");
+controls.setAttribute("height", "100%");
+controls.setAttribute("viewBox", "-40 0 280 150");
 const circle = document.createElementNS(url,"circle");
     circle.setAttribute("r", "30");
     circle.setAttribute("cy", "75");
@@ -662,16 +705,252 @@ const c1 = circle.cloneNode(true);
 const c2 = circle.cloneNode(true);
     c2.setAttribute("cx", "200");
 
-container.append(frontView);
+frontView.insertAdjacentHTML("beforeend",frontpaths)
+backView.insertAdjacentHTML("beforeend",backpaths)
 frontView.id = "frontHumanSVG";
-container.append(backView);
 backView.id = "backHumanSVG";
-backView.classList = "hide";
-container.append(controlArea);
-controlArea.append(controls);
-controls.append(c1,c2);
+if (container){
+    container.append(frontView);
+    container.append(backView);
+    backView.classList = "hide";
+    container.append(controlArea);
+    controlArea.append(controls);
+    controls.append(c1,c2);
+}
 
 let faceImgUrl = ""//prompt("Enter face image url");
+
+
+
+controls.addEventListener("click",(e)=> {
+    if(e.target.nodeName === "circle"){
+        [...e.target.parentNode.children].filter(el => el !== e.target).forEach(elm => elm.setAttribute("fill","white"));
+        e.target.setAttribute("fill","black");
+        if(e.target.getAttribute("cx") === "0"){
+            frontView.classList = [];
+            backView.classList[0] !== "hide" ? backView.classList.toggle("hide") : "";
+        }
+        else if(e.target.getAttribute("cx")*1 > 0){
+            backView.classList = [];
+            frontView.classList[0] !== "hide" ? frontView.classList.toggle("hide") : "";
+        }
+    }
+})
+return {frontView,backView}
+
+}
+
+function createDesign(parent,options,id,x,y,w,h,...pts){
+        let frag = document.createElementNS(url,"path");
+        let d = !pts[4] ? `M ${x} ${y} c ${pts[0]} ${pts[1]}, ${pts[2]} ${pts[3]}, ${w} ${h}` : `M ${x} ${y} c ${pts[0]} ${pts[1]}, ${pts[2]} ${pts[3]}, ${w} ${h} ${pts[4]}`;
+        frag.setAttribute("d", d);
+        frag.dataset.name = id;
+        let attributes = Object.keys(options);
+        if (attributes.length && !Array.isArray(options)){
+            attributes.forEach(attr => {
+                frag.setAttribute(attr,options[attr]) 
+            })
+        }
+        else{
+            frag.setAttribute("stroke", "black");
+            frag.setAttribute("stroke-width", "1");
+            frag.setAttribute("fill","transparent");
+        }
+    !Array.isArray(parent)? parent.append(frag) : parent.forEach(p => p.append(frag.cloneNode(true)));
+        
+}
+
+function defineVars(fn,parent,options,id,...params){
+    let [x,y,w,h,a,b,c,d] = params ;
+    return ({x1,y1,x2,y2,s1,t1,s2,t2,z,delta},bool) => {
+        let points = [x1,y1,x2,y2,s1,t1,s2,t2].filter(e => e);
+        if(points.length){
+            [x,y,w,h,a,b,c,d] = [x1??x,y1??y,x2??w,y2??h,s1??a,t1??b,s2??c,t2??d];
+        }
+        let temp = [];
+        if (bool === true){
+            temp.push (x-w,y-h)
+        }
+        if (bool === "rev"){
+            temp.push (x,y,-w,-h,-a,-b,-c,-d)
+        }
+        if(bool==="reset"){
+            [x,y,w,h,a,b,c,d] = params;
+            [x,y,w,h,a,b,c,d] = [x1??x,y1??y,x2??w,y2??h,s1??a,t1??b,s2??c,t2??d];
+        }
+        if(bool==="next"){
+            temp.push(x-w+delta[0]||0,y-h+delta[1]||0) ; 
+        }
+        x = temp?.[0] || (x1? x1 : x) ;
+        y = temp?.[1] || (y1 ? y1 : y) ;
+        w = temp?.[2] || (x2 ? x2 : w) ;
+        h = temp?.[3] || (y2 ? y2 : h) ;
+        a = temp?.[4] || a ;
+        b = temp?.[5] || b ;
+        c = temp?.[6] || c ;
+        d = temp?.[7] || d ;
+        fn.call(this,parent,options,id,x,y,w,h,a,b,c,d,z)
+        x = x+w;
+        y = y+h;
+    }
+}
+
+
+const statsWebGraph = (container,array,title,unit="%") => {
+    const createMarker = (textX) => {
+        let valX = 0;
+        let valY = 0;
+        for (i=30; i<=Math.floor(width/displayFactor*(textX.length-1)+30);i+=Math.floor(width/displayFactor)){ // hardcoded number accomodates equal number of dates on x-axis. Need to change it to be dynamic for day, week, and month view 
+            cloneText.append(textX[valX++]);
+            chart.append(cloneMarkerLineX,cloneText)
+        }
+    }   
+    const fieldset = document.createElement("fieldset");
+    const legend = document.createElement("legend");
+    const webContainer = document.createElementNS(url,"svg");
+    webContainer.setAttribute("width","100%");
+    // webContainer.setAttribute("height","100%");
+    // Was 125x150 with center [50,80] -- the shape+rings only ever reach
+    // 25+SAFE_HEADROOM=37 units from center (see below), so that viewBox
+    // carried a lot of dead space (most of it below center, since 80 isn't
+    // even the vertical middle of 150) that this SVG's auto height (no
+    // explicit height attribute -- width:100% and the viewBox aspect ratio
+    // together set it) turned directly into extra rendered pixel height on
+    // the page, which is what was forcing #statspage #container to scroll.
+    // A square viewBox sized to the shape's actual reach, centered on
+    // itself, removes that dead space and keeps the chart properly
+    // centered instead of off toward one edge.
+    webContainer.setAttribute("viewBox","0 0 120 120");
+    let labels = array.map(arr => arr[0]);
+    let values = array.map(arr => arr[1]).map(e => e);
+    // Raw values were being added directly as extra radius units with no
+    // bound, so a chart whose max value is anywhere near 40+ (common for
+    // the percentage-based charts) produces vertices past 65-80 units from
+    // center -- while the viewBox's tightest direction (leftward from
+    // center 50,80 to the left edge) only has 50 units of room before
+    // running past its own boundary, and less once label text width is
+    // accounted for. This wasn't visible before because the data shape is
+    // asymmetric (only the single highest-value direction reaches that far,
+    // and it happened not to land in the tight direction for the datasets
+    // tested) -- but the fixed-radius reference rings are perfectly regular
+    // octagons that need that clearance in EVERY direction at once, which
+    // is what exposed it. Scaling each chart's own max value down into a
+    // fixed, safe headroom fixes both: the data shape can never exceed the
+    // safe radius regardless of the metric's natural scale (percentage or
+    // raw 0-10 score alike), and the rings can now just use that same fixed
+    // headroom directly instead of needing their own per-chart floor.
+    const SAFE_HEADROOM = 12;
+    const chartMax = Math.max(...values, 0);
+    let scaledValues = values.map(v => chartMax>0 ? (v*1||0)/chartMax*SAFE_HEADROOM : 0);
+    let points;
+    let text = document.createElementNS(url,"text");    
+    // The exact center of the new 120x120 viewBox (was [50,80] in the old
+    // 125x150 one, which wasn't even that viewBox's own center).
+    let center = [60,60];
+    let lineEl = document.createElementNS(url,"path");
+    let n = array.length;
+    const drawShape = (startpts,len,vertices,angle=0) => {
+        let x  = startpts[0];
+        let y  = startpts[1];
+        points = `M ${Math.round(x+(len+scaledValues[n-1])*Math.sin(angle))} ${Math.round(y-(len+scaledValues[n-1])*Math.cos(angle))}` ;
+        let delta = 2*Math.PI/vertices;
+        for (let i=1; i<vertices; i++){
+            angle += delta;
+            points = points + ` L ${Math.round(x+(len+scaledValues[i-1])*Math.sin(angle))} ${Math.round(y-(len+scaledValues[i-1])*Math.cos(angle))}`;
+        }
+        points = points + ` Z` ; 
+        lineEl.setAttribute("d",points);
+        lineEl.setAttribute("stroke","black");
+        lineEl.setAttribute("stroke-width", "1");
+        lineEl.setAttribute("fill", "transparent");
+        webContainer.append(lineEl);
+    }
+    // Fixed-radius reference rings -- regular n-gons at 25/50/75/100% of
+    // THIS chart's own max value, drawn under the data shape. Previously
+    // this drew 10 scaled COPIES of the data shape itself (scale(1-i/10)
+    // around the same origin), which move and deform with the data -- they
+    // can't be read as "this point is at roughly X" since the ring at any
+    // given radius doesn't correspond to a fixed value. A regular polygon
+    // at a fixed radius does: every vertex of one ring represents the same
+    // value, so the shape's distance from a ring is actually meaningful.
+    const drawRing = (startpts,radius,vertices,angle=0) => {
+        let x = startpts[0];
+        let y = startpts[1];
+        let ringPoints = `M ${Math.round(x+radius*Math.sin(angle))} ${Math.round(y-radius*Math.cos(angle))}`;
+        let delta = 2*Math.PI/vertices;
+        for (let i=1; i<vertices; i++){
+            angle += delta;
+            ringPoints = ringPoints + ` L ${Math.round(x+radius*Math.sin(angle))} ${Math.round(y-radius*Math.cos(angle))}`;
+        }
+        ringPoints = ringPoints + ` Z`;
+        const ringEl = document.createElementNS(url,"path");
+        ringEl.setAttribute("d",ringPoints);
+        ringEl.setAttribute("stroke","rgba(255,255,255,0.3)");
+        ringEl.setAttribute("stroke-width","0.5");
+        ringEl.setAttribute("fill","transparent");
+        webContainer.append(ringEl);
+    }
+    // Rings use the same fixed SAFE_HEADROOM the data shape is scaled into
+    // above, so a ring at position i/ringCount always means "i/ringCount of
+    // this chart's own max value" -- consistent spacing on every chart
+    // regardless of whether its natural scale is a 0-100 percentage or a
+    // 0-10 raw score, and the highest-value point always lands exactly on
+    // the outermost ring by construction.
+    const ringCount = 4;
+    for (let i=1; i<=ringCount; i++){
+        drawRing(center, 25+(SAFE_HEADROOM*i/ringCount), n);
+    }
+    drawShape(center,25,n)
+    // let d = `M ${x-values[7]} ${y} L ${x} ${y-5-values[0]} L ${x+5+values[1]} ${y-10-values[1]} L ${x+11+values[2]} ${y-10+values[2]} L ${x+16+values[3]} ${y-5+values[3]} L ${x+16+values[4]} ${y+values[4]} L ${x+11-values[5]} ${y+5+values[5]} L ${x+5-values[6]} ${y+5+values[6]} L ${x-values[7]} ${y}`;
+    // let d = `M ${x-values[7]} ${y+values[7]} L ${x-values[0]} ${y-5-values[0]} L ${x+5+values[1]} ${y-10-values[1]} L ${x+11+values[2]} ${y-10} L ${x+16+values[3]} ${y-5+values[3]} L ${x+16+values[4]} ${y+values[4]} L ${x+11} ${y+5+values[5]} L ${x+5} ${y+5+values[6]} L ${x-values[7]} ${y+values[7]}`;
+    
+    let labelCoords = points.split("L").slice(1)
+    labelCoords.push(` ${center[0]+(15+scaledValues[n-1])*Math.sin(0)} ${center[1]-(15+scaledValues[n-1])*Math.cos(0)} `);
+    let i=0;
+    for (let el of labelCoords){
+        let cloneText = text.cloneNode(true);
+        let [x,y] = el.split(" ").filter(e => e);
+        cloneText.append(`${labels[i]}, ${values[i++]}${unit}`) 
+        cloneText.setAttribute("x", x-7);
+        cloneText.setAttribute("y", y);
+        cloneText.setAttribute("fill", "white");
+        webContainer.append(cloneText);
+    }
+    fieldset.append(webContainer)
+    fieldset.append(legend)
+    container.lastElementChild.before(fieldset);
+    legend.textContent = title;
+    // webContainer.setAttribute("height", container.lastElementChild?.getBBox().height*4)
+}
+
+const addScroll = (controlArea, array) => {
+    const svgarea = document.createElementNS(url,"svg");
+    svgarea.setAttribute("viewBox", "-45 0 100 10")
+    const controls = svgarea.cloneNode(true);
+    const circle = document.createElementNS(url,"circle");
+        circle.setAttribute("r", "1");
+        circle.setAttribute("cy", "5");
+        circle.setAttribute("stroke-width", "0.5");
+        circle.setAttribute("fill", "white");
+    for (let el of array){
+        let i = array.findIndex(e => e===el );
+        const c1 = circle.cloneNode(true);
+        c1.setAttribute("cx", `${c1.getAttribute("r")*3*i}`);
+        i===0 ? c1.setAttribute("fill", "black") : c1.setAttribute("fill", "white");
+        c1.id = el.lastElementChild.textContent;
+        c1.addEventListener("click",(e)=>{
+            let allElem = [...controlArea.parentElement.children];
+            let scrollArea = allElem.pop();
+            let targetEl = allElem.find(c => c.lastElementChild.textContent === e.target.id);
+            allElem.forEach(f => f!==targetEl ? f.style.display = "none" : f.style.display = "block");
+            [...scrollArea.firstElementChild.children].forEach(s => s!==e.target ? s.setAttribute("fill","white") : s.setAttribute("fill","black"));
+        })
+        controls.append(c1);
+    }
+    controlArea.append(controls);
+}
+
+/*
 const measurements = localStorage?.measuredValues ? Object.fromEntries(Object.entries(Object.values(JSON.parse(localStorage.measuredValues))[0]).map(([k,v])=> [k,v.split(" ")[0]])) : "" ;
 
 let neck = measurements?.["neck"]*1 || 13;
@@ -684,7 +963,6 @@ let chest = measurements?.["chest"]*1 || 50;
 let fat = measurements?.["abdomen"]-10 || 20
 let latSpread = chest*1.5;
 let color = "grey";
-
 //Head
 let drawHead = defineVars(createDesign,[frontView],"","head",50,-20,25,25,0,28,0,28)
 drawHead({})
@@ -1206,170 +1484,4 @@ drawFeetBack({s2:-5, t2:-5})
 drawFeetBack({x1:55,y1:135,x2:12,y2:0,t2:-12}, "rev")
 drawFeetBack({x1:85,y1:138, s2:-5, t2:-5},"reset")
 drawFeetBack({x1:85,y1:138,x2:13,y2:1,s2:20, t2:-10, t1:0}, "rev");
-
-controls.addEventListener("click",(e)=> {
-    if(e.target.nodeName === "circle"){
-        [...e.target.parentNode.children].filter(el => el !== e.target).forEach(elm => elm.setAttribute("fill","white"));
-        e.target.setAttribute("fill","black");
-        if(e.target.getAttribute("cx") === "0"){
-            frontView.classList = [];
-            backView.classList[0] !== "hide" ? backView.classList.toggle("hide") : "";
-        }
-        else if(e.target.getAttribute("cx")*1 > 0){
-            backView.classList = [];
-            frontView.classList[0] !== "hide" ? frontView.classList.toggle("hide") : "";
-        }
-    }
-})
-}
-
-function createDesign(parent,options,id,x,y,w,h,...pts){
-        let frag = document.createElementNS(url,"path");
-        let d = !pts[4] ? `M ${x} ${y} c ${pts[0]} ${pts[1]}, ${pts[2]} ${pts[3]}, ${w} ${h}` : `M ${x} ${y} c ${pts[0]} ${pts[1]}, ${pts[2]} ${pts[3]}, ${w} ${h} ${pts[4]}`;
-        frag.setAttribute("d", d);
-        frag.dataset.name = id;
-        let attributes = Object.keys(options);
-        if (attributes.length && !Array.isArray(options)){
-            attributes.forEach(attr => {
-                frag.setAttribute(attr,options[attr]) 
-            })
-        }
-        else{
-            frag.setAttribute("stroke", "black");
-            frag.setAttribute("stroke-width", "1");
-            frag.setAttribute("fill","transparent");
-        }
-    !Array.isArray(parent)? parent.append(frag) : parent.forEach(p => p.append(frag.cloneNode(true)));
-        
-}
-
-function defineVars(fn,parent,options,id,...params){
-    let [x,y,w,h,a,b,c,d] = params ;
-    return ({x1,y1,x2,y2,s1,t1,s2,t2,z,delta},bool) => {
-        let points = [x1,y1,x2,y2,s1,t1,s2,t2].filter(e => e);
-        if(points.length){
-            [x,y,w,h,a,b,c,d] = [x1??x,y1??y,x2??w,y2??h,s1??a,t1??b,s2??c,t2??d];
-        }
-        let temp = [];
-        if (bool === true){
-            temp.push (x-w,y-h)
-        }
-        if (bool === "rev"){
-            temp.push (x,y,-w,-h,-a,-b,-c,-d)
-        }
-        if(bool==="reset"){
-            [x,y,w,h,a,b,c,d] = params;
-            [x,y,w,h,a,b,c,d] = [x1??x,y1??y,x2??w,y2??h,s1??a,t1??b,s2??c,t2??d];
-        }
-        if(bool==="next"){
-            temp.push(x-w+delta[0]||0,y-h+delta[1]||0) ; 
-        }
-        x = temp?.[0] || (x1? x1 : x) ;
-        y = temp?.[1] || (y1 ? y1 : y) ;
-        w = temp?.[2] || (x2 ? x2 : w) ;
-        h = temp?.[3] || (y2 ? y2 : h) ;
-        a = temp?.[4] || a ;
-        b = temp?.[5] || b ;
-        c = temp?.[6] || c ;
-        d = temp?.[7] || d ;
-        fn.call(this,parent,options,id,x,y,w,h,a,b,c,d,z)
-        x = x+w;
-        y = y+h;
-    }
-}
-
-
-const statsWebGraph = (container,array,title,unit="%") => {
-    const createMarker = (textX) => {
-        let valX = 0;
-        let valY = 0;
-        for (i=30; i<=Math.floor(width/displayFactor*(textX.length-1)+30);i+=Math.floor(width/displayFactor)){ // hardcoded number accomodates equal number of dates on x-axis. Need to change it to be dynamic for day, week, and month view 
-            cloneText.append(textX[valX++]);
-            chart.append(cloneMarkerLineX,cloneText)
-        }
-    }   
-    const fieldset = document.createElement("fieldset");
-    const legend = document.createElement("legend");
-    const webContainer = document.createElementNS(url,"svg");
-    webContainer.setAttribute("width","100%");
-    // webContainer.setAttribute("height","100%");
-    webContainer.setAttribute("viewBox","0 0 125 150");
-    let labels = array.map(arr => arr[0]);
-    let values = array.map(arr => arr[1]).map(e => e);   
-    let points;
-    let text = document.createElementNS(url,"text");    
-    let center = [50,80];
-    let lineEl = document.createElementNS(url,"path");
-    let n = array.length;
-    const drawShape = (startpts,len,vertices,angle=0) => {
-        let x  = startpts[0];
-        let y  = startpts[1];
-        points = `M ${Math.round(x+(len+values[n-1])*Math.sin(angle))} ${Math.round(y-(len+values[n-1])*Math.cos(angle))}` ;
-        let delta = 2*Math.PI/vertices;
-        for (let i=1; i<vertices; i++){    
-            angle += delta;
-            points = points + ` L ${Math.round(x+(len+values[i-1])*Math.sin(angle))} ${Math.round(y-(len+values[i-1])*Math.cos(angle))}`;
-        }
-        points = points + ` Z` ; 
-        lineEl.setAttribute("d",points);
-        lineEl.setAttribute("stroke","black");
-        lineEl.setAttribute("stroke-width", "1");
-        lineEl.setAttribute("fill", "transparent");
-        webContainer.append(lineEl);
-    }
-    drawShape(center,25,n)
-    // let d = `M ${x-values[7]} ${y} L ${x} ${y-5-values[0]} L ${x+5+values[1]} ${y-10-values[1]} L ${x+11+values[2]} ${y-10+values[2]} L ${x+16+values[3]} ${y-5+values[3]} L ${x+16+values[4]} ${y+values[4]} L ${x+11-values[5]} ${y+5+values[5]} L ${x+5-values[6]} ${y+5+values[6]} L ${x-values[7]} ${y}`;
-    // let d = `M ${x-values[7]} ${y+values[7]} L ${x-values[0]} ${y-5-values[0]} L ${x+5+values[1]} ${y-10-values[1]} L ${x+11+values[2]} ${y-10} L ${x+16+values[3]} ${y-5+values[3]} L ${x+16+values[4]} ${y+values[4]} L ${x+11} ${y+5+values[5]} L ${x+5} ${y+5+values[6]} L ${x-values[7]} ${y+values[7]}`;
-    
-    for (let i=0; i<10; i++){
-        let pathClone = lineEl.cloneNode(true);
-        pathClone.setAttribute("transform",`scale(${1-i/10})`)
-        pathClone.setAttribute("transform-origin",`50 80`)     
-        webContainer.append(pathClone);
-    }
-    
-    let labelCoords = points.split("L").slice(1)
-    labelCoords.push(` ${center[0]+(15+values[n-1])*Math.sin(0)} ${center[1]-(15+values[n-1])*Math.cos(0)} `);
-    let i=0;
-    for (let el of labelCoords){
-        let cloneText = text.cloneNode(true);
-        let [x,y] = el.split(" ").filter(e => e);
-        cloneText.append(`${labels[i]}, ${values[i++]}${unit}`) 
-        cloneText.setAttribute("x", x-7);
-        cloneText.setAttribute("y", y);
-        cloneText.setAttribute("fill", "white");
-        webContainer.append(cloneText);
-    }
-    fieldset.append(webContainer)
-    fieldset.append(legend)
-    container.lastElementChild.before(fieldset);
-    legend.textContent = title;
-    // webContainer.setAttribute("height", container.lastElementChild?.getBBox().height*4)
-}
-
-const addScroll = (controlArea, array) => {
-    const svgarea = document.createElementNS(url,"svg");
-    svgarea.setAttribute("viewBox", "-45 0 100 10")
-    const controls = svgarea.cloneNode(true);
-    const circle = document.createElementNS(url,"circle");
-        circle.setAttribute("r", "1");
-        circle.setAttribute("cy", "5");
-        circle.setAttribute("stroke-width", "0.5");
-        circle.setAttribute("fill", "white");
-    for (let el of array){
-        let i = array.findIndex(e => e===el );
-        const c1 = circle.cloneNode(true);
-        c1.setAttribute("cx", `${c1.getAttribute("r")*3*i}`);
-        i===0 ? c1.setAttribute("fill", "black") : c1.setAttribute("fill", "white");
-        c1.id = el.lastElementChild.textContent;
-        c1.addEventListener("click",(e)=>{
-            let allElem = [...controlArea.parentElement.children];
-            let scrollArea = allElem.pop();
-            let targetEl = allElem.find(c => c.lastElementChild.textContent === e.target.id);
-            allElem.forEach(f => f!==targetEl ? f.style.display = "none" : f.style.display = "block");
-            [...scrollArea.firstElementChild.children].forEach(s => s!==e.target ? s.setAttribute("fill","white") : s.setAttribute("fill","black"));
-        })
-        controls.append(c1);
-    }
-    controlArea.append(controls);
-}
+*/

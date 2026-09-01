@@ -224,6 +224,19 @@ svg > path:nth-child(23) {
         flex-direction: column;
         background-image: linear-gradient(60deg, var(--template-color-black), var(--template-color-mid), var(--template-color-soft));
     }
+    /* Every other page pins its body to one viewport (height + overflow:
+       hidden) via a page-specific id (#profilepage, #pastworkout, ...),
+       which is what makes #header/#footer -- both just flex-shrink:0, with
+       no height cap of their own -- hold still while #container's
+       flex:1 + overflow-y:scroll above takes the actual scrolling. index.html's
+       <body> had no id, so it never got that constraint: the body grew to
+       fit its content and the whole page scrolled as one piece, header and
+       footer included, instead of just #container. */
+    #indexpage{
+        height: 100vh;
+        height: 100dvh;
+        overflow: hidden;
+    }
     body #container{
         /* flex:1, not a fixed vh: now that #header/#footer size themselves
            to their actual content (min-height, can grow), a fixed 87vh here
@@ -350,7 +363,14 @@ svg > path:nth-child(23) {
     }
     #schedule > div:first-child{
         margin-top: 1%;
-        height: 4vh;
+        /* Was a hard height:4vh -- at typical mobile viewport heights that's
+           ~20-25px, which the 1.5rem (24px) label text plus its own top
+           padding already exceeds before any padding is even added, so the
+           row clipped/overlapped the calendar box right below it (visible
+           at narrower/shorter viewports). min-height lets it grow to fit
+           its actual content, same fix already applied to #header/#footer
+           elsewhere in this file. */
+        min-height: 4vh;
         color: white;
         display: flex;
         justify-content: space-between;
@@ -395,6 +415,13 @@ svg > path:nth-child(23) {
         display: none;
         flex-direction: column;
         align-items: center;
+        /* Clicking the "Calendar" link scrolls this :target element flush
+           to the top of #container's scroll area, which pushes the "7-Day
+           Status / Calendar" label row (its immediate DOM sibling, right
+           above it) up and out of view -- clipped behind it at shorter
+           viewports. scroll-margin-top reserves room for that row so it
+           stays visible after the jump, regardless of viewport size. */
+        scroll-margin-top: 6vh;
      }
      #schedule #calendar .label-area{
         font-size: 2rem;
@@ -408,92 +435,206 @@ svg > path:nth-child(23) {
         margin: 0.5vh;
         padding: 0.5vh 0.5vh 0.9vh 0.5vh;
         padding-left: 1vh;
-        width: 75%;
+        width: 95%;
         height: 21vh;
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
+        /* Was flex-wrap with each circle sized in vh (viewport HEIGHT) --
+           completely decoupled from how much WIDTH is actually available
+           for 7 across, so on any screen where that ratio didn't happen to
+           match, circles either overflowed the row or sat too small for
+           their own text. A 7-column grid guarantees exactly 7 per row
+           regardless of size; container-type below lets each circle size
+           itself off THIS element's actual width instead of the viewport. */
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        /* 7 columns + 6 gaps of 1cqw = 100cqw available minus 6cqw of gap,
+           divided 7 ways: (100-6)/7 ~= 13.4cqw per column. Grid's own
+           row-auto-sizing does not reliably match a row's height to a 1fr
+           column's resolved width when the row also has aspect-ratio
+           content in it (confirmed: circles were rendering visibly taller
+           than wide, an oval, not a circle) -- so rather than lean on that,
+           every row is pinned to this same explicit 13.4cqw, matching the
+           column width by construction instead of by hoping two different
+           sizing algorithms agree. */
+        grid-auto-rows: 13.4cqw;
+        align-content: start;
         overflow-y: scroll;
+        /* On a platform with a classic (space-consuming, not overlay)
+           scrollbar, the grid's columns were sized against the full width
+           and only afterward did the always-on scrollbar (overflow-y:
+           scroll) claim its own space -- pushing the last column's circles
+           past the right edge by the scrollbar's width. Reserving that
+           space upfront keeps the 7-column math accurate regardless of
+           which kind of scrollbar the platform uses. */
+        scrollbar-gutter: stable;
+        container-type: inline-size;
      }
      #schedule #calendar .date-body {
-        margin: 0.5vw;
         background-color: white;
         color: black;
-        font-size: 1.1rem;
+        /* cqw = % of the calendar-body's own width (see container-type
+           above), so this tracks the circle's actual size (driven by the
+           grid column, i.e. real available width) instead of the viewport
+           height. clamp() keeps it legible at extremes without needing a
+           fixed vh/rem guess. */
+        font-size: clamp(0.65rem, 6cqw, 1.2rem);
         font-weight: 700;
         border-radius: 50%;
-        width: 4vh;
-        height: 4vh;
+        /* Explicit 13.4cqw on both axes, matching the grid-auto-rows value
+           above exactly -- guarantees a real circle regardless of how the
+           browser resolves aspect-ratio inside a flexible grid track. Also
+           sidesteps the earlier min-width:auto bug (an item's own content
+           forcing its column wider than its 1fr share) since these are no
+           longer percentage/auto sized off the track at all. */
+        width: 13.4cqw;
+        height: 13.4cqw;
+        /* Grid items default to min-width/min-height:auto, which floors
+           their size at their content's min-content size regardless of the
+           explicit width/height above -- so a two-character weekday label
+           like "Th" (min-content can't shrink further, pre-wrap only breaks
+           at the explicit \n) was forcing its column wider than its 1fr
+           share, which pushed the whole 7-column row past the calendar-
+           body's right edge. Zeroing the automatic minimum lets the
+           explicit 13.4cqw actually govern the box, so all 7 columns add up
+           to 100cqw as intended instead of overflowing it. */
+        min-width: 0;
+        min-height: 0;
+        /* Padding was fighting the same aspect-ratio ambiguity above: with
+           height derived from content instead of pinned, adding padding
+           just gave the content more room to push the box taller. Explicit
+           equal width/height removes that failure mode, so this now does
+           what it looks like it does -- breathing room between the date
+           number and the circle's edge -- without distorting the shape.
+           6%, not 10%: font-size is sized independently (as a % of the
+           container's width, not of this padded box), so at 10% two-digit
+           dates clipped against the padding at a couple of tested sizes --
+           checked directly (scrollWidth/Height vs clientWidth/Height on
+           the actual rendered circles, not just eyeballed) after each
+           change until nothing clipped. */
+        padding: 6%;
         border: 1px black solid;
         display: flex;
         justify-content: center;
         align-items: center;
         white-space: pre-wrap;
         text-align: center;
+        /* This renders TWO lines ("Sa\n1", weekday then day) via the
+           pre-wrap above, not one -- missed on the first pass, which is
+           why circles at some sizes still clipped after fixing padding.
+           Default line-height (~1.2) sized for two stacked lines needs
+           more vertical room than the circle has; 1 tightens that back to
+           roughly what a single line was already fitting, without having
+           to shrink the font. Checked directly against clientHeight vs
+           scrollHeight on the actual rendered circles at 5 sizes, not
+           eyeballed. */
+        line-height: 1;
      }
 
     #schedule > div > #streak{
-        height: 20vh;
+        /* Was a hard 20vh -- at the larger clamp() sizes below (and on
+           narrow phones where the fluid clamp() font sizes lean toward
+           their upper bound) the "Best Lift" card's content can need more
+           room than that, so this only sets a floor and lets the card grow
+           instead of clipping/overlapping its own text. */
+        min-height: 20vh;
         display: flex;
+        gap: 2%;
     }
     #schedule > div > #streak > span{
-        margin: 1%;
-        width: 50%;
+        margin: 1% 0;
+        width: 49%;
         border: var(--template-color-black) 1px solid;
+        border-radius: 0.5rem;
+        padding: 0 1%;
         display: flex;
+        align-items: center;
         justify-content: space-between;
+        /* Every cqw size below tracks this card's own resolved width. The
+           old sizes were in vw (viewport width) even though this card is
+           only ~49% of #streak's width minus its own border/padding/arrows
+           -- a ratio that drifts across viewport widths, and at narrow
+           mobile widths was letting the "current" value's width/font-size
+           run past what was actually left beside the "previous" value,
+           overlapping the two. */
+        container-type: inline-size;
+        overflow: hidden;
     }
     #schedule > div > #streak > span > span{
+        flex: 0 0 auto;
         width: fit-content;
-        font-size: 2rem;
+        padding: 0 1.5cqw;
+        font-size: clamp(1rem, 7cqw, 1.5rem);
+        font-weight: 700;
         color: white;
+        cursor: pointer;
+    }
+    #schedule > div > #streak > span > div {
+        flex: 1 1 auto;
+        /* Flex items default to min-width:auto, which floors this at its
+           text's min-content width -- for a multi-word lift name that can
+           exceed the room actually left beside the two arrow spans, pushing
+           the card wider than its 49% share instead of wrapping. */
+        min-width: 0;
         display: flex;
         flex-direction: column;
-        justify-content: center;
-        text-align: center;
+        align-items: center;
     }
     #schedule > div > #streak > span > div > h3 {
+        width: 100%;
+        margin: 0 0 0.5vh 0;
         text-align: center;
         color: white;
         text-decoration: underline;
+        font-size: clamp(0.7rem, 6.5cqw, 1.05rem);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     #schedule > div > #streak > span > div > span {
-        display: flex;
-        align-items: end;
-    }
-    #schedule > div > #streak > #lifthighlights > div > span{
+        width: 100%;
         display: flex;
         flex-direction: column;
-        gap:1vh;
-        align-items: start;
+        align-items: center;
+        gap: 0.6vh;
     }
     #schedule > div > #streak > span > div > span > p{
+        width: 100%;
         color: red;
-        font-size: 2rem;
-        text-align:center;
-        height: fit-content;
+        font-weight: 900;
+        text-align: center;
+        overflow-wrap: break-word;
+    }
+    /* The "current" value (this month's workout count / this period's best
+       lift). Scrollable+capped by default since a lift name can run long;
+       the number cards below override both away since a plain number never
+       needs it. */
+    #schedule > div > #streak > span > div > span > p:first-child{
+        font-size: clamp(1.05rem, 8cqw, 1.4rem);
         font-style: italic;
+        max-height: 9vh;
+        overflow-y: auto;
     }
-    #schedule > div > #streak > #lifthighlights > div > span > p{
-        color: red;
-        font-size: 0.8rem;
-        text-align:right;
-        height: fit-content;
-        white-space:pre-wrap;
-        font-weight:900;
-        overflow-y: scroll;
-        width: 32vw;
-        padding: 0 1vw;
-    }
-    #schedule > div > #streak > #lifthighlights > div > span > p:first-child{
-        font-size: 1.25rem;
-        text-align: left;
-        height: 8.5vh;
-        word-break: break-all;
-    }
+    #schedule > div > #streak > span > div > span > p:first-child.stat-number-value,
     #schedule > div > #streak > #monthlyhighlights > div > span > p:first-child{
-        width: 30vw;
-        font-size: 5.5rem;
+        font-size: clamp(2.1rem, 15cqw, 3.4rem);
+        font-style: normal;
+        line-height: 1;
+        max-height: none;
+        overflow-y: visible;
+    }
+    /* The "previous period" value -- kept visually secondary (smaller,
+       muted, labelled) so it reads as a comparison rather than competing
+       with the current value for attention. */
+    #schedule > div > #streak > span > div > span > p:last-child{
+        font-size: clamp(0.6rem, 4cqw, 0.8rem);
+        font-style: normal;
+        opacity: 0.75;
+    }
+    /* :empty guards against the label showing with nothing after it --
+       liftHighlights' "previous" value can be set to "" when there's no
+       data for the prior month. */
+    #schedule > div > #streak > span > div > span > p:last-child:not(:empty)::before{
+        content: "last month: ";
+        font-style: italic;
     }
     #templates{
         height: 30vh;
@@ -623,23 +764,50 @@ svg > path:nth-child(23) {
    } 
     #createworkoutform > #snapshotcontainer{
     display: grid;
-    grid-template-columns: 50% 55%;
+    /* Was 50% 55% -- summed to 105%, wider than the container itself
+       could ever be, on top of which #addexercises below wasn't even
+       using this column's width in the first place. */
+    grid-template-columns: 1fr 1fr;
+    gap: 2%;
     padding: 0;
     border: 0;
     height: 5vh;
-    width: 95vw;
+    /* Was 95vw -- the viewport's width, not this container's. This sits
+       inside #createworkoutform's own 2%-margin/2%-padding card, so 95vw
+       ran past that card's actual right edge; width:100% fills the cell
+       #createworkoutform > *:not(p,hr) already sized correctly. */
+    width: 100%;
     border-radius: 1vh;
    }
    #createworkoutform > #snapshotcontainer > #addexercises{
-    grid-area: 1/1/2/2;
+    /* Spans both columns by default (full-width button before any
+       exercises are picked, when #flag doesn't exist yet). Once
+       presentStats() appends #flag as its sibling, the :has() rule below
+       narrows this back to column 1 so #flag can occupy column 2. */
+    grid-column: 1 / -1;
+    grid-row: 1;
+    /* Was height:4vh with padding-top only and no vertical centering --
+       at this element's inherited 1.5rem text, that box was shorter than
+       its own line of text, so the text spilled past the bottom edge
+       right where the border/box-shadow sit, reading as the border
+       cutting through the letters. min-height instead of height lets the
+       box grow to fit the text instead of clipping it; flex centering
+       replaces the asymmetric padding-top hack. */
+    display: flex;
+    align-items: center;
+    justify-content: center;
     text-align: center;
     box-shadow: 3px 3px gray;
     border: 1px white solid;
-    height: 4vh;
-    padding-top: 1vh;
-    padding-left: 1vw;
-    padding-right: 1vw;
-    width: 93vw;
+    min-height: 4vh;
+    padding: 0.5vh 1vw;
+    /* Was 93vw -- nearly the full viewport width regardless of this
+       button sitting in one column of a 2-column grid, so it overflowed
+       straight through its own grid cell and past the card's edge; the
+       box-shadow above then rendered off of that overflowing, clipped
+       edge instead of a clean edge -- the stray gray sliver next to the
+       button. 100% fills the actual grid cell instead. */
+    width: 100%;
     margin: 0;
     border-radius: 1vh;
    }
@@ -647,10 +815,18 @@ svg > path:nth-child(23) {
     border-color:transparent;
     box-shadow: none;
     opacity: 50%;
-   } 
-   
+   }
+   #createworkoutform > #snapshotcontainer:has(#flag) > #addexercises{
+    grid-column: 1;
+   }
+
    #createworkoutform > #snapshotcontainer  #snapshot {
-    width : 38vw;
+    /* Was 38vw, sized against the old ~93vw-wide button. Now that the
+       button fills its actual grid cell (roughly half the card), a fixed
+       viewport-relative width would overflow it; fit-content plus a cap
+       lets it size to its own text without doing that. */
+    width: fit-content;
+    max-width: 55%;
     height: 3vh;
     padding-top: 0.5vh;
     font-size : 0.9rem;
@@ -665,8 +841,109 @@ svg > path:nth-child(23) {
     z-index: 1;
     opacity: 40%;
    }
+   /* Unstyled, Chromium's <input type="range"> renders as one flat,
+      undifferentiated white capsule -- no track/thumb color, no visual
+      difference between "filled" and "empty", so it didn't read as a
+      0-10 scale at all, just a bar with a floating dot (accent-color
+      alone doesn't fix this: Chromium only tints the thumb with it, it
+      doesn't fill the track by value the way Firefox does). A static
+      green-to-red gradient track is a scale regardless of engine or
+      thumb position -- the classic low-effort-to-max-effort read, and
+      it doesn't need JS to track the live value like a true fill would.
+      -webkit-appearance/appearance:none drops the native track+thumb so
+      the pseudo-elements below can replace both. */
    #createworkoutform > span > input[type="range"]{
     width: 60vw;
+    height: 1.5rem;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+   }
+   /* Shared by every gradient-scale slider in the app (logworkout's
+      Intensity/Soreness, the next-day soreness popup, the history "Edit
+      Soreness" control) so the color/shape only needs tuning in one place.
+      Each host still sets its own width/height/appearance:none -- sizing
+      context differs (a full form row vs. a compact dialog). */
+   .gradient-range::-webkit-slider-runnable-track{
+    height: 0.5rem;
+    border-radius: 1rem;
+    background: linear-gradient(90deg, #2ecc71, #f1c40f, #e74c3c);
+   }
+   .gradient-range::-moz-range-track{
+    height: 0.5rem;
+    border-radius: 1rem;
+    background: linear-gradient(90deg, #2ecc71, #f1c40f, #e74c3c);
+   }
+   .gradient-range::-webkit-slider-thumb{
+    -webkit-appearance: none;
+    appearance: none;
+    width: 1.2rem;
+    height: 1.2rem;
+    /* Centers the 1.2rem thumb over the 0.5rem track. */
+    margin-top: -0.35rem;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid var(--template-color-black);
+   }
+   .gradient-range::-moz-range-thumb{
+    width: 1.2rem;
+    height: 1.2rem;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid var(--template-color-black);
+   }
+   /* Verified by sampling actual rendered pixels: targeting `background`
+      (or `filter`) on the track/thumb pseudo-elements themselves did NOT
+      change their rendered color here -- the disabled Soreness slider
+      came out pixel-identical to the enabled one. filter on the host
+      <input> itself reliably desaturates everything painted for it,
+      including its UA-shadow-DOM track and thumb, so it doesn't depend
+      on those pseudo-elements accepting the override. */
+   #createworkoutform > span > input[type="range"]:disabled{
+    filter: grayscale(1) opacity(0.6);
+   }
+   /* The next-day soreness popup (functions.js, checkLastWorkoutSoreness) --
+      unlike every other dialog in this app, it's built and injected by
+      functions.js itself and can appear on top of ANY page (that file runs
+      everywhere), so this is deliberately not scoped under a #somepage
+      prefix the way #pastworkout's dialogs are. */
+   #sorenessprompt{
+    background-color: var(--template-color-mid);
+    color: white;
+    border: 1px solid white;
+    border-radius: 1vh;
+    padding: 3vh 4vw;
+    width: 80vw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2vh;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+   }
+   #sorenessprompt::backdrop{
+    background: rgba(0,0,0,0.6);
+   }
+   #sorenessprompt p{
+    text-align: center;
+    font-size: 1.1rem;
+    margin: 0;
+   }
+   #sorenessprompt input[type="range"]{
+    width: 100%;
+    height: 1.5rem;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+   }
+   #sorenessprompt button{
+    width: 50%;
+    height: 4vh;
+    background-image: linear-gradient(60deg, var(--template-color-light), var(--template-color-soft));
+    border: 0;
+    color: white;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    font-size: 1.1rem;
+    border-radius: 0.5vh;
    }
    #createworkoutform .scale{
     display: flex;
@@ -994,23 +1271,35 @@ svg > path:nth-child(23) {
    }
    #createtemplatepage #snapshotcontainer{
     display: grid;
-    grid-template-columns: 50% 55%;
+    /* Same fix as #createworkoutform > #snapshotcontainer -- see there
+       for why (50%+55% overflowed the grid; 95vw ignored the actual
+       card width). */
+    grid-template-columns: 1fr 1fr;
+    gap: 2%;
     padding: 0;
     border: 0;
     height: 5vh;
-    width: 95vw;
+    width: 100%;
     border-radius: 1vh;
    }
    #createtemplatepage #snapshotcontainer > #addexercises{
-    grid-area: 1/1/2/2;
+    /* Same fix as #createworkoutform's #addexercises -- spans both
+       columns until #flag exists as a sibling, see the :has() rule
+       below and the comment on the workout page's version. */
+    grid-column: 1 / -1;
+    grid-row: 1;
+    /* Same min-height + flex-centering fix as the workout page's version
+       -- see the comment there for why height:4vh + padding-top-only was
+       letting the text spill past the border/shadow. */
+    display: flex;
+    align-items: center;
+    justify-content: center;
     text-align: center;
     box-shadow: 3px 3px gray;
     border: 1px white solid;
-    height: 4vh;
-    padding-top: 1vh;
-    padding-left: 1vw;
-    padding-right: 1vw;
-    width: 93vw;
+    min-height: 4vh;
+    padding: 0.5vh 1vw;
+    width: 100%;
     margin: 0;
     border-radius: 1vh;
    }
@@ -1018,10 +1307,14 @@ svg > path:nth-child(23) {
     border-color:transparent;
     box-shadow: none;
     opacity: 50%;
-   } 
-   
+   }
+   #createtemplatepage #snapshotcontainer:has(#flag) > #addexercises{
+    grid-column: 1;
+   }
+
    #createtemplatepage  #snapshotcontainer  #snapshot {
-    width : 38vw;
+    width: fit-content;
+    max-width: 55%;
     height: 3vh;
     padding-top: 0.5vh;
     font-size : 0.9rem;
@@ -1126,6 +1419,7 @@ svg > path:nth-child(23) {
     }
     #pastworkout #snapshot{
         display: flex;
+        flex-wrap: wrap;
         justify-content: space-around;
         border: 1px white solid;
         padding: 1vh;
@@ -1136,32 +1430,39 @@ svg > path:nth-child(23) {
         align-items: center;
     }
     #pastworkout #exercises{
-        height: fit-content;
+        /* height is set inline by renderExerciseBubbles() (pastworkout.js) --
+           children are absolutely positioned now (packed bubble layout, not
+           flex-wrap), so this no longer auto-sizes to fit them on its own. */
+        position: relative;
         margin: 1vh;
         padding: 1vh;
         border: 1px white solid;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        align-content: center;
+        overflow: hidden;
     }
     #pastworkout #exercises > div{
-        margin: 0;
+        /* Position/size/left/top/font-size/background are all set inline
+           per bubble in JS (packed layout + volume-driven sizing/color) --
+           this only covers what's the same for every bubble. */
+        position: absolute;
+        box-sizing: border-box;
         border: 2px white solid;
         border-radius: 50%;
-        min-width: 3vh;
-        min-height: 3vh;
         background-color:#232D3F;
         color: white;
         display: flex;
         align-items: center;
-        font-size: 1rem;
-        white-space: nowrap;
+        justify-content: center;
         overflow: hidden;
-        text-overflow:ellipsis;
     }
-    #pastworkout #exercises p{
-         
+    #pastworkout #exercises > div > span{
+        /* Clicks always need to resolve to the bubble div itself --
+           handleClick (pastworkout.js) reads event.target.id expecting the
+           exercise name, which lives on the div, not this label. */
+        pointer-events: none;
+        width: 78%;
+        text-align: center;
+        overflow-wrap: break-word;
+        line-height: 1.05;
     }
     #pastworkout #expand{
         display: none;
@@ -1210,20 +1511,41 @@ svg > path:nth-child(23) {
         width: 95%;
      }
      #pastworkout #expand #exdetails label{
-        width: 12vw;
+        /* Was 12vw -- 8 columns at 12vw each is 96vw, wider than #exdetails
+           itself (95%, and that's 95% of an already-narrower ancestor), so
+           columns were overflowing even before considering any gap between
+           them. flex:1 instead divides .row's own actual width evenly
+           regardless of viewport size. */
+        flex: 1 1 0;
+        min-width: 0;
         text-align: center;
+        font-size: clamp(0.55rem, 2.6vw, 0.75rem);
      }
      #pastworkout #expand #exdetails output{
+        /* Same flex fix as label above. font-size was a flat 2rem -- at an
+           8-column-wide cell that's larger than the cell itself, so values
+           like "40Sec" ran past their own cell into the next one with no
+           border or gap to show where one ended and the next began (the
+           "1.5405ec3" look). Both fixed here: a border between cells, and
+           a font-size that actually fits a multi-character value in an
+           eighth of the row's width. */
+        flex: 1 1 0;
+        min-width: 0;
         background-color: white;
-        width: 12vw;
-        height: 5vh;
-        font-size: 2rem;
+        height: 4.5vh;
+        font-size: clamp(0.55rem, 2.8vw, 0.85rem);
         color: black;
         text-align: center;
+        border: 1px solid var(--template-color-black);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
      }
      #pastworkout #expand #exdetails > .row{
         display: flex;
-        justify-content: space-around;
+        justify-content: space-between;
+        gap: 0.5%;
      }
      #pastworkout #svgcontainer{
         border: 1px white solid;
@@ -1252,47 +1574,134 @@ svg > path:nth-child(23) {
         margin: 0.5vh;
         padding: 0.5vh;
         padding-left: 1vh;
-        width: 80%;
-        display: flex;
-        flex-wrap: wrap;
+        width: 95%;
+        /* Same fix as #schedule #calendar .calendar-body: 7-column grid
+           instead of flex-wrap, container-type so the circles below size
+           off this element's own width, not the viewport height. gap and
+           grid-auto-rows both in cqw -- see .date-body below for why. */
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        grid-auto-rows: 13.4cqw;
+        align-content: start;
+        container-type: inline-size;
      }
      #pastworkout #calendar .date-body {
-        margin: 0.5vw;
         background-color: white;
         color: black;
-        font-size: 2rem;
+        /* Same reasoning as #schedule #calendar .date-body: cqw tracks the
+           circle's real size (the grid column width) instead of a fixed
+           vh/rem guess that ignores available width. */
+        font-size: clamp(0.9rem, 6cqw, 2rem);
         font-weight: 700;
         border-radius: 50%;
-        width: 5vh;
-        height: 5vh;
+        /* Explicit 13.4cqw on both axes instead of width:100%+aspect-ratio:1
+           -- aspect-ratio does not reliably resolve against a 1fr grid
+           column's auto-height (confirmed: circles rendered as ovals), so
+           this pins both axes to the same value the row height above uses,
+           making them equal by construction. */
+        width: 13.4cqw;
+        height: 13.4cqw;
+        /* Grid items default to min-width/min-height:auto -- a content-based
+           floor that applies regardless of the explicit width/height above,
+           so a two-digit date (e.g. "31") could still force its column
+           wider than its 1fr share and push the row past the calendar-
+           body's right edge. See #schedule #calendar .date-body for the
+           fuller explanation; zeroing it here lets 13.4cqw actually govern
+           the box. */
+        min-width: 0;
+        min-height: 0;
+        /* 6%, not 10% -- see #schedule #calendar .date-body for why. */
+        padding: 6%;
         border: 1px black solid;
         display: flex;
         justify-content: center;
         align-items: center;
      }
-     #pastworkout #deleteworkout{
-        margin: 1vh;
-        background-color: var(--template-color-mid);
-        color : white;
-        width: 45%;
-        font-family: Georgia, 'Times New Roman', Times, serif;
-        font-size: 1.5rem;
-        height: 5vh;
+     /* Three buttons, one row -- flex + a shared per-button rule instead of
+        three near-identical 45%-wide rules (which only ever fit two before
+        wrapping). gap replaces each button's old margin for the horizontal
+        spacing between them. */
+     #pastworkout #workoutactions{
+        display: flex;
+        justify-content: space-between;
+        gap: 2%;
+        margin: 1vh 0;
      }
-     #pastworkout #changedate{
-        margin: 1vh;
+     #pastworkout #workoutactions > button{
+        flex: 1 1 0;
+        min-width: 0;
         background-color: var(--template-color-mid);
-        color : white;
-        width: 45%;
+        color: white;
         font-family: Georgia, 'Times New Roman', Times, serif;
-        font-size: 1.5rem;
+        font-size: clamp(0.7rem, 4.2vw, 1rem);
         height: 5vh;
+        padding: 0 1vw;
      }
 
      #pastworkout .changesmodal{
+        /* Native <dialog> defaults to overflow:auto, which clips anything
+           positioned outside its own box -- including .modal-close below,
+           deliberately placed half off the corner. Without this the close
+           circle rendered as a clipped sliver instead of a full circle. */
+        overflow: visible;
         display: flex;
         flex-direction: column;
         justify-content: center;
+     }
+     /* Shared by both pastworkout dialogs (.changesmodal, .sorenessmodal).
+        Negative top/right pulls it half off the dialog's own corner --
+        sitting right on the boundary rather than tucked inside the padded
+        content area. Native <dialog> is already non-statically positioned
+        by the browser's own UA stylesheet (confirmed: removing an earlier,
+        wrongly-added position:relative on .changesmodal is what fixed that
+        dialog rendering in-flow instead of as an overlay), so this anchors
+        correctly without either dialog needing its own position rule. */
+     #pastworkout .modal-close{
+        position: absolute;
+        top: -0.7rem;
+        right: -0.7rem;
+        width: 1.6rem;
+        height: 1.6rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--template-color-black);
+        border: 1px solid white;
+        border-radius: 50%;
+        font-size: 0.7rem;
+        line-height: 1;
+        cursor: pointer;
+     }
+
+     #pastworkout .sorenessmodal{
+        /* See .changesmodal above -- same overflow:auto clipping issue. */
+        overflow: visible;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2vh;
+        padding: 3vh 4vw;
+        background-color: var(--template-color-mid);
+        color: white;
+        border: 1px white solid;
+        border-radius: 1vh;
+     }
+     #pastworkout .sorenessmodal input[type="range"]{
+        width: 60vw;
+        height: 1.5rem;
+        -webkit-appearance: none;
+        appearance: none;
+        background: transparent;
+     }
+     #pastworkout .sorenessmodal button{
+        width: 50%;
+        height: 4vh;
+        background-image: linear-gradient(60deg, var(--template-color-light), var(--template-color-soft));
+        border: 0;
+        color: white;
+        font-family: Georgia, 'Times New Roman', Times, serif;
+        font-size: 1.1rem;
+        border-radius: 0.5vh;
      }
 
      #pastworkout #duration::placeholder{
@@ -1528,10 +1937,118 @@ svg > path:nth-child(23) {
         overflow: hidden;
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
     }
+    /* Upload/remove are now in-figure (the big + and the resize controls'
+       x button, both drawn directly on the SVG at the head region) instead
+       of a separate button row, so #container gets that budget back. */
     #profilepage #container{
         display: grid;
         height: 87.5vh;
-        padding: 0.5vh;   
+        padding: 0.5vh;
+    }
+    /* Same overflow:visible / .modal-close pattern as #pastworkout's
+       dialogs (see there for why: native <dialog> defaults to
+       overflow:auto, which clips anything positioned outside its own box,
+       and it's already non-statically positioned by the browser's own UA
+       stylesheet so no extra position rule is needed for the close button
+       to anchor correctly). */
+    /* [open] matters here specifically: unlike #pastworkout's dialogs
+       (built fresh in JS and .remove()'d on close, so they're only ever
+       in the DOM while open), this one is static markup reused across
+       opens -- an unqualified display:flex has higher specificity than
+       the browser's own `dialog:not([open]){display:none}` UA rule, so it
+       overrode that and kept this rendered even after .close() set
+       open=false (confirmed: dialog.open was false, but computed display
+       was still "flex"). Scoping to [open] leaves the UA rule in charge
+       whenever this isn't actually open. */
+    #profilepage #cropperdialog[open]{
+        overflow: visible;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5vh;
+        padding: 3vh 4vw;
+        background-color: var(--template-color-mid);
+        color: white;
+        border: 1px white solid;
+        border-radius: 1vh;
+    }
+    #profilepage .modal-close{
+        position: absolute;
+        top: -0.7rem;
+        right: -0.7rem;
+        width: 1.6rem;
+        height: 1.6rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--template-color-black);
+        border: 1px solid white;
+        border-radius: 50%;
+        font-size: 0.7rem;
+        line-height: 1;
+        cursor: pointer;
+    }
+    /* The interactive editing surface -- fixed-size, clipped viewport the
+       image is dragged/zoomed inside of via profile.js (mouse+touch
+       events, not the Pointer Events API -- see profile.js for why).
+       touch-action:none stops the browser's own scroll/pinch gestures
+       from fighting the drag handling. */
+    #profilepage #cropviewport{
+        position: relative;
+        width: 70vw;
+        max-width: 280px;
+        height: 70vw;
+        max-height: 280px;
+        overflow: hidden;
+        background-color: #000;
+        border: 1px solid white;
+        touch-action: none;
+    }
+    #profilepage #cropimage{
+        position: absolute;
+        top: 0;
+        left: 0;
+        max-width: none;
+        transform-origin: 0 0;
+        cursor: grab;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-user-drag: none;
+        touch-action: none;
+    }
+    /* The crop frame is a circle -- diameter set by the #cropsize slider,
+       always centered in the viewport; the user repositions CONTENT by
+       dragging the image underneath it instead of moving the circle. The
+       oversized box-shadow is a cheap way to dim everything outside the
+       frame without a second overlay element. */
+    #profilepage #cropframe{
+        position: absolute;
+        border: 2px dashed white;
+        border-radius: 50%;
+        box-shadow: 0 0 0 2000px rgba(0,0,0,0.55);
+        pointer-events: none;
+    }
+    #profilepage #cropzoomlabel,
+    #profilepage #cropsizelabel{
+        display: flex;
+        align-items: center;
+        gap: 2vw;
+        width: 70vw;
+        max-width: 280px;
+        font-size: 0.85rem;
+    }
+    #profilepage #cropzoom,
+    #profilepage #cropsize{
+        flex: 1;
+    }
+    #profilepage #cropconfirm{
+        background-image: linear-gradient(60deg, var(--template-color-light), var(--template-color-soft));
+        border: 0;
+        color: white;
+        font-family: Georgia, 'Times New Roman', Times, serif;
+        font-size: 1rem;
+        padding: 1vh 4vw;
+        border-radius: 0.5vh;
     }
     #profilepage #container div{
         margin: 0 33.3vw;
@@ -1548,7 +2065,63 @@ svg > path:nth-child(23) {
     #profilepage #container #back{
         transform: rotateY(0.5turn)
     }
-     
+    /* The placed head image is draggable (profile.js, makeHeadDraggable)
+       to nudge it onto the neck -- cursor:move signals that, and
+       touch-action:none stops the browser's own scroll/pinch from
+       fighting the drag on a real touchscreen, same reasoning as the
+       crop dialog's image. */
+    #profilepage #container .custom-head{
+        cursor: move;
+        touch-action: none;
+    }
+    /* +/-/x controls (profile.js, addHeadResizeControls) -- hidden by
+       default (JS toggles display on tap/click of the head image), shown
+       just above it. Sized in the same large coordinate units as the rest
+       of this SVG (the viewBox is ~640 units wide), not real CSS pixels. */
+    #profilepage #container .head-resize-btn{
+        cursor: pointer;
+        touch-action: none;
+    }
+    #profilepage #container .head-resize-btn circle{
+        fill: var(--template-color-black);
+        stroke: white;
+        stroke-width: 1.5;
+    }
+    #profilepage #container .head-resize-btn text{
+        fill: white;
+        font-size: 18px;
+        font-weight: bold;
+        pointer-events: none;
+        user-select: none;
+    }
+    /* The x (remove) button is the same shape as +/- but filled red so it
+       reads as destructive rather than a third resize option. */
+    #profilepage #container .head-remove-btn circle{
+        fill: #8b1e1e;
+    }
+    /* Big + shown in place of the head image itself, before one's been
+       uploaded (profile.js, addHeadUploadButton) -- centered on the same
+       head region the image will occupy once there is one, so it reads as
+       "tap here to add a head" rather than a stray button elsewhere on
+       the page. */
+    #profilepage #container .head-upload-btn{
+        cursor: pointer;
+        touch-action: none;
+    }
+    #profilepage #container .head-upload-btn circle{
+        fill: var(--template-color-mid);
+        stroke: white;
+        stroke-width: 2;
+        opacity: 0.85;
+    }
+    #profilepage #container .head-upload-btn text{
+        fill: white;
+        font-size: 48px;
+        font-weight: bold;
+        pointer-events: none;
+        user-select: none;
+    }
+
   /* ------------------ */
 
   #statspage{

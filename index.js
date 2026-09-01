@@ -38,13 +38,13 @@ let dailyWorkoutLog = new Map();
 let svgcode = script.cloneNode(true);
 indexScript.before(svgcode);
 svgcode.src = "svgcode.js";
-svgcode.addEventListener ("load", () => {
-    muscularManSvg(svgContainer,[-30,-25,200,200]);
+svgcode.addEventListener ("load", async () => {
+    await muscularManSvg(svgContainer,[-30,-25,200,200]);
     const [frontsvg,backsvg] = [document.getElementById("frontHumanSVG"),document.getElementById("backHumanSVG")];
     // svgContainer.append(frontsvg);
     // svgContainer.append(backsvg);
-    [...frontsvg.children].forEach(el => el.dataset.name? nameMap.set(el.dataset.name, nameMap.get(el.dataset.name) || 0) : "");
-    [...backsvg.children].forEach(el => el.dataset.name? nameMap.set(el.dataset.name, nameMap.get(el.dataset.name) || 0) : "");
+    [...frontsvg.querySelectorAll("[data-name]")].forEach(el => nameMap.set(el.dataset.name, nameMap.get(el.dataset.name) || 0));
+    [...backsvg.querySelectorAll("[data-name]")].forEach(el => nameMap.set(el.dataset.name, nameMap.get(el.dataset.name) || 0));
     let temp = JSON.parse(localStorage?.workoutLogObject||"[]");
     temp.forEach(([k,v]) => dailyWorkoutLog.set(v.workoutDate + " " + v.workoutStartTime,v));
     temp = "";
@@ -84,8 +84,8 @@ liftHighlights.firstElementChild.addEventListener("click",enableScroll)
 liftHighlights.lastElementChild.addEventListener("click",enableScroll)
 monthlyHighlights.firstElementChild.nextElementSibling.lastElementChild.firstElementChild.textContent = currentMonthWorkouts.length;
 monthlyHighlights.firstElementChild.nextElementSibling.lastElementChild.lastElementChild.textContent = pastMonthWorkouts.length;
-liftHighlights.firstElementChild.nextElementSibling.lastElementChild.firstElementChild.textContent = findHighlight("","bestlifts")?.[0] || "";
-liftHighlights.firstElementChild.nextElementSibling.lastElementChild.lastElementChild.textContent = findHighlight("","bestlifts")?.[1] || "";
+liftHighlights.firstElementChild.nextElementSibling.lastElementChild.firstElementChild.textContent = findHighlight(currentMonthWorkouts,"bestlifts")?.[0] || "-";
+liftHighlights.firstElementChild.nextElementSibling.lastElementChild.lastElementChild.textContent = findHighlight(pastMonthWorkouts,"bestlifts")?.[1] || "-";
 function recentWorkouts(object){
     const keys = Array.from(object.keys());
     const dates = keys.filter(key => new Date(key) > new Date(date.getTime() - 7*24*60*60*1000) )
@@ -116,38 +116,46 @@ function recentWorkouts(object){
     localStorage.nameMap = JSON.stringify([...nameMap]);
 }
 
+// Validated ordinal red ramp (dataviz skill: single hue, monotone
+// lightness, checked against the app's actual dark background) for the
+// 5 real fatigue tiers, plus the artwork's own baked-in resting pair
+// (frontsvg.js/backsvg.js ship muscles as hsl(274,3%,56%)/#222 -- #8f8b92
+// is that same color, so "no data" restores the diagram to how it looks
+// before any highlighting is applied). Previously this defaulted to
+// fill:transparent, which made an unworked muscle invisible rather than
+// resetting it to its resting appearance.
 function rgbValues(el,vol){
     switch(true) {
         case vol>60:{
-            el.setAttribute("stroke",`rgb(100%, 0%, 0%)`);
-            el.setAttribute("fill",`rgb(100%, 0%, 0%)`)
+            el.setAttribute("stroke","#c62a1c");
+            el.setAttribute("fill","#c62a1c")
             break;
         };
         case vol>50&&vol<=60: {
-            el.setAttribute("stroke",`rgb(100%, 25%, 25%)`);
-            el.setAttribute("fill",`rgb(100%, 25%, 25%)`);
+            el.setAttribute("stroke","#d1543b");
+            el.setAttribute("fill","#d1543b");
             break;
         };
         case vol>40&&vol<=50: {
-            el.setAttribute("stroke",`rgb(100%, 75%, 50%)`);
-            el.setAttribute("fill",`rgb(100%, 75%, 50%)`);
+            el.setAttribute("stroke","#dc7a63");
+            el.setAttribute("fill","#dc7a63");
             break;
         };
         case vol>20&&vol<=40: {
-            el.setAttribute("stroke",`rgb(75%, 100%, 100%)`);
-            el.setAttribute("fill",`rgb(75%, 100%, 100%)`);
+            el.setAttribute("stroke","#e79a8b");
+            el.setAttribute("fill","#e79a8b");
             break;
         };
         case vol>0&&vol<=20: {
-            el.setAttribute("stroke",`rgb(100%, 100%, 100%)`);
-            el.setAttribute("fill",`rgb(100%, 100%, 100%)`);
+            el.setAttribute("stroke","#f6c2ba");
+            el.setAttribute("fill","#f6c2ba");
             break;
         };
         default: {
-            el.setAttribute("stroke",`rgb(0%, 0%, 0%)`);
-            el.setAttribute("fill",`transparent`);
+            el.setAttribute("stroke","#222");
+            el.setAttribute("fill","#8f8b92");
             break;
-        }       
+        }
 
     }
 }
@@ -236,32 +244,32 @@ function monthlyWorkoutDates(){
 
 let monthlyWorkouts = currentMonthWorkouts.length ;
 let monthlyWorkoutsPrev = pastMonthWorkouts.length ;
-let lowIntensityDays = currentMonthWorkouts.filter(([k,v])=> v["workoutIntensity"]<=5).length;
-let lowIntensityDaysPrev =  pastMonthWorkouts.filter(([k,v])=> v["workoutIntensity"]<=5).length ;
-let restDays = findHighlight(currentMonthWorkouts,"rest");
-let restDaysPrev = findHighlight(pastMonthWorkouts,"rest");
-let deloadDays = findHighlight(currentMonthWorkouts,"deload");
-let deloadDaysPrev = findHighlight(pastMonthWorkouts,"deload");
-let rIntenisty = findHighlight("","intensity")?.[0] || 0  ;
-let rIntenistyPrev = findHighlight("","intensity")?.[1] || 0;
-let rEfficiency = findHighlight("","efficiency")?.[0] || 0;
-let rEfficiencyPrev = findHighlight("","efficiency")?.[1] || 0;
+let lowIntensityDays = currentMonthWorkouts.filter(([k,v])=> v["workoutIntensity"]<=5).length|| "-";
+let lowIntensityDaysPrev =  pastMonthWorkouts.filter(([k,v])=> v["workoutIntensity"]<=5).length|| "-" ;
+let restDays = findHighlight(currentMonthWorkouts,"rest")|| "-";
+let restDaysPrev = findHighlight(pastMonthWorkouts,"rest")|| "-";
+let deloadDays = findHighlight(currentMonthWorkouts,"deload")|| "-";
+let deloadDaysPrev = findHighlight(pastMonthWorkouts,"deload")|| "-";
+let rIntenisty = findHighlight("","intensity")?.[0] || "-"  ;
+let rIntenistyPrev = findHighlight("","intensity")?.[1] || "-";
+let rEfficiency = findHighlight("","efficiency")?.[0] || "-";
+let rEfficiencyPrev = findHighlight("","efficiency")?.[1] || "-";
 let rFatigue = "NA";
 let rFatiguePrev = "NA";
-let bestLifts = findHighlight("","bestlifts")?.[0] || "-" ;
-let bestLiftsPrev =  findHighlight("","bestlifts")?.[1] || "-";
-let worstLifts =  findHighlight("","worstlifts")?.[0] || "-" ;
-let worstLiftsPrev =  findHighlight("","worstlifts")?.[1] || "-";
-let progress =  findHighlight("","progress")?.[0] || "-" ;
-let progressPrev =  findHighlight("","progress")?.[1] || "-";
-let regression =  findHighlight("","regression")?.[0] || "-" ;
-let regressionPrev =  findHighlight("","regression")?.[1] || "-";
-let PRs =  findHighlight("","bestlifts")?.[2] || "-" ;
-let PRsPrev =  findHighlight("","bestlifts")?.[3] || "-";
+let bestLifts = findHighlight(currentMonthWorkouts,"bestlifts")?.[0] || "-" ;
+let bestLiftsPrev =  findHighlight(pastMonthWorkouts,"bestlifts")?.[1] || "-";
+let worstLifts =  findHighlight(currentMonthWorkouts,"worstlifts")?.[0] || "-" ;
+let worstLiftsPrev =  findHighlight(pastMonthWorkouts,"worstlifts")?.[1] || "-";
+let progress =  findHighlight(currentMonthWorkouts,"progress")?.[0] || "-" ;
+let progressPrev =  findHighlight(pastMonthWorkouts,"progress")?.[1] || "-";
+let regression =  findHighlight(currentMonthWorkouts,"regression")?.[0] || "-" ;
+let regressionPrev =  findHighlight(pastMonthWorkouts,"regression")?.[1] || "-";
+let PRs =  findHighlight(currentMonthWorkouts,"bestlifts")?.[2] || "-" ;
+let PRsPrev =  findHighlight(pastMonthWorkouts,"bestlifts")?.[3] || "-";
 let redZones = "NA";
 let redZonesPrev =  "NA" ;
-let maxThree =  findHighlight("","maxthree")?.[0] || "-";
-let maxThreePrev =  findHighlight("","maxthree")?.[1] || "-";
+let maxThree =  findHighlight(currentMonthWorkouts,"maxthree")?.[0] || "-";
+let maxThreePrev =  findHighlight(pastMonthWorkouts,"maxthree")?.[1] || "-";
 
 function enableScroll(e){
     let bool = e.target.parentElement.id.includes("monthly") ? true : false
@@ -289,7 +297,7 @@ function enableScroll(e){
         e.target.previousElementSibling.firstElementChild.textContent = bool ? monthlyHighlightArray[i][0] : liftHighlightArray[i][0];
         e.target.previousElementSibling.lastElementChild.firstElementChild.textContent = bool ? monthlyHighlightArray[i][1] : liftHighlightArray[i][1];
         e.target.previousElementSibling.lastElementChild.lastElementChild.textContent = bool ? monthlyHighlightArray[i][2] : liftHighlightArray[i][2];
-        !bool ? e.target.previousElementSibling.lastElementChild.firstElementChild.style.fontSize = i===4 || i===5 ? "5.5rem" : "1.25rem" : "";
+        if (!bool) e.target.previousElementSibling.lastElementChild.firstElementChild.classList.toggle("stat-number-value", i===4 || i===5);
         bool ? monthlyScroll=i : liftsScroll=i;
     }
     if(e.target.id.includes("left")) {
@@ -298,7 +306,7 @@ function enableScroll(e){
         e.target.nextElementSibling.firstElementChild.textContent = bool ? monthlyHighlightArray[i][0] : liftHighlightArray[i][0];
         e.target.nextElementSibling.lastElementChild.firstElementChild.textContent = bool ? monthlyHighlightArray[i][1] : liftHighlightArray[i][1];
         e.target.nextElementSibling.lastElementChild.lastElementChild.textContent = bool ? monthlyHighlightArray[i][2] : liftHighlightArray[i][2];
-        !bool ? e.target.nextElementSibling.lastElementChild.firstElementChild.style.fontSize = i===4 || i===5  ? "5.5rem" : "1.25rem" : "";
+        if (!bool) e.target.nextElementSibling.lastElementChild.firstElementChild.classList.toggle("stat-number-value", i===4 || i===5);
         bool ? monthlyScroll=i : liftsScroll=i;
     }
 }
@@ -364,12 +372,12 @@ function findHighlight(array,result){
         let liftLoadPairArrayPrev = dataInterface.getStat("weight",pastMonthWorkouts,arr=>Math.max(...arr),arr=>arr.map(e=>e),arr=>arr).flat().unique((a,b)=> a.toString()+" "+b.toString()).flatMap(arr => {let temp = typeof arr[1] === "string" ? arr[1].split(" ") : arr[1]; return temp.length ? [[arr[0], temp[temp.length-1]*1-temp[0]*1]] : []}) ; 
         let liftLoadPairArrayNow = dataInterface.getStat("weight",currentMonthWorkouts,arr=>Math.max(...arr),arr=>arr.map(e=>e),arr=>arr).flat().unique((a,b)=> a.toString()+" "+b.toString()).flatMap(arr => {let temp = typeof arr[1] === "string" ? arr[1].split(" ") : arr[1]; return temp.length ? [[arr[0], temp[temp.length-1]*1-temp[0]*1]] : []}) ;
         if(result === "bestlifts"){
-            let top3Now = liftLoadPairArrayNow.sort((a,b)=> b[1]-a[1]).slice(0,3).map(arr=>arr[0].capitalizeAllFirst("_")).join("\n"); ;
-            let top2Prev = liftLoadPairArrayPrev.sort((a,b)=> b[1]-a[1]).slice(0,2).map(arr=>arr[0].capitalizeAllFirst("_")).join("\n"); ;
+            let top3Now = liftLoadPairArrayNow.sort((a,b)=> b[1]-a[1]).filter((a,b)=>b>0).slice(0,3).map(arr=>arr[0].capitalizeAllFirst("_")).join("\n")|| "Plateau" ;
+            let top2Prev = liftLoadPairArrayPrev.sort((a,b)=> b[1]-a[1]).filter((a,b)=>b>0).slice(0,2).map(arr=>arr[0].capitalizeAllFirst("_")).join("\n") || "Plateau" ;
             return [top3Now,top2Prev];
         }
         if(result === "worstlifts"){
-            let top3Now = liftLoadPairArrayNow.sort((a,b)=> a[1]-b[1]).slice(0,3).map(arr=>arr[0].capitalizeAllFirst("_")).join("\n"); ;
+            let top3Now = liftLoadPairArrayNow.sort((a,b)=> a[1]-b[1]).slice(0,3).map(arr=>arr[0].capitalizeAllFirst("_")).join("\n") ;
             let top2Prev = liftLoadPairArrayPrev.sort((a,b)=> a[1]-b[1]).slice(0,2).map(arr=>arr[0].capitalizeAllFirst("_")).join("\n"); ;
             return [top3Now,top2Prev];
         }

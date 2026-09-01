@@ -11,8 +11,9 @@ const svgContainer = document.getElementById("svgcontainer");
 const calendarArea = document.getElementById("calendar");
 const deleteWorkoutBtn = document.getElementById("deleteworkout");
 const changeDateBtn = document.getElementById("changedate");
+const editSorenessBtn = document.getElementById("editsoreness");
 const redirectHome = document.querySelector("#header > h1");
-const pastWorkoutsObject = JSON.parse(localStorage.workoutLogObject).sort((a,b)=>new Date(a[0])-new Date(b[0]));
+const pastWorkoutsObject = (localStorage?.workoutLogObject ? JSON.parse(localStorage.workoutLogObject) : []).sort((a,b)=>new Date(a[0])-new Date(b[0]));
 const finalLog = Object.fromEntries(JSON.parse(sessionStorage.finalLog));
 const key = Object.keys(finalLog)[0];
 const date = new Date(key).toLocaleDateString();
@@ -20,8 +21,9 @@ const intensity = finalLog[key]["workoutIntensity"];
 const fatigue = "";
 const headingVal = finalLog[key]["workoutName"];
 const duration = durationCalc(date);
-const dWt = JSON.parse(localStorage.savedSettings)["dweight"].split(" ")[0]*1;
-const bWt = JSON.parse(localStorage.savedSettings)["bweight"].split(" ")[0]*1;
+const savedSettingsFallback = '{"bweight":"0 kgs","dweight":"0 kgs"}';
+const dWt = JSON.parse(localStorage.savedSettings||savedSettingsFallback)["dweight"].split(" ")[0]*1;
+const bWt = JSON.parse(localStorage.savedSettings||savedSettingsFallback)["bweight"].split(" ")[0]*1;
 let exerciseData = finalLog[key]["workoutExercises"];
 const totalVol = Object.values(finalLog[key]["workoutExercises"]).flat().filter(([k,v])=> k === "vol").map(([k,v])=>v).reduce((a,b)=>a+b);
 delete finalLog[key]["workoutExercises"]['chooseprogram']
@@ -41,6 +43,9 @@ deleteWorkoutBtn.addEventListener("click", handleDeleteOperation);
 
 //change this workout's date
 changeDateBtn.addEventListener("click", handleDateChange);
+
+//rate/edit this workout's soreness
+editSorenessBtn.addEventListener("click", handleSorenessEdit);
 
 exerciseDetails.lastElementChild.addEventListener("click", ()=>{
     exerciseDisplay.style.display = "flex";
@@ -91,30 +96,150 @@ const handleClick = (event) => {
     createCalendar(date); 
 } 
 
-const dynamicDisplay = (exerciseName) => {
-    const data = exerciseData[exerciseName];
-    const volume = data.find(([k,v])=> k==="vol")[1];
-    const container = document.createElement("div");
-    const label = document.createElement("p");
-    // container.append(label);
-    container.id = exerciseName;
-    container.textContent = exerciseName.replaceAll("_"," ");
-    container.style.width = `${volume/50}vh`;
-    container.style.height = `${volume/50}vh`;
-    container.setAttribute("dataVol" , volume);
-    container.style.backgroundColor = `rgb(${volume/10}% ${100-volume/10}% 0)`
-    container.addEventListener("click", handleClick);
-    exerciseDisplay.append(container)
+// Each exercise gets its own color rather than a shared meaning (category,
+// volume) -- a fixed varied palette, picked by a stable hash of the
+// exercise's name so the same exercise always gets the same color across
+// different views, without needing every exercise ever seen enumerated
+// up front the way a lookup table would.
+const BUBBLE_PALETTE = ["#4E79A7","#F28E2B","#E15759","#76B7B2","#59A14F","#EDC948","#B07AA1","#FF9DA7","#9C755F","#BAB0AC","#D37295","#86BCB6"];
+function hashColor(str){
+    let hash = 0;
+    for (let i=0; i<str.length; i++){ hash = (hash*31 + str.charCodeAt(i)) | 0; }
+    return BUBBLE_PALETTE[Math.abs(hash) % BUBBLE_PALETTE.length];
 }
 
-Object.keys(exerciseData).forEach(key => dynamicDisplay(key))
+// Greedy spiral-placement bubble packing -- not a true physics/force
+// layout, but gives an organic scattered arrangement with no overlaps
+// instead of the old flex-wrap row of same-line, edge-to-edge circles.
+// Biggest first so it anchors the center and smaller ones fill the gaps
+// around it, the classic bubble-chart look.
+function packBubbles(items){
+    const gap = 1;
+    const placed = [];
+    items.forEach((item, i) => {
+        if (i === 0){ item.x = 0; item.y = 0; placed.push(item); return; }
+        let angle = Math.random() * Math.PI * 2;
+        let radius = 0;
+        let x = 0, y = 0, tries = 0;
+        while (true){
+            x = radius * Math.cos(angle);
+            y = radius * Math.sin(angle);
+            const overlaps = placed.some(p => Math.hypot(p.x - x, p.y - y) < (p.radius + item.radius + gap));
+            if (!overlaps || tries > 3000) break;
+            angle += 0.35;
+            radius += 2.5;
+            tries++;
+        }
+        item.x = x; item.y = y;
+        placed.push(item);
+    });
+    return items;
+}
+
+function renderExerciseBubbles(){
+    const containerWidth = exerciseDisplay.clientWidth || exerciseDisplay.parentElement.clientWidth || 300;
+    const names = Object.keys(exerciseData);
+    const volumes = names.map(name => exerciseData[name].find(([k,v])=> k==="vol")[1]);
+    const minVol = Math.min(...volumes), maxVol = Math.max(...volumes);
+    // Diameter proportional to sqrt(volume) -- not volume directly -- so
+    // AREA (what the eye actually reads as "bigger") encodes volume, the
+    // standard bubble-chart convention. Min/max normalized against this
+    // workout's own actual volume range rather than a fixed constant, so
+    // it looks reasonable regardless of whether volumes run in the tens
+    // or the thousands.
+    const minR = containerWidth * 0.07, maxR = containerWidth * 0.15;
+    let items = names.map((name,i) => {
+        const volume = volumes[i];
+        const t = maxVol === minVol ? 1 : (volume - minVol) / (maxVol - minVol);
+        return { name, volume, isFiller: false, color: hashColor(name), radius: minR + (maxR - minR) * Math.sqrt(t) };
+    });
+    items.sort((a,b) => b.volume - a.volume);
+
+    // Small, unlabeled, non-interactive decorative circles packed into
+    // whatever gaps are left around the real exercise bubbles -- placed
+    // after them (packBubbles never backtracks earlier bubbles once set),
+    // purely for visual density/depth, the way a real bubble chart is
+    // usually surrounded by many small low-value points along with the
+    // few big labeled ones.
+    const fillerCount = 18;
+    const fillers = new Array(fillerCount).fill(0).map(() => ({
+        name: null, isFiller: true,
+        color: BUBBLE_PALETTE[Math.floor(Math.random()*BUBBLE_PALETTE.length)],
+        radius: 3 + Math.random()*6,
+    }));
+    items = packBubbles(items.concat(fillers));
+
+    // Packing above is unconstrained (grows outward from the origin with
+    // no width limit) -- if the result is wider than the box actually has
+    // room for, scale everything (positions AND radii together) down to
+    // fit. Uniform scaling keeps every bubble's size relative to the
+    // others intact, just at a smaller absolute size, so it still encodes
+    // volume correctly.
+    const padding = 8;
+    const rawWidth = Math.max(...items.map(it => it.x + it.radius)) - Math.min(...items.map(it => it.x - it.radius)) + padding*2;
+    const maxWidth = containerWidth - 2;
+    if (rawWidth > maxWidth){
+        const scale = maxWidth / rawWidth;
+        items.forEach(it => { it.x *= scale; it.y *= scale; it.radius *= scale; });
+    }
+
+    const minLeft = Math.min(...items.map(it => it.x - it.radius));
+    const minTop = Math.min(...items.map(it => it.y - it.radius));
+    const maxRight = Math.max(...items.map(it => it.x + it.radius));
+    const maxBottom = Math.max(...items.map(it => it.y + it.radius));
+    // Was anchored flush to the left (offset only ever undid the packing's
+    // own bounding box, never centered it within the container's actual
+    // width) -- this splits whatever width is left over evenly on both
+    // sides instead.
+    const extraX = Math.max(0, (containerWidth - padding*2) - (maxRight - minLeft)) / 2;
+
+    // Children are absolutely positioned, so the container no longer
+    // auto-sizes to fit them the way height:fit-content did before --
+    // this sets it explicitly to the packed bubbles' actual extent.
+    exerciseDisplay.style.height = `${maxBottom - minTop + padding*2}px`;
+    items.forEach(it => {
+        const container = document.createElement("div");
+        const diameter = it.radius * 2;
+        container.style.width = `${diameter}px`;
+        container.style.height = `${diameter}px`;
+        container.style.left = `${it.x - it.radius - minLeft + padding + extraX}px`;
+        container.style.top = `${it.y - it.radius - minTop + padding}px`;
+        container.style.backgroundColor = it.color;
+        if (it.isFiller){
+            exerciseDisplay.append(container);
+            return;
+        }
+        container.id = it.name;
+        container.setAttribute("dataVol", it.volume);
+        // Below this radius there's no room for legible text (the
+        // reference bubble charts this was modeled on leave their
+        // smallest bubbles as plain color dots rather than force-fitting
+        // a label) -- matches the smallest bubbles now being unlabeled
+        // dots rather than illegible or overflowing text.
+        if (it.radius >= 20){
+            const label = document.createElement("span");
+            // Same capitalization pattern as handleClick's title above.
+            label.textContent = it.name.replaceAll("_"," ").replaceAll(/\b\w/g,(e)=>e.toUpperCase());
+            container.style.fontSize = `${Math.max(7, Math.min(15, it.radius*0.19))}px`;
+            container.append(label);
+        }
+        container.addEventListener("click", handleClick);
+        exerciseDisplay.append(container);
+    });
+}
+
+renderExerciseBubbles();
 snapshotContainer.childNodes.forEach((el,i) => el.firstElementChild.textContent = extractData()[i+1] )
+// A stored field, not a derived stat like the rest of extractData()'s
+// output above -- "" (unrated, see logworkout.js) deliberately falls
+// through the || since it isn't a real rating yet.
+snapshotContainer.lastElementChild.lastElementChild.textContent = finalLog[key]["workoutSoreness"] || "Not rated";
 let svgcode = document.createElement("script");
 defaultScript.before(svgcode);
 svgcode.src = "svgcode.js";
-svgcode.addEventListener ("load", () => {
-    const {frontsvg, backsvg} =  humanFigure();
-    svgContainer.append(frontsvg,backsvg)
+svgcode.addEventListener ("load", async() => {
+    const {frontView,backView} =  await muscularManSvg();
+    svgContainer.append(frontView,backView)
     fillShapeColor(exerciseData);
 })
 createCalendar(date);
@@ -266,32 +391,44 @@ function monthlyExerciseDates(){
     })
 }
 
+// Validated ordinal red ramp (dataviz skill: single hue, monotone
+// lightness, checked against the app's actual dark background) for the
+// 5 real fatigue tiers, plus the artwork's own baked-in resting pair
+// (frontsvg.js/backsvg.js ship muscles as hsl(274,3%,56%)/#222 -- #8f8b92
+// is that same color, so "no data" restores the diagram to how it looks
+// before any highlighting is applied, rather than an approximate gray).
 function rgbValues(el,vol){
     switch(true) {
         case vol>100:{
-            el.setAttribute("fill",`rgb(100%, 0%, 0%)`);
+            el.setAttribute("fill","#c62a1c");
+            el.setAttribute("stroke","#c62a1c");
             break;
         };
         case vol>70&&vol<=100: {
-            el.setAttribute("fill",`rgb(100%, 25%, 25%)`)
+            el.setAttribute("fill","#d1543b");
+            el.setAttribute("stroke","#d1543b");
             break;
         };
         case vol>40&&vol<=70: {
-            el.setAttribute("fill",`rgb(100%, 75%, 50%)`)
+            el.setAttribute("fill","#dc7a63");
+            el.setAttribute("stroke","#dc7a63");
             break;
         };
         case vol>20&&vol<=40: {
-            el.setAttribute("fill",`rgb(75%, 100%, 100%)`)
+            el.setAttribute("fill","#e79a8b");
+            el.setAttribute("stroke","#e79a8b");
             break;
         };
         case vol>0&&vol<=20: {
-            el.setAttribute("fill",`rgb(100%, 100%, 100%)`)
+            el.setAttribute("fill","#f6c2ba");
+            el.setAttribute("stroke","#f6c2ba");
             break;
         };
         default: {
-            el.setAttribute("fill",`rgb(50%, 50%, 50%)`)
+            el.setAttribute("fill","#8f8b92");
+            el.setAttribute("stroke","#222");
             break;
-        }       
+        }
 
     }
 }
@@ -310,10 +447,13 @@ function handleDeleteOperation(){
 
 function handleDateChange(){
     let modalEl = document.createElement("dialog");
+    let closeBtn = document.createElement("span");
     let datepicker = document.createElement("input");
     let durationEl = document.createElement("input");
     let submit = document.createElement("input");
     let program = document.createElement("input");
+    closeBtn.className = "modal-close";
+    closeBtn.textContent = "❌";
     program.type = "text";
     program.value = headingVal;
     submit.type = "submit";
@@ -323,12 +463,21 @@ function handleDateChange(){
     durationEl.id = "duration";
     datepicker.type = "datetime-local";
     datepicker.id = "newKey"
-    modalEl.append(program, datepicker,durationEl,submit);
+    modalEl.append(closeBtn, program, datepicker,durationEl,submit);
     modalEl.className = "changesmodal";
     modalEl.style.marginTop = "40vh";
     let newHistory = pastWorkoutsObject.filter(([k,v])=>k!==key);
     localStorage.templog = JSON.stringify(pastWorkoutsObject);
     localStorage.workoutLogObject = JSON.stringify(newHistory);
+    // The removal above is tentative -- it only sticks once "Done" writes
+    // the (possibly edited) entry back. Closing via the X instead of
+    // submitting has to restore that stashed copy, or the workout is just
+    // gone with no way to complete or cancel the edit.
+    closeBtn.addEventListener("click", () => {
+        localStorage.workoutLogObject = localStorage.templog;
+        modalEl.close();
+        modalEl.remove();
+    });
     submit.addEventListener("click", (e) => {
         let el2 = e.target.previousElementSibling;
         let el1 = el2.previousElementSibling;
@@ -343,7 +492,7 @@ function handleDateChange(){
         thisWorkout[0][1]["workoutName"] = el0.value ; 
         let bool = pastWorkoutsObject.some(([k,v]) => new Date(k).toDateString() === thisWorkout[0][0]);
         if (!bool){
-            let newlog =  JSON.parse(localStorage.workoutLogObject).concat(thisWorkout)
+            let newlog =  (localStorage?.workoutLogObject ? JSON.parse(localStorage.workoutLogObject) : []).concat(thisWorkout)
             localStorage.workoutLogObject = JSON.stringify(newlog);
         }
         else{
@@ -357,12 +506,50 @@ function handleDateChange(){
     modalEl.show();
 }
 
+function handleSorenessEdit(){
+    const modalEl = document.createElement("dialog");
+    modalEl.className = "sorenessmodal";
+    const closeBtn = document.createElement("span");
+    closeBtn.className = "modal-close";
+    closeBtn.textContent = "❌";
+    closeBtn.addEventListener("click", () => {
+        modalEl.close();
+        modalEl.remove();
+    });
+    const input = document.createElement("input");
+    input.type = "range";
+    input.min = 0; input.max = 10; input.step = 1;
+    input.value = finalLog[key]["workoutSoreness"] || 0;
+    input.className = "gradient-range";
+    const doneBtn = document.createElement("button");
+    doneBtn.textContent = "Done";
+    doneBtn.addEventListener("click", () => {
+        finalLog[key]["workoutSoreness"] = input.value;
+        sessionStorage.finalLog = JSON.stringify(Object.entries(finalLog));
+        const updatedLog = pastWorkoutsObject.map(arr => arr[0] === key ? [arr[0], finalLog[key]] : arr);
+        localStorage.workoutLogObject = JSON.stringify(updatedLog);
+        snapshotContainer.lastElementChild.lastElementChild.textContent = input.value;
+        modalEl.close();
+        modalEl.remove();
+    });
+    modalEl.append(closeBtn, input, doneBtn);
+    document.body.append(modalEl);
+    modalEl.showModal();
+}
+
 function handleEditData(e){
     e.stopPropagation();
     let modalEl = document.createElement("dialog");
     let doneBtn = document.createElement("button");
     let input = document.createElement("input");
     input.type = "number";
+    // Was never pre-filled -- an untouched number input's value is "",
+    // so pressing Done without actually typing a new number wrote "" over
+    // the cell's real value instead of leaving it alone. Strips a
+    // trailing unit suffix (e.g. displayed TUT values like "40Sec") since
+    // type="number" rejects any non-numeric value and would otherwise
+    // just show blank again.
+    input.value = parseFloat(e.target.value.toString().replace(/[^\d.]/g,"")) || "";
     doneBtn.textContent = "Done";
     doneBtn.addEventListener("touchend",()=>{
         if(e.target.id.includes("Multiple")) {
@@ -373,6 +560,16 @@ function handleEditData(e){
         }
         let val = e.target.id.includes("rir") ? (e.target.value*1).toFixed(1)+"Min" : e.target.id.includes("tut") ? (e.target.value*1).toFixed(1)+"Sec" : e.target.value ;  
         let dataArray = exerciseData[targetExercise].map(([k,v])=>[k, k===e.target.id ? v = val : v]);
+        // displayDetails() adds these two as a fallback when building the
+        // on-screen rows, but only to its own local copy -- the real
+        // exerciseData[targetExercise] this reads from never actually
+        // gets them. Any exercise without repMultiple/wtMultiple already
+        // set (CSV-imported workouts, in particular: workout-import-log.csv
+        // has no such columns) hit dataArray.find(...)[1] below on
+        // `undefined`, crashing every edit. Same fallback, applied where
+        // it actually needs to stick.
+        dataArray = dataArray.some(([k])=>k==="repMultiple") ? dataArray : dataArray.concat([["repMultiple","1"]]);
+        dataArray = dataArray.some(([k])=>k==="wtMultiple") ? dataArray : dataArray.concat([["wtMultiple","1"]]);
         if(e.target.id.includes("weight") || e.target.id.includes("reps") || e.target.id.includes("Multiple")){
             let eqwt = targetExercise.includes("dumbbell") ? dWt : targetExercise.includes("barbell") ? bWt : 0;  
             let rx = dataArray.find(arr => arr[0]==="repMultiple")[1]*1;
@@ -388,7 +585,14 @@ function handleEditData(e){
             let totalRIR = dataArray.filter(([k,v])=> k.includes("rir")).flatMap(arr => {let val = arr[1]; return val === "-" ? [0] : val*1 ? [val*1] : []}).reduce((a,b)=>(a*1+b*1)/2);
             let totalTUT = dataArray.filter(([k,v])=> k.includes("tut")).flatMap(arr => {let val = arr[1].replace("Sec",""); return val = val==="-" ? [0] : val*1 ? [val*1] : []}).reduce((a,b)=>(a*1+b*1)/2);
             let totalRest = dataArray.filter(([k,v])=> k.includes("rest")).flatMap(arr => {let val = arr[1].replace("Min",""); return val = val==="-" ? [0] : val*1 ? [val*1] : []}).reduce((a,b)=>(a*1+b*1)/2);
-            dataArray = dataArray.map(arr => arr[0]==="meanRIR" ? arr[1] = totalRIR : arr[0]==="meanTUT" ? arr[1] = totalTUT : arr[0]==="meanRest" ? arr[1] = totalRest : arr[1]);
+            // Was missing the [arr[0], ...] wrapper the identical map above
+            // (repCount/load/vol) has -- this returned bare values instead
+            // of [key,value] tuples, so dataArray stopped being an array of
+            // pairs. Every later ([k,v]) destructure over this exercise's
+            // data (including on the next page load, e.g. the top-level
+            // "vol" totalVol calc) then tried to destructure a plain
+            // number/string and threw "X is not iterable".
+            dataArray = dataArray.map(arr => [arr[0], arr[0]==="meanRIR" ? arr[1] = totalRIR : arr[0]==="meanTUT" ? arr[1] = totalTUT : arr[0]==="meanRest" ? arr[1] = totalRest : arr[1]]);
         }
         finalLog[key]["workoutExercises"][targetExercise] = dataArray;
         sessionStorage.finalLog = JSON.stringify(Object.entries(finalLog));

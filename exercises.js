@@ -354,7 +354,7 @@ const timeOptions = (i,id,name,string,loops,placeholder,step) => {
 
 const bodyweight = (e,refElem,i) => {
   e.stopPropagation();
-  let bw = JSON.parse(localStorage.savedSettings)['bodywt'].split(" ")[1]-0;
+  let bw = JSON.parse(localStorage.savedSettings||'{"bodywt":"0 0"}')['bodywt'].split(" ")[1]-0;
   const targetElem = document.querySelector(`div[id="${refElem}"] [name="weight${i}"]`); 
   !targetElem.disabled ? (targetElem.disabled = true, targetElem.value = bw) : (targetElem.disabled = false, targetElem.value = "")
 }
@@ -529,7 +529,8 @@ function calculateField(AoA,filter,mainF,transform){
 function getStats(array,exports,lineElms){
   let repMultiple = lineElms[2].lastElementChild.textContent;
   let weightMultiple = lineElms[4].lastElementChild.lastElementChild.textContent;
-  let equipmentWt = lineElms[6].id.includes("barbell") ? parseFloat(JSON.parse(localStorage.savedSettings).bweight.split(" ")[0]) : lineElms[6].id.includes("dumbbell") ? parseFloat(JSON.parse(localStorage.savedSettings).dweight.split(" ")[0]) : 0 ;
+  const savedSettingsFallback = '{"bweight":"0 kgs","dweight":"0 kgs"}';
+  let equipmentWt = lineElms[6].id.includes("barbell") ? parseFloat(JSON.parse(localStorage.savedSettings||savedSettingsFallback).bweight.split(" ")[0]) : lineElms[6].id.includes("dumbbell") ? parseFloat(JSON.parse(localStorage.savedSettings||savedSettingsFallback).dweight.split(" ")[0]) : 0 ;
   let allSets = calculateField(array,exports[0],val=>val,arr=>arr.length)();
   return {
     totalSets: allSets,

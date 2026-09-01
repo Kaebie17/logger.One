@@ -137,8 +137,15 @@ const readFile = (file) => {
         const contents = new Int8Array(fileReader.result);
         const result = decoder.decode(contents).split("\r\n").filter(f => f).map(e => e.replaceAll(/[\"]/g,"").split(","))
         const keys = result.map(ar => ar[0]+ " " +ar[2]).flatMap((el,i,arr) => i===0? [] : arr[i-1]!==arr[i] ? arr[i] : []);
-        const keyValPair = keys.map(key => {let [dt,tm] = key.split(" "); return [key,result.filter(f => f.includes(dt)&&f.includes(tm))]});
-        const exercises = keys.map(key => {let [dt,tm] = key.split(" "); let res = []; result.filter(f => f.includes(dt)&&f.includes(tm)).map(e => res.includes(e[7])?"":res.push(e[7])); return res})
+        // key is "date time meridiem" (e.g. "8/24/2026 06:00:00 AM") -- the
+        // time itself already contains a space before AM/PM, so splitting on
+        // every space and destructuring the first two tokens was silently
+        // dropping the meridiem from tm. That made f.includes(tm) never match
+        // any row (the row's own time field always includes AM/PM), so every
+        // import silently produced zero rows. Splitting on just the first
+        // space keeps "06:00:00 AM" whole.
+        const keyValPair = keys.map(key => {let sp = key.indexOf(" "); let dt = key.slice(0,sp); let tm = key.slice(sp+1); return [key,result.filter(f => f.includes(dt)&&f.includes(tm))]});
+        const exercises = keys.map(key => {let sp = key.indexOf(" "); let dt = key.slice(0,sp); let tm = key.slice(sp+1); let res = []; result.filter(f => f.includes(dt)&&f.includes(tm)).map(e => res.includes(e[7])?"":res.push(e[7])); return res})
         const exerciseDBLocal = exerciseDB();
         const targets = exercises.map(aoa => {let res = {}; aoa.forEach(exer => res[exer] = exerciseDBLocal[exer]["movers"]); return res});
         const exerciseDetails = keyValPair.map(([k,v],i) => {
@@ -150,11 +157,14 @@ const readFile = (file) => {
         const commonHeaders = result[0].slice(0,7);
         importData = exerciseDetails;
         run()
-        debugger
-        let workoutLog = keyValPair.map(([k,v],i) =>  [k,{[commonHeaders[1]]: v[i][1],[commonHeaders[0]]: v[i][0],[commonHeaders[2]]: v[i][2],[commonHeaders[3]]: v[i][3],[commonHeaders[4]]: v[i][4],[commonHeaders[5]]: v[i][5],[commonHeaders[6]]: v[i][6],"workoutExercises": importData[i]}]); 
-        let existingEntryKeys = JSON.parse(localStorage.workoutLogObject).map(arr=>arr[0]);
+        let workoutLog = keyValPair.map(([k,v],i) =>  [k,{[commonHeaders[1]]: v[0][1],[commonHeaders[0]]: v[0][0],[commonHeaders[2]]: v[0][2],[commonHeaders[3]]: v[0][3],[commonHeaders[4]]: v[0][4],[commonHeaders[5]]: v[0][5],[commonHeaders[6]]: v[0][6],"workoutExercises": importData[i]}]);
+        // Unset on a first-ever import (no workout has been logged or
+        // imported before) -- matches the "[]" fallback logworkout.js
+        // already uses in workoutObject() for the same situation.
+        let existingWorkoutLog = JSON.parse(localStorage?.workoutLogObject||"[]");
+        let existingEntryKeys = existingWorkoutLog.map(arr=>arr[0]);
         let newEntries = workoutLog.filter(([k,v]) => !existingEntryKeys.includes(k))
-        workoutLog = JSON.parse(localStorage.workoutLogObject).concat(newEntries).sort(([k1,v1],[k2,v2])=>new Date(k1)-new Date(k2));
+        workoutLog = existingWorkoutLog.concat(newEntries).sort(([k1,v1],[k2,v2])=>new Date(k1)-new Date(k2));
         localStorage.workoutLogObject = JSON.stringify(workoutLog);
     } 
     fileReader.readAsArrayBuffer(file[0]); 
@@ -184,7 +194,7 @@ const openMeasurementsDialog = (e) => {
     e.preventDefault();
     measurementsDialog.show();
     if (measurementsDialog.childElementCount > 1) {
-        let values = JSON.parse(localStorage.measuredValues)
+        let values = JSON.parse(localStorage.measuredValues||"{}")
         return
     };
     let tableRows = "";
@@ -289,8 +299,8 @@ function jsonToCSV(){
     let exerCon = {};
     let fileCon = {};
     let res = [];
-    JSON.parse(localStorage.workoutLogObject).forEach(([k,{workoutExercises,...o}]) => {
-        let outemp = []; 
+    (localStorage?.workoutLogObject ? JSON.parse(localStorage.workoutLogObject) : []).forEach(([k,{workoutExercises,...o}]) => {
+        let outemp = [];
         Object.entries(workoutExercises).forEach(([n,arr])=> {
         let temp = [];
         let fArr = arr.filter(([q,r]) => exportHeaders.slice(8).includes(q.slice(0,-1)));
@@ -307,7 +317,7 @@ function jsonToCSV(){
         exerCon[k] = outemp;
     })
 
-    JSON.parse(localStorage.workoutLogObject).forEach(([k,o])=> { 
+    (localStorage?.workoutLogObject ? JSON.parse(localStorage.workoutLogObject) : []).forEach(([k,o])=> {
         let temp=[]; 
         Object.entries(o).forEach(([a,b])=> {
             let i = exportHeaders.findIndex(e => e.includes(a));
@@ -329,7 +339,7 @@ function jsonToCSV(){
 // Alter item (targets in this case)
 
 function alterSavedParam(param,savedName){
-    JSON.parse(localStorage.workoutLogObject).map(([k,{workoutExercises,...o}]) => { 
+    (localStorage?.workoutLogObject ? JSON.parse(localStorage.workoutLogObject) : []).map(([k,{workoutExercises,...o}]) => {
         workoutExercises = Object.fromEntries(Object.entries(workoutExercises).map(([n,arr])=> [n,arr.map(([q,r]) => {
             if (q.includes(savedName)){
              return [q, exerciseDB()[n][param]]

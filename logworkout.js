@@ -94,6 +94,7 @@ else{
     currentTime();
     sessionStorage.clear()
 }
+updateSorenessAvailability();
 
 // redirect to home page
 redirectHome.addEventListener("click" , home)
@@ -104,6 +105,7 @@ const handleCustomChoice = (e)=>{ chooseProgram.value = chooseProgram[0].value; 
 chooseProgram.addEventListener ("change", handleChoiceChange);
 programDisplay.addEventListener("focus", handleCustomChoice);
 programDisplay.addEventListener("keydown", (e)=>{if(e.key==="Enter") {e.preventDefault();}});
+dateElements[0].addEventListener("change", updateSorenessAvailability);
 
 // document.addEventListener ("change", captureChange);
 
@@ -173,8 +175,9 @@ clocksCode.onload = () => {
                     }
 
                 if (deg===359&&(output[0].value === "11" && output[1].value === "59")) {
-                    display[0].children[0].selected ? (display[0].children[1].selected = true, display[0].children[0].selected = false, dateElem.value = formatDate (new Date(new Date(dateElem.value) - 24*60*60*1000))) : 
+                    display[0].children[0].selected ? (display[0].children[1].selected = true, display[0].children[0].selected = false, dateElem.value = formatDate (new Date(new Date(dateElem.value) - 24*60*60*1000))) :
                         (display[0].children[1].selected = false, display[0].children[0].selected = true) ;
+                    if (outputId === "from") updateSorenessAvailability();
                 }
             }
             else{
@@ -186,9 +189,10 @@ clocksCode.onload = () => {
                 output[1].value =  appendZero(Math.floor((otherDeg/6))) ;
                 setTime.i = 0 ;
                 if (output[0].value === "11"&& output[1].value === "59") {
-                    display[0].children[0].selected ? (display[0].children[1].selected = true, display[0].children[0].selected = false, dateElem.value = formatDate (new Date(new Date(dateElem.value) - 24*60*60*1000))) : 
+                    display[0].children[0].selected ? (display[0].children[1].selected = true, display[0].children[0].selected = false, dateElem.value = formatDate (new Date(new Date(dateElem.value) - 24*60*60*1000))) :
                         (display[0].children[1].selected = false, display[0].children[0].selected = true) ;
-                } 
+                    if (outputId === "from") updateSorenessAvailability();
+                }
                
             }
         }
@@ -234,7 +238,12 @@ function saveWorkoutFunction(event) {
     const workoutStartTime = periodObject.login;
     const workoutEndTime = periodObject.logout;
     const workoutIntensity = document.getElementById("intensity").value;
-    const workoutSoreness = document.getElementById("soreness").value;
+    // Empty string means "not yet rated" -- the soreness slider stays
+    // disabled (and thus meaningless) for a same-day workout, since the
+    // user genuinely doesn't know it yet. Only a backlogged entry (date !==
+    // today, slider enabled by updateSorenessAvailability) captures a real
+    // value here.
+    const workoutSoreness = document.getElementById("soreness").disabled ? "" : document.getElementById("soreness").value;
     const workoutUnit = finalLog.unit;
     delete finalLog.start; delete finalLog.end; delete finalLog.unit; 
     const workoutExercises = finalLog;   
@@ -245,7 +254,7 @@ function saveWorkoutFunction(event) {
     temp = "";
     let bool = prompt("Save as template/Replace template");
     if (bool || bool === ""){
-        let templatesArr = Object.entries(JSON.parse(localStorage.templates));
+        let templatesArr = Object.entries(localStorage?.templates ? JSON.parse(localStorage.templates) : {});
         bool ? templatesArr.push([bool,workoutExercises]) : 
             templatesArr = templatesArr.map(([k,v])=> {k===workoutName ? v = workoutExercises : ""; return [k,v]});
         localStorage.templates = JSON.stringify(Object.fromEntries(templatesArr));
@@ -268,6 +277,17 @@ function currentTime(){
     updateTimeRecord();
 }
 
+
+// Soreness from a workout can only honestly be known the day after it --
+// enabled for a backlogged entry (the user already lived through that next
+// day), disabled and reset to 0 for today's, matching the current date
+// selection at all times.
+function updateSorenessAvailability(){
+    const soreness = document.getElementById("soreness");
+    const isToday = new Date(dateElements[0].value).toDateString() === new Date().toDateString();
+    soreness.disabled = isToday;
+    if (isToday) soreness.value = 0;
+}
 
 function updateTimeRecord(){
     [startDate,startTime,startAmPm] = [new Date(dateElements[0].value).toLocaleDateString(),`${fromClock_output[0].value}:${fromClock_output[1].value}:00`, fromClock_AMorPM[0].value];

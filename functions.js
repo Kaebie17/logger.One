@@ -280,6 +280,11 @@ class DataInterface extends Object{
         // debugger
         if (monthnum>12 || monthnum<0) return [];
         let s = this.toKeys().findIndex(k => new Date(k).getMonth() === monthnum-1 && new Date(k).getFullYear() === year)  ;
+        // findIndex returns -1 when no workout falls in this month/year --
+        // without this guard, slice(-1) below reads as "last element of the
+        // whole array" instead of "nothing found", silently pulling in the
+        // most recent workout from a different month.
+        if (s < 0) return [];
         let e = this.toKeys().findIndex(k => new Date(k).getMonth() === monthnum && new Date(k).getFullYear() === year) ;
         return e < 0 ? [...this].slice(s) : [...this].slice(s,e);
     }
@@ -300,7 +305,11 @@ class DataInterface extends Object{
         for (let array of this){
             let key = array[0];
             let exerciseObject = array[1]["workoutExercises"];
-            let targetExercises = Object.entries(exerciseObject).filter(([k,v])=>v.find(data=> data[0]==="targets")[1].slice(range[1],range[0]).some(part => part.includes(target)));
+            // Same missing-field crash as getValue below -- an exercise
+            // with no "targets" tuple made .find(...) return undefined,
+            // and [1] on that threw instead of just excluding it (it can't
+            // match a target it doesn't have data for).
+            let targetExercises = Object.entries(exerciseObject).filter(([k,v])=>v.find(data=> data[0]==="targets")?.[1]?.slice(range[1],range[0])?.some(part => part.includes(target)));
             if (targetExercises.length){
                 res.push([key,Object.fromEntries(targetExercises)])
             }
@@ -327,13 +336,27 @@ class DataInterface extends Object{
                     statsArray.push([k,values]);
                 }
             });
+            // debugger
             res.push([key,statsArray]);
         }
         return res.map(arr => reducer.call(null,fn.call(null,arr[1])));
         //.map(arr => arr[1].length>=1 ? arr[1].map(arr => arr[1]).reduce(reducer) : 0);
     }
     getValue(part,stat,r = (a,b) => (a*1||0)+(b*1||0),...range){
-        let res =  this.byTarget(part,range[0],range[1]).map(([k,v])=> Object.entries(v).map(arr => arr[1].find(([p,q])=> p.includes(stat))[1])).flat()
+        // .reduce(r) with no initial value and exactly one element returns
+        // that element untouched -- r is never called, so it stays whatever
+        // raw type .find() returned (a string, from the stored JSON values).
+        // Coercing every element to a number up front means callers always
+        // get a real number back regardless of how many matches there were,
+        // instead of a string that silently turns "+" into concatenation.
+        // .find(...)[1] crashed outright whenever an exercise didn't have
+        // this stat yet -- "load"/"repCount" in particular are only
+        // computed and stored once pastworkout.js's handleEditData has
+        // touched that exercise at least once (see its weight/reps
+        // branch); a freshly logged, never-edited workout has neither.
+        // ?. turns that into undefined instead of throwing, which the
+        // v*1||0 step right after already normalizes to 0.
+        let res =  this.byTarget(part,range[0],range[1]).map(([k,v])=> Object.entries(v).map(arr => arr[1].find(([p,q])=> p.includes(stat))?.[1])).flat().map(v => v*1||0)
         return res.length? res.reduce(r) : 0;
     }
     *[Symbol.iterator](){
@@ -344,3 +367,57 @@ class DataInterface extends Object{
         }
     }
 }
+
+// Soreness from a workout is only knowable the day after -- rather than
+// track every unrated past entry, this only ever looks at the single most
+// recently logged workout. If it's still unrated ("" -- see logworkout.js's
+// saveWorkoutFunction) and its date is no longer today, prompt for it right
+// here on app open. Runs on every page (this file is loaded everywhere,
+// same as showUpdateBanner above) since "opening the app" doesn't always
+// mean landing on index.html.
+function checkLastWorkoutSoreness(){
+    // pastworkout.html has its own "Edit Soreness" button (pastworkout.js)
+    // for exactly this -- popping this dialog up there too would sit on
+    // top of the page and block that button (and everything else on the
+    // page) behind a modal the user didn't ask for.
+    if (document.body.id === "pastworkout") return;
+    const log = localStorage?.workoutLogObject ? JSON.parse(localStorage.workoutLogObject) : [];
+    if (!log.length) return;
+    const [key, entry] = log.slice().sort((a,b) => new Date(a[0]) - new Date(b[0])).at(-1);
+    if (entry.workoutSoreness !== "") return; // already rated
+    // entry.workoutDate was written with plain toLocaleDateString() (see
+    // logworkout.js), whose slash order depends on the runtime's locale --
+    // re-parsing that string with new Date() always assumes US month/day
+    // order regardless of locale, silently landing on the wrong day
+    // wherever the locale isn't US. Comparing the two raw
+    // toLocaleDateString() strings directly sidesteps that parse entirely.
+    const isToday = entry.workoutDate === new Date().toLocaleDateString();
+    if (isToday) return; // still today -- not due yet
+    showSorenessPrompt(key, entry, log);
+}
+
+function showSorenessPrompt(key, entry, log){
+    if (document.getElementById("sorenessprompt")) return;
+    const dialog = document.createElement("dialog");
+    dialog.id = "sorenessprompt";
+    const label = document.createElement("p");
+    label.textContent = `How sore are you from "${entry.workoutName}" (${entry.workoutDate})?`;
+    const input = document.createElement("input");
+    input.type = "range";
+    input.min = 0; input.max = 10; input.step = 1; input.value = 0;
+    input.className = "gradient-range";
+    const saveBtn = document.createElement("button");
+    saveBtn.textContent = "Save";
+    saveBtn.addEventListener("click", () => {
+        entry.workoutSoreness = input.value;
+        const updated = log.map(([k,v]) => k === key ? [k, entry] : [k, v]);
+        localStorage.workoutLogObject = JSON.stringify(updated);
+        dialog.close();
+        dialog.remove();
+    });
+    dialog.append(label, input, saveBtn);
+    document.body.append(dialog);
+    dialog.showModal();
+}
+
+checkLastWorkoutSoreness();

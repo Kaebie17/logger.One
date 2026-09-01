@@ -1,9 +1,21 @@
 const container = document.getElementById("container");
 const scrollArea = document.getElementById("scrollsvg")
 const redirectHome = document.querySelector("#header > h1");
-const svgloader = document.getElementById("svgcodeJS");
+// Was a static <script async src="svgcode.js"> in stats.html with this
+// file's own "load" listener attached down below -- on a fast (e.g. local
+// file://) load, an async script can finish and fire "load" before this
+// later-loading script even runs, let alone reaches the addEventListener
+// call, so the listener attached to nothing and every chart below it
+// silently never rendered. Creating the element here instead and setting
+// its src immediately before attaching the listener -- both in the same
+// synchronous run, before any yield to the event loop -- makes the race
+// impossible; this is the same pattern index.js/pastworkout.js/logworkout.js
+// already use for their own svgcode.js loads.
+const svgloader = document.createElement("script");
 const exercisesPage = document.getElementById("exercisesJS");
 const statsPage = document.getElementById("statsJS");
+statsPage.before(svgloader);
+svgloader.src = "svgcode.js";
 let allExercises;
 
 exercisesPage.onload =  allExercises = exerciseDB();
@@ -17,13 +29,18 @@ function home() {
   redirectHome.removeEventListener("click", home);
 }
 
-const pastWorkoutsObject = localStorage?.workoutLogObject ? JSON.parse(localStorage.workoutLogObject).sort(([k1,v1],[k2,v2])=> new Date(k1)-new Date(k2)) : {};
+const pastWorkoutsObject = localStorage?.workoutLogObject ? JSON.parse(localStorage.workoutLogObject).sort(([k1,v1],[k2,v2])=> new Date(k1)-new Date(k2)) : [];
 let d = new DataInterface();
 d.new(Object.fromEntries(pastWorkoutsObject));
 
 const partsObject = {delts: ["side-delts","front-delts","rear-delts"],chest:["upper-chest","lower-chest"],neck:["neck"],core:["core","obliques"],back:["lats","lower-traps","traps","rhomboids","low-back"],arms:["triceps","biceps","forearms"], legs:["quads","hams","calves"],glutes:["glutes"]}
 
-const nameMap =  new Map(JSON.parse(localStorage.nameMap))
+// Unguarded JSON.parse(localStorage.nameMap) threw "undefined is not valid
+// JSON" whenever this page loaded before nameMap had ever been written
+// (it's only populated by index.js's recentWorkouts(), and only when
+// there's workout data in the last 7 days) -- same missing-data guard as
+// pastWorkoutsObject above already uses.
+const nameMap = new Map(localStorage?.nameMap ? JSON.parse(localStorage.nameMap) : [])
 
 let partsMap = new Map()//Object.entries(partsObject).map(([part,arr])=> [part,arr.map(e => nameMap.get(e)).reduce((a,b)=>a+b)]) 
 // (key,fn,index=0,factor=1,g= ar => ar,r = ((a,b)=>a+b), res = "relative")
@@ -52,11 +69,38 @@ const labelStatArrSets = getStat({stat:"setCount"});
 partsMap = new Map();
 const labelStatArrLoad = getStat({stat:"load"});
 partsMap = new Map();
-const repsCountArr = getStat({stat:"repCount", res:"abs",e:2,r:(a,b)=>((a*1||0)+(b*1||0))/2}).filter(arr => arr[1]>=10);
-partsMap = new Map()
-const labelStatArr1RM = getStat({stat:"rir",res:"abs",e:2,r:(a,b)=>((a*1||0)+(b*1||0))/2}).filter(arr => arr[1]).flatMap(([k,v])=> {let ar = repsCountArr.find(([p,q])=>k===p) ; return ar ? [[k,(10*(1-v*10/ar[1]).toFixed(2)*1).toFixed(2)*1]] : []}) ;
+// (a,b)=>(a+b)/2 as a .reduce() callback is NOT a mean -- it's a pairwise
+// running halving, so later array elements are weighted more than earlier
+// ones (e.g. reduce([10,20,30]) gives 22.5, not the true mean of 20). Using
+// reduce's own running-index (3rd arg) gives the standard incremental-mean
+// formula instead, which is order-independent and correct with no initial
+// value needed: newMean = oldMean + (nextValue - oldMean)/(countSoFar).
+const trueAverage = (a,b,i)=> (a*1||0) + ((b*1||0)-(a*1||0))/(i+1);
+// This chart does NOT go through getStat -- getStat's cross-sub-name
+// combining is a SUM (correct for Volume/Reps/Sets/Load, where "total
+// across a muscle's sub-names" is genuinely additive), but an RIR average
+// needs the OPPOSITE: averaging the sub-names' own averages together, so a
+// muscle with three sub-names (delts: side/front/rear) isn't scored 3x
+// higher than a muscle with one (neck) purely because of how many sub-name
+// tags it happens to have in partsObject. A sub-name with zero matching
+// exercises is excluded rather than counted as 0 -- otherwise an untrained
+// sub-name would drag the part's average down as if it had been trained
+// hard, instead of just not being represented yet. Reads "meanRIR" (each
+// exercise's own real average across its own sets, already computed at
+// save/import time) rather than "rir", which only ever matched an
+// exercise's first set and silently ignored the rest.
+const labelStatArr1RM = Object.entries(partsObject).map(([part,groups]) => {
+  const subGroupAverages = groups
+    .filter(target => d.byTarget(target,2,0).length > 0)
+    .map(target => d.getValue(target,"meanRIR",trueAverage,2,0));
+  return [part, subGroupAverages.length ? subGroupAverages.reduce(trueAverage) : null];
+}).filter(([part,avg]) => avg !== null)
+  // RIR is a manually-entered, uncapped number, not a fixed 0-10 scale --
+  // clamping at 0 keeps an unusually high logged RIR from producing a
+  // negative chart value instead of just flooring out at "not intense".
+  .map(([part,avg]) => [part, Math.max(0, 10-avg).toFixed(2)*1]);
 partsMap = new Map();
-const labelStatArrIntensity = Object.entries(partsObject).map(([part,groups]) => {let arr = groups.map(target => d.byTarget(target).map(a =>{ return Object.keys(a[1]).map(k => (allExercises[k]["technicality"]*1 + allExercises[k]["fatigue"]*1 + d.get(a[0])["workoutIntensity"]*1)/3)}).flat()) ; return arr.length? [part,arr.flat().reduce((a,b)=>(((a*1||0)+(b*1||0))/2).toFixed(1)*1)] : 0});
+const labelStatArrIntensity = Object.entries(partsObject).map(([part,groups]) => {let arr = groups.map(target => d.byTarget(target).map(a =>{ return Object.keys(a[1]).map(k => (allExercises[k]["technicality"]*1 + allExercises[k]["fatigue"]*1 + d.get(a[0])["workoutIntensity"]*1)/3)}).flat()) ; let flatArr = arr.flat(); return [part, flatArr.length? (flatArr.reduce(trueAverage)).toFixed(1)*1 : 0]});
 partsMap = new Map();
 
 svgloader.addEventListener("load",()=>{
