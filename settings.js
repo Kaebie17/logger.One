@@ -16,7 +16,7 @@ const redirectHome = document.querySelector("#header > h1");
 const savedSettings = {};
 const settingsObject = localStorage?.savedSettings ? JSON.parse(localStorage.savedSettings) : "";
 let importData = [];
-const exportHeaders = ["workoutDate","workoutName","workoutStartTime","workoutEndTime","workoutIntensity","workoutUnit","workoutSoreness","exercise","setnum","reps","weight","rest","tut","rir"];
+const exportHeaders = ["workoutDate","workoutName","workoutStartTime","workoutEndTime","workoutIntensity","workoutUnit","workoutSystemicFatigue","exercise","setnum","reps","weight","rest","tut","rir"];
 const partsName = ['neck', 'chest', 'shoulders', 'arms', 'forearms', 'abdomen', 'thighs', 'calves','glutes'];
 const setUnits = ()=>{
     let targetElems = Array.from(settingsContainer.querySelectorAll("p:not([id='ftsymbol'],[id='afterfactor'])"));
@@ -132,7 +132,7 @@ const recalibrate = (e) => {
 
 const readFile = (file) => { 
     let fileReader = new FileReader();
-    fileReader.onload = ()=>{
+    fileReader.onload = async ()=>{
         const decoder = new TextDecoder()
         const contents = new Int8Array(fileReader.result);
         const result = decoder.decode(contents).split("\r\n").filter(f => f).map(e => e.replaceAll(/[\"]/g,"").split(","))
@@ -161,11 +161,11 @@ const readFile = (file) => {
         // Unset on a first-ever import (no workout has been logged or
         // imported before) -- matches the "[]" fallback logworkout.js
         // already uses in workoutObject() for the same situation.
-        let existingWorkoutLog = JSON.parse(localStorage?.workoutLogObject||"[]");
+        let existingWorkoutLog = window.workoutLogData||[];
         let existingEntryKeys = existingWorkoutLog.map(arr=>arr[0]);
         let newEntries = workoutLog.filter(([k,v]) => !existingEntryKeys.includes(k))
         workoutLog = existingWorkoutLog.concat(newEntries).sort(([k1,v1],[k2,v2])=>new Date(k1)-new Date(k2));
-        localStorage.workoutLogObject = JSON.stringify(workoutLog);
+        await window.LoggerDB.saveWorkoutLog(workoutLog);
     } 
     fileReader.readAsArrayBuffer(file[0]); 
 }
@@ -299,7 +299,7 @@ function jsonToCSV(){
     let exerCon = {};
     let fileCon = {};
     let res = [];
-    (localStorage?.workoutLogObject ? JSON.parse(localStorage.workoutLogObject) : []).forEach(([k,{workoutExercises,...o}]) => {
+    (window.workoutLogData||[]).forEach(([k,{workoutExercises,...o}]) => {
         let outemp = [];
         Object.entries(workoutExercises).forEach(([n,arr])=> {
         let temp = [];
@@ -317,7 +317,7 @@ function jsonToCSV(){
         exerCon[k] = outemp;
     })
 
-    (localStorage?.workoutLogObject ? JSON.parse(localStorage.workoutLogObject) : []).forEach(([k,o])=> {
+    (window.workoutLogData||[]).forEach(([k,o])=> {
         let temp=[]; 
         Object.entries(o).forEach(([a,b])=> {
             let i = exportHeaders.findIndex(e => e.includes(a));
@@ -339,7 +339,7 @@ function jsonToCSV(){
 // Alter item (targets in this case)
 
 function alterSavedParam(param,savedName){
-    (localStorage?.workoutLogObject ? JSON.parse(localStorage.workoutLogObject) : []).map(([k,{workoutExercises,...o}]) => {
+    (window.workoutLogData||[]).map(([k,{workoutExercises,...o}]) => {
         workoutExercises = Object.fromEntries(Object.entries(workoutExercises).map(([n,arr])=> [n,arr.map(([q,r]) => {
             if (q.includes(savedName)){
              return [q, exerciseDB()[n][param]]

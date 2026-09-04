@@ -1,4 +1,6 @@
-const indexScript = document.getElementById("logworkoutJS");
+// Was document.getElementById("logworkoutJS") -- functions.js now injects
+// this script dynamically (see PAGE_SCRIPTS there) with no fixed id.
+const indexScript = document.currentScript;
 const chooseProgram = document.getElementById("chooseprogram");
 const programDisplay = document.getElementById("selectedprogram");
 const intensityScale = document.getElementById("intensity");
@@ -13,7 +15,7 @@ const toClock_output = document.querySelectorAll("#to output");
 const toClock_AMorPM = document.querySelectorAll("#to select");
 const script = document.createElement("script");
 const periodObject = {login: "", logout: ""}
-const existingTemplates = localStorage?.templates ? JSON.parse(localStorage.templates) : {};
+const existingTemplates = window.templatesData || {};
 let newTemplateEntries = {};
 let [startDate,startTime,startAmPm] = []
 let [endDate,endTime,endAmPm] = [];
@@ -23,12 +25,13 @@ let restoreSelection ;
 // Below code is executed when user logs past workout via logworkout page, or returns to logworkout page after making exercise selection on exercises page, 
 // or when user click on a pre-created template to log it as the past workout including any edits in exercise details or other details before logging the past workout.  
 
-// Fuction to retrieve stored workouts from memory. In this case from web browser's localStorage. **** To be swapped with more permanent storage ****
+// Fuction to retrieve stored workouts from memory. Now backed by IndexedDB
+// (functions.js loads it into window.workoutLogData before this script runs).
 const workoutObject = () => {
-    const workoutObject = new Map(); 
-    const pastWorkouts = JSON.parse(localStorage?.workoutLogObject||"[]");
+    const workoutObject = new Map();
+    const pastWorkouts = window.workoutLogData||[];
     pastWorkouts.forEach(([k,v]) => workoutObject.set(k,v))
-    return workoutObject; 
+    return workoutObject;
 };
 
 // Date and time calculations
@@ -94,7 +97,7 @@ else{
     currentTime();
     sessionStorage.clear()
 }
-updateSorenessAvailability();
+updateSystemicFatigueAvailability();
 
 // redirect to home page
 redirectHome.addEventListener("click" , home)
@@ -105,7 +108,7 @@ const handleCustomChoice = (e)=>{ chooseProgram.value = chooseProgram[0].value; 
 chooseProgram.addEventListener ("change", handleChoiceChange);
 programDisplay.addEventListener("focus", handleCustomChoice);
 programDisplay.addEventListener("keydown", (e)=>{if(e.key==="Enter") {e.preventDefault();}});
-dateElements[0].addEventListener("change", updateSorenessAvailability);
+dateElements[0].addEventListener("change", updateSystemicFatigueAvailability);
 
 // document.addEventListener ("change", captureChange);
 
@@ -177,7 +180,7 @@ clocksCode.onload = () => {
                 if (deg===359&&(output[0].value === "11" && output[1].value === "59")) {
                     display[0].children[0].selected ? (display[0].children[1].selected = true, display[0].children[0].selected = false, dateElem.value = formatDate (new Date(new Date(dateElem.value) - 24*60*60*1000))) :
                         (display[0].children[1].selected = false, display[0].children[0].selected = true) ;
-                    if (outputId === "from") updateSorenessAvailability();
+                    if (outputId === "from") updateSystemicFatigueAvailability();
                 }
             }
             else{
@@ -191,7 +194,7 @@ clocksCode.onload = () => {
                 if (output[0].value === "11"&& output[1].value === "59") {
                     display[0].children[0].selected ? (display[0].children[1].selected = true, display[0].children[0].selected = false, dateElem.value = formatDate (new Date(new Date(dateElem.value) - 24*60*60*1000))) :
                         (display[0].children[1].selected = false, display[0].children[0].selected = true) ;
-                    if (outputId === "from") updateSorenessAvailability();
+                    if (outputId === "from") updateSystemicFatigueAvailability();
                 }
                
             }
@@ -230,34 +233,34 @@ addExercises.onclick = () => {
         document.location = loc;
 }
 
-function saveWorkoutFunction(event) {
-    
-    if(!startDate){alert("Workout duration cannot be 0!"); return} 
+async function saveWorkoutFunction(event) {
+
+    if(!startDate){alert("Workout duration cannot be 0!"); return}
     const workoutName = programDisplay.value;
     const workoutDate = startDate;
     const workoutStartTime = periodObject.login;
     const workoutEndTime = periodObject.logout;
     const workoutIntensity = document.getElementById("intensity").value;
-    // Empty string means "not yet rated" -- the soreness slider stays
-    // disabled (and thus meaningless) for a same-day workout, since the
-    // user genuinely doesn't know it yet. Only a backlogged entry (date !==
-    // today, slider enabled by updateSorenessAvailability) captures a real
-    // value here.
-    const workoutSoreness = document.getElementById("soreness").disabled ? "" : document.getElementById("soreness").value;
+    // Empty string means "not yet rated" -- the systemic fatigue slider
+    // stays disabled (and thus meaningless) for a same-day workout, since
+    // the user genuinely doesn't know it yet. Only a backlogged entry (date
+    // !== today, slider enabled by updateSystemicFatigueAvailability)
+    // captures a real value here.
+    const workoutSystemicFatigue = document.getElementById("systemicfatigue").disabled ? "" : document.getElementById("systemicfatigue").value;
     const workoutUnit = finalLog.unit;
-    delete finalLog.start; delete finalLog.end; delete finalLog.unit; 
-    const workoutExercises = finalLog;   
-    const key = workoutDate + " " + workoutStartTime;                                                                   
-    let temp = workoutObject(); 
-    temp.set(key , {workoutName,workoutDate,workoutStartTime,workoutEndTime,workoutIntensity,workoutSoreness,workoutExercises,workoutUnit});
-    localStorage.workoutLogObject =  JSON.stringify(Array.from(temp));
+    delete finalLog.start; delete finalLog.end; delete finalLog.unit;
+    const workoutExercises = finalLog;
+    const key = workoutDate + " " + workoutStartTime;
+    let temp = workoutObject();
+    temp.set(key , {workoutName,workoutDate,workoutStartTime,workoutEndTime,workoutIntensity,workoutSystemicFatigue,workoutExercises,workoutUnit});
+    await window.LoggerDB.saveWorkoutLog(Array.from(temp));
     temp = "";
     let bool = prompt("Save as template/Replace template");
     if (bool || bool === ""){
-        let templatesArr = Object.entries(localStorage?.templates ? JSON.parse(localStorage.templates) : {});
-        bool ? templatesArr.push([bool,workoutExercises]) : 
+        let templatesArr = Object.entries(window.templatesData || {});
+        bool ? templatesArr.push([bool,workoutExercises]) :
             templatesArr = templatesArr.map(([k,v])=> {k===workoutName ? v = workoutExercises : ""; return [k,v]});
-        localStorage.templates = JSON.stringify(Object.fromEntries(templatesArr));
+        await window.LoggerDB.saveTemplates(Object.fromEntries(templatesArr));
     }
     event.target.removeEventListener("click",saveWorkoutFunction);
     document.location = "./index.html"
@@ -278,15 +281,15 @@ function currentTime(){
 }
 
 
-// Soreness from a workout can only honestly be known the day after it --
-// enabled for a backlogged entry (the user already lived through that next
-// day), disabled and reset to 0 for today's, matching the current date
-// selection at all times.
-function updateSorenessAvailability(){
-    const soreness = document.getElementById("soreness");
+// Systemic fatigue from a workout can only honestly be known the day after
+// it -- enabled for a backlogged entry (the user already lived through
+// that next day), disabled and reset to 0 for today's, matching the
+// current date selection at all times.
+function updateSystemicFatigueAvailability(){
+    const systemicFatigue = document.getElementById("systemicfatigue");
     const isToday = new Date(dateElements[0].value).toDateString() === new Date().toDateString();
-    soreness.disabled = isToday;
-    if (isToday) soreness.value = 0;
+    systemicFatigue.disabled = isToday;
+    if (isToday) systemicFatigue.value = 0;
 }
 
 function updateTimeRecord(){

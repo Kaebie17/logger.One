@@ -13,7 +13,9 @@ const redirectHome = document.querySelector("#header > h1");
 // already use for their own svgcode.js loads.
 const svgloader = document.createElement("script");
 const exercisesPage = document.getElementById("exercisesJS");
-const statsPage = document.getElementById("statsJS");
+// Was document.getElementById("statsJS") -- functions.js now injects this
+// script dynamically (see PAGE_SCRIPTS there) with no fixed id.
+const statsPage = document.currentScript;
 statsPage.before(svgloader);
 svgloader.src = "svgcode.js";
 let allExercises;
@@ -29,7 +31,7 @@ function home() {
   redirectHome.removeEventListener("click", home);
 }
 
-const pastWorkoutsObject = localStorage?.workoutLogObject ? JSON.parse(localStorage.workoutLogObject).sort(([k1,v1],[k2,v2])=> new Date(k1)-new Date(k2)) : [];
+const pastWorkoutsObject = (window.workoutLogData||[]).sort(([k1,v1],[k2,v2])=> new Date(k1)-new Date(k2));
 let d = new DataInterface();
 d.new(Object.fromEntries(pastWorkoutsObject));
 

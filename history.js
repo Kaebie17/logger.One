@@ -34,12 +34,14 @@ class CustomOptionElement extends CustomHTMLElement {
 
 customElements.define("custom-option-element" , CustomOptionElement);
 
-const defaultScript = document.getElementById("historyJS")
+// Was document.getElementById("historyJS") -- functions.js now injects
+// this script dynamically (see PAGE_SCRIPTS there) with no fixed id.
+const defaultScript = document.currentScript;
 const historyElem = document.getElementById("history");
 const logItem = document.createElement("custom-option-element");
 const coverItem = document.createElement("span");
 const redirectHome = document.querySelector("#header > h1");
-const pastWorkouts = JSON.parse(localStorage?.workoutLogObject||"[]").sort(([k1,v1],[k2,v2])=> new Date(k1) - new Date(k2));
+const pastWorkouts = (window.workoutLogData||[]).sort(([k1,v1],[k2,v2])=> new Date(k1) - new Date(k2));
 let numOfWorkouts = pastWorkouts.length; 
 // historyElem.style.gridTemplateRows = `repeat(${numOfWorkouts})`
 
@@ -55,7 +57,7 @@ svgcode.src = "svgcode.js";
 svgcode.addEventListener ("load", () => {
     for (i=0; i<numOfWorkouts; i++){
       addContent(i)
-    }    
+    }
 })
 
 function addContent(i){

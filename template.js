@@ -4,7 +4,7 @@ const coverImage = document.getElementById("coverimg");
 const addExercises = document.getElementById("addexercises");
 const createTemplate = document.getElementById("createtemplate");
 const redirectHome = document.querySelector("#header > h1");
-existingTemplates = localStorage?.templates ? JSON.parse(localStorage.templates) : {}; 
+existingTemplates = window.templatesData || {};
 //redirect to home page
 redirectHome.addEventListener("click" , () => document.location = "index.html");
 
@@ -49,23 +49,23 @@ addExercises.onclick = () => {
     }
 }
 
-createTemplate.onclick = () => {
+createTemplate.onclick = async () => {
     if (new URL(document.location).searchParams.get("eData")){
         existingTemplates[programDisplay.value] = JSON.parse(sessionStorage.finalLog);
-        localStorage.templates = JSON.stringify(existingTemplates);
+        await window.LoggerDB.saveTemplates(existingTemplates);
         const loc = new URL("index.html", document.location);
         document.location = loc;
         return
     }
     if (!programDisplay.value) {
-        alert("Program name cannot be empty."); 
+        alert("Program name cannot be empty.");
         return;
     }
     else if (sessionStorage?.program && sessionStorage?.finalLog){
         const newEntry = JSON.parse(sessionStorage.finalLog);
         if (!existingTemplates.hasOwnProperty(programDisplay.value)) {
             existingTemplates[programDisplay.value] = newEntry;
-            localStorage.templates = JSON.stringify(existingTemplates);
+            await window.LoggerDB.saveTemplates(existingTemplates);
         } else {
             alert("Program with a same name already exists! Either choose a new name or edit the existing entry from the templates carousal.") ;
             return;

@@ -1,5 +1,7 @@
 
-const indexScript = document.getElementById("exercisesJS")
+// Was document.getElementById("exercisesJS") -- functions.js now injects
+// this script dynamically (see PAGE_SCRIPTS there) with no fixed id.
+const indexScript = document.currentScript;
 const script = document.createElement("script");
 let exercises;
 let exercisesDBpage = script.cloneNode(true);
@@ -90,7 +92,7 @@ const selectionListDisplay = document.getElementById("selectionlistdisplay") ;
 const selectExercise = document.getElementById("exercises");
 const searchExercise = document.getElementById("searchexercise");
 const redirectHome = document.querySelector("#header > h1");
-const existingTemplates = sessionStorage?.templates?.length>2 ? JSON.parse(sessionStorage.templates) : localStorage?.templates ? JSON.parse(localStorage.templates) : {};
+const existingTemplates = sessionStorage?.templates?.length>2 ? JSON.parse(sessionStorage.templates) : (window.templatesData || {});
 const unitUsed = !localStorage?.savedSettings ? alert("Please update settings before proceeding") : JSON.parse(localStorage?.savedSettings)["unit"]; 
 
 // A pre-built section to be attached to each option when hovered/dblclicked 
@@ -110,7 +112,7 @@ const close = (event) => {
   // logging new past workout from workoutlog page based edit workout flow-control
     if (sessionStorage?.restoreSelection){
       CustomOptionElement.selectedOptionArr = JSON.parse(sessionStorage.restoreSelection);
-      const idArray = JSON.parse(sessionStorage.restoreSelection).map(el => el.toLowerCase().replaceAll(" ","_"));
+      const idArray = JSON.parse(sessionStorage.restoreSelection).map(el => nameToId(el));
       idArray.forEach(el => {document.getElementById(el.replaceAll(" ")).shadowRoot.children[el].classList.add("indent");})
     }
   } 
@@ -148,7 +150,7 @@ const doneSelectionFunction = (event) => {
     alert("Please select at least one exercise to proceed.")
   }else{
     switchListsDisp(1);
-    const exerciseDetails = newSelection.map(e => e.toLowerCase().replaceAll(" ", "_")).map(k => _exerciseData[k])
+    const exerciseDetails = newSelection.map(e => nameToId(e)).map(k => _exerciseData[k])
     sessionStorage.restoreSelection = JSON.stringify(CustomOptionElement.selectedOptionArr);
     // loadOptions (exerciseDetails, selectionListDisplay);
     const span = document.createElement("span");
@@ -238,7 +240,7 @@ exercisesDBpage.onload = (e,urloption) => {
   // logging new past workout from workoutlog page based edit workout flow-control
     if (sessionStorage?.restoreSelection){
       CustomOptionElement.selectedOptionArr = JSON.parse(sessionStorage.restoreSelection);
-      const idArray = JSON.parse(sessionStorage.restoreSelection).map(el => el.toLowerCase().replaceAll(" ","_"));
+      const idArray = JSON.parse(sessionStorage.restoreSelection).map(el => nameToId(el));
       idArray.forEach(el => {document.getElementById(el.replaceAll(" ")).shadowRoot.children[el].classList.add("indent");})
     }
   }
@@ -249,8 +251,15 @@ exercisesDBpage.onload = (e,urloption) => {
     let templateData = existingTemplates[sessionStorage.program];
     sessionStorage.unit = templateData?.["unit"];
     sessionStorage.unit ? delete templateData["unit"] : ""
-    CustomOptionElement.selectedOptionArr = Object.keys(templateData);
-    CustomOptionElement.selectedOptionArr = CustomOptionElement.selectedOptionArr.map( el => el.capitalizeAllFirst("_"));
+    // Was el.capitalizeAllFirst("_") -- reconstructing a "clean" name from
+    // the key (underscores to spaces, title-case) instead of reading the
+    // real name back from the database. That only worked while every name
+    // was itself just underscore-separated words with no other punctuation;
+    // now that names can include things like "(Flat)" or "Farmer's", the
+    // reconstructed version silently stops matching the actual rendered
+    // text (a fresh click on the same exercise produces the real name),
+    // so the two can't recognize each other as the same selection.
+    CustomOptionElement.selectedOptionArr = Object.keys(templateData).map(k => exerciseDB()[k].name);
     sessionStorage.searchParams = JSON.stringify([...new URL(document.location).searchParams.values()]);
     doneSelectionFunction();
   }
@@ -275,7 +284,7 @@ function loadOptions (array,element,parentnode,options) {
     entries.forEach(([key,value]) => clone[key] = typeof value === "object" ? 
       nestedObjectArrayVal(array[i][value[0]],value[1],value[2],value[3]) : 
       key === "id" ?
-      array[i][value].replaceAll(/[ ]|(?<!\d)-/g,"_").replaceAll(/[^-\w]/g,"").toLowerCase() :
+      nameToId(array[i][value]) :
       array[i][value]||value) ;
 
     fragment.append(clone)
@@ -363,18 +372,87 @@ const typeMultiple = (e) => {
   let targetEl = e.target.nodeName === "I" ? e.target : e.target.firstElementChild;     
   targetEl.textContent = targetEl.textContent === "1" ? "2" : "1" ;  
 }
+// Was reading exerciseDB()[refElem]["type"] as if it were an array like
+// ["reps"]/["weight"]/["reps","weight"] -- that field is actually always
+// the plain string "bilateral"/"unilateral"/"isometric" (the movement
+// pattern, not a multiplier hint), so type.length/type[0] never matched
+// any branch and this silently did nothing for every exercise, ever.
+//
+// "bilateral"/"unilateral" alone can't answer the real question either --
+// it describes the MOVEMENT (e.g. a Bulgarian split squat's legs are
+// unilateral) not how many separate implements are held. A dumbbell
+// exercise needs one of three defaults:
+//  - WEIGHT_DOUBLES: two separate same-size implements moving together
+//    (bench press, rows, shrugs, most presses/flyes/curls -- including
+//    lower-body work like lunges/split squats/calf raises where a
+//    dumbbell is simply held in each hand for load, regardless of the
+//    legs' own unilateral pattern). The entered weight is one implement's
+//    load; total load is double that.
+//  - REPS_DOUBLES: one implement, done as two sequential halves of the
+//    same logged set -- explicit "single arm"/"one arm" work, and
+//    exercises conventionally trained one side at a time (kroc row,
+//    kettlebell clean/snatch, bottom-up KB press). The entered reps are
+//    one side's count; total reps performed is double that.
+//  - Neither (default, including every barbell/machine/cable/bodyweight
+//    exercise): one implement held with both hands together (goblet
+//    squats, pullovers, kettlebell swings/deadlifts/good mornings,
+//    farmer's-walk-style single-carry variants), or "alternating"-named
+//    work where the natural convention is to log the true combined rep
+//    count directly (alternating curls), or single-leg contralateral
+//    loading (one dumbbell/kettlebell, opposite the working leg).
+// Judged by name/equipment/bodypart against real exercise convention,
+// exercise by exercise -- not a generic regex, since the same equipment
+// and "type" combination genuinely means different things per exercise
+// (e.g. dumbbell_pullover vs dumbbell_bench_press_flat: same equipment,
+// same "bilateral" type, opposite answer).
+const WEIGHT_DOUBLES_EXERCISES = new Set([
+  "dumbbell_bench_press_flat","incline_dumbbell_bench_press","decline_dumbbell_bench_press",
+  "dumbbell_flyes_flat","incline_dumbbell_flyes","decline_dumbbell_flyes","close_grip_dumbbell_press",
+  "dumbbell_floor_press","standing_dumbbell_flyes","kneeling_dumbbell_flyes","kettlebell_floor_press",
+  "kettlebell_bench_press","kettlebell_flyes","dumbbell_hex_press","guillotine_press_dumbbell",
+  "dumbbell_row_bent_over_double_arm","chest_supported_dumbbell_row","seal_row_dumbbell",
+  "dumbbell_reverse_fly_incline_bench","dumbbell_shrugs_incline","dumbbell_deadlift_conventional",
+  "power_shrugs","seated_dumbbell_row","dumbbell_shrugs_seated","dumbbell_power_shrugs",
+  "dumbbell_dead_stop_row","dumbbell_floor_pull","dumbbell_shrugs_overhead","dumbbell_rack_pull",
+  "straight_leg_deadlift_dumbbell","dumbbell_rear_delt_row","dumbbell_squat","dumbbell_lunges",
+  "dumbbell_sumo_deadlift","dumbbell_romanian_deadlift","dumbbell_standing_calf_raise",
+  "single_leg_dumbbell_calf_raise","farmers_walk_tiptoes","incline_dumbbell_curl","spider_curl",
+  "dumbbell_preacher_curl","bayesian_curl","overhead_dumbbell_extension_two_arm","dumbbell_kickback",
+  "lying_dumbbell_extension","dumbbell_floor_press_close_grip","tate_press","dumbbell_shoulder_press_seated",
+  "dumbbell_lateral_raise","dumbbell_front_raise","arnold_press","bent_over_dumbbell_reverse_fly",
+  "dumbbell_high_pull","cuban_press","dumbbell_shrugs","high_incline_dumbbell_press",
+  "arnold_dumbbell_press_standing","dumbbell_upright_row","incline_bench_prone_dumbbell_rear_delt_raise",
+  "farmers_walk","zottman_curl","dumbbell_wrist_curl","dumbbell_reverse_wrist_curl","farmers_hold",
+  "squeeze_press_dumbbell","stability_ball_dumbbell_press","dumbbell_bulgarian_split_squat",
+]);
+const REPS_DOUBLES_EXERCISES = new Set([
+  "single_arm_dumbbell_press_flat","single_arm_incline_dumbbell_press","single_arm_decline_dumbbell_press",
+  "single_arm_kettlebell_press","dumbbell_row_bent_over_single_arm","dumbbell_pullover_single_arm",
+  "one_arm_deadlift_kettlebell","kettlebell_row_bent_over","kroc_row","kettlebell_clean","dumbbell_snatch",
+  "pendulum_row","kettlebell_single_arm_row_bent_over","kettlebell_dead_stop_row","concentration_curl",
+  "single_arm_overhead_dumbbell_extension","kettlebell_overhead_press_single_arm","bottom_up_kettlebell_press",
+  "dumbbell_supination_pronation","poliquin_raise",
+  // Same "one implement/station, logged as one side then the other within
+  // the same set" reasoning as above, extended past dumbbell/kettlebell --
+  // this applies to any single-arm/single-leg work on a cable, machine, or
+  // landmine just as much, since it's about how a SET is logged, not what
+  // equipment it's on. NOT included here: one_arm_pullup_progression,
+  // one_arm_chinup, one_arm_push_up -- these are bodyweight skill/strength
+  // movements conventionally trained and logged per-arm as their own goal,
+  // not as "do the right arm then the left, that's one set" the way a
+  // loaded row/press/curl/extension is.
+  "single_arm_cable_crossover","single_arm_cable_press","single_arm_lat_pulldown","one_arm_landmine_row",
+  "standing_cable_row_single_arm","single_arm_barbell_row","single_leg_press","single_leg_squat_to_bench",
+  "eccentric_calf_raise_single_leg","single_arm_cable_pushdown","single_arm_landmine_press",
+  "single_arm_cable_fly_low_to_high","single_arm_cable_fly_high_to_low","seated_leg_curl_single_leg",
+  "lying_leg_curl_single_leg","leg_extension_single_leg",
+  // Not explicitly named "single arm", but inherently single-arm by how
+  // the landmine setup works (there's only one end of the bar to grip).
+  "meadows_row","landmine_press","landmine_press_chest_variation",
+]);
 const autoAssignMultiple = (el1,el2,refElem) => {
-  let type = exerciseDB()[refElem]["type"];
-  if (type.length === 2){
-    el1.textContent = "2";
-    el2.textContent = "2";
-  }
-  else if (type[0] === "reps"){
-    el2.textContent = "2";
-  }
-  else if (type[0] === "weight"){
-    el1.textContent = "2";
-  }
+  if (WEIGHT_DOUBLES_EXERCISES.has(refElem)) el1.textContent = "2";
+  else if (REPS_DOUBLES_EXERCISES.has(refElem)) el2.textContent = "2";
 }
 const content = (i,parent) => `
   <span id="line${i}">
@@ -486,8 +564,8 @@ function removeSelectedExercise(event){
   const container = document.querySelector(`#selectionlistdisplay #${id}_container`) 
   const userInputArea = document.querySelectorAll(`#selectionlistdisplay #${id}`)?.[1];
   container.remove();
-  CustomOptionElement.selectedOptionArr = CustomOptionElement.selectedOptionArr.filter(name => name.toLowerCase().replaceAll(" ","_") !== id);
-  sessionStorage.restoreSelection = JSON.stringify(JSON.parse(sessionStorage.restoreSelection).filter(name => name.toLowerCase().replaceAll(" ","_") !== id))
+  CustomOptionElement.selectedOptionArr = CustomOptionElement.selectedOptionArr.filter(name => nameToId(name) !== id);
+  sessionStorage.restoreSelection = JSON.stringify(JSON.parse(sessionStorage.restoreSelection).filter(name => nameToId(name) !== id))
   if(exerciseList.querySelector(`#${id}`)){
     exerciseList.querySelector(`#${id}`).shadowRoot.children[`${id}`].classList.remove("indent");
   }

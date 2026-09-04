@@ -1,4 +1,6 @@
-const indexScript = document.getElementById("trendsJS"); 
+// Was document.getElementById("trendsJS") -- functions.js now injects
+// this script dynamically (see PAGE_SCRIPTS there) with no fixed id.
+const indexScript = document.currentScript;
 const dailyOrCustom = document.getElementById("custom");
 const weeklyTrends = document.getElementById("weeklytrends");
 const monthlyTrends = document.getElementById("monthlytrends");
@@ -11,14 +13,14 @@ const prevButtons = document.querySelectorAll(".prevBtn");
 const nextButtons = document.querySelectorAll(".nextBtn");
 const redirectHome = document.querySelector("#header > h1");
 const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-const pastWorkoutsArray = localStorage?.workoutLogObject ? JSON.parse(localStorage.workoutLogObject) : {};
+const pastWorkoutsArray = window.workoutLogData||[];
 const mainFilterEntries = {};
 mainFilterEntries.exerciseNameIds = [];
-localStorage?.workoutLogObject ? pastWorkoutsArray.forEach(([k,{workoutExercises,...o}])=> Object.keys(workoutExercises).forEach(e => !mainFilterEntries.exerciseNameIds.includes(e)?mainFilterEntries.exerciseNameIds.push(e):"")) : [] ;
+pastWorkoutsArray.forEach(([k,{workoutExercises,...o}])=> Object.keys(workoutExercises).forEach(e => !mainFilterEntries.exerciseNameIds.includes(e)?mainFilterEntries.exerciseNameIds.push(e):""));
 mainFilterEntries.exerciseNameIds = mainFilterEntries.exerciseNameIds.sort((a,b)=> (a[0]+a[1]).charCodeAt()-(b[0]+b[1]).charCodeAt())
-const workoutDates = localStorage?.workoutLogObject ? pastWorkoutsArray.map(([k,v])=>k) : [] ;
+const workoutDates = pastWorkoutsArray.map(([k,v])=>k);
 mainFilterEntries.uniqueTargets = [];
-localStorage?.workoutLogObject ? pastWorkoutsArray.forEach(([k,{workoutExercises,...v}]) => Object.values(workoutExercises).flat().filter(arr => arr[0]==="targets")[0][1].forEach(t => {if(!mainFilterEntries.uniqueTargets.includes(t)){mainFilterEntries.uniqueTargets.push(t)}})) : [];
+pastWorkoutsArray.forEach(([k,{workoutExercises,...v}]) => Object.values(workoutExercises).flat().filter(arr => arr[0]==="targets")[0][1].forEach(t => {if(!mainFilterEntries.uniqueTargets.includes(t)){mainFilterEntries.uniqueTargets.push(t)}}));
 mainFilterEntries.uniqueTargets = mainFilterEntries.uniqueTargets.sort((a,b)=> (a[0]+a[1]).charCodeAt()-(b[0]+b[1]).charCodeAt());
 mainFilterEntries.uniquePrograms = [] 
 pastWorkoutsArray.forEach(([k,{workoutName,...o}])=> !mainFilterEntries.uniquePrograms.includes(workoutName)? mainFilterEntries.uniquePrograms.push(workoutName) : "")

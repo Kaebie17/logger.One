@@ -1,4 +1,6 @@
-const defaultScript = document.getElementById("pastWorkoutJS");
+// Was document.getElementById("pastWorkoutJS") -- functions.js now injects
+// this script dynamically (see PAGE_SCRIPTS there) with no fixed id.
+const defaultScript = document.currentScript;
 const heading = document.getElementById("name");
 const snapshotContainer = document.getElementById("snapshot");
 const exerciseDisplay = document.getElementById("exercises");
@@ -11,9 +13,9 @@ const svgContainer = document.getElementById("svgcontainer");
 const calendarArea = document.getElementById("calendar");
 const deleteWorkoutBtn = document.getElementById("deleteworkout");
 const changeDateBtn = document.getElementById("changedate");
-const editSorenessBtn = document.getElementById("editsoreness");
+const editSystemicFatigueBtn = document.getElementById("editsystemicfatigue");
 const redirectHome = document.querySelector("#header > h1");
-const pastWorkoutsObject = (localStorage?.workoutLogObject ? JSON.parse(localStorage.workoutLogObject) : []).sort((a,b)=>new Date(a[0])-new Date(b[0]));
+const pastWorkoutsObject = (window.workoutLogData||[]).sort((a,b)=>new Date(a[0])-new Date(b[0]));
 const finalLog = Object.fromEntries(JSON.parse(sessionStorage.finalLog));
 const key = Object.keys(finalLog)[0];
 const date = new Date(key).toLocaleDateString();
@@ -44,8 +46,8 @@ deleteWorkoutBtn.addEventListener("click", handleDeleteOperation);
 //change this workout's date
 changeDateBtn.addEventListener("click", handleDateChange);
 
-//rate/edit this workout's soreness
-editSorenessBtn.addEventListener("click", handleSorenessEdit);
+//rate/edit this workout's systemic fatigue
+editSystemicFatigueBtn.addEventListener("click", handleSystemicFatigueEdit);
 
 exerciseDetails.lastElementChild.addEventListener("click", ()=>{
     exerciseDisplay.style.display = "flex";
@@ -233,7 +235,7 @@ snapshotContainer.childNodes.forEach((el,i) => el.firstElementChild.textContent 
 // A stored field, not a derived stat like the rest of extractData()'s
 // output above -- "" (unrated, see logworkout.js) deliberately falls
 // through the || since it isn't a real rating yet.
-snapshotContainer.lastElementChild.lastElementChild.textContent = finalLog[key]["workoutSoreness"] || "Not rated";
+snapshotContainer.lastElementChild.lastElementChild.textContent = finalLog[key]["workoutSystemicFatigue"] || "Not rated";
 let svgcode = document.createElement("script");
 defaultScript.before(svgcode);
 svgcode.src = "svgcode.js";
@@ -387,7 +389,7 @@ function monthlyExerciseDates(){
     let monthnum = months.findIndex(m => m===calendarArea.firstElementChild.children[1].textContent);
     return pastWorkoutsObject.flatMap(([k,{workoutExercises, ...v}])=> { 
         let d = new Date(k);
-        return d.getMonth() === monthnum && Object.keys(workoutExercises).includes(titleElem.textContent.toLowerCase().replaceAll(" ","_")) ? [d.getDate()] : [] ;
+        return d.getMonth() === monthnum && Object.keys(workoutExercises).includes(nameToId(titleElem.textContent)) ? [d.getDate()] : [] ;
     })
 }
 
@@ -438,14 +440,15 @@ function home() {
   redirectHome.removeEventListener("click", home);
 }
 
-function handleDeleteOperation(){
+async function handleDeleteOperation(){
+    // No restore path here (unlike handleDateChange below) -- this deletes
+    // and navigates away immediately, so there's nothing to stash.
     let newHistory = pastWorkoutsObject.filter(([k,v])=>k!==key);
-    localStorage.templog = JSON.stringify(pastWorkoutsObject);
-    localStorage.workoutLogObject = JSON.stringify(newHistory);
+    await window.LoggerDB.saveWorkoutLog(newHistory);
     document.location = "./history.html";
 }
 
-function handleDateChange(){
+async function handleDateChange(){
     let modalEl = document.createElement("dialog");
     let closeBtn = document.createElement("span");
     let datepicker = document.createElement("input");
@@ -467,37 +470,37 @@ function handleDateChange(){
     modalEl.className = "changesmodal";
     modalEl.style.marginTop = "40vh";
     let newHistory = pastWorkoutsObject.filter(([k,v])=>k!==key);
-    localStorage.templog = JSON.stringify(pastWorkoutsObject);
-    localStorage.workoutLogObject = JSON.stringify(newHistory);
-    // The removal above is tentative -- it only sticks once "Done" writes
-    // the (possibly edited) entry back. Closing via the X instead of
-    // submitting has to restore that stashed copy, or the workout is just
-    // gone with no way to complete or cancel the edit.
-    closeBtn.addEventListener("click", () => {
-        localStorage.workoutLogObject = localStorage.templog;
+    // Same-session-only undo stash -- never needs to survive a reload, so
+    // this is just a plain variable now instead of a localStorage.templog
+    // round-trip. Closing via the X instead of submitting restores it, or
+    // the workout would just be gone with no way to complete or cancel.
+    const stashedLog = pastWorkoutsObject;
+    await window.LoggerDB.saveWorkoutLog(newHistory);
+    closeBtn.addEventListener("click", async () => {
+        await window.LoggerDB.saveWorkoutLog(stashedLog);
         modalEl.close();
         modalEl.remove();
     });
-    submit.addEventListener("click", (e) => {
+    submit.addEventListener("click", async (e) => {
         let el2 = e.target.previousElementSibling;
         let el1 = el2.previousElementSibling;
         let el0 = el1.previousElementSibling;
         let thisWorkout = pastWorkoutsObject.filter(([k,v])=>k===key);
-        if (el1.value && el2.value) { 
+        if (el1.value && el2.value) {
             thisWorkout[0][0] = new Date(el1.value).toLocaleString() ;
             thisWorkout[0][1]["workoutStartTime"] = new Date(el1.value).toLocaleTimeString();
-            thisWorkout[0][1]["workoutEndTime"] = new Date(new Date(el1.value).getTime()+60*el2.value*1000).toLocaleTimeString();  
+            thisWorkout[0][1]["workoutEndTime"] = new Date(new Date(el1.value).getTime()+60*el2.value*1000).toLocaleTimeString();
             thisWorkout[0][1]["workoutDate"] = new Date(el1.value).toDateString();
         }
-        thisWorkout[0][1]["workoutName"] = el0.value ; 
+        thisWorkout[0][1]["workoutName"] = el0.value ;
         let bool = pastWorkoutsObject.some(([k,v]) => new Date(k).toDateString() === thisWorkout[0][0]);
         if (!bool){
-            let newlog =  (localStorage?.workoutLogObject ? JSON.parse(localStorage.workoutLogObject) : []).concat(thisWorkout)
-            localStorage.workoutLogObject = JSON.stringify(newlog);
+            let newlog = (window.workoutLogData||[]).concat(thisWorkout);
+            await window.LoggerDB.saveWorkoutLog(newlog);
         }
         else{
             alert("A workout already exists on selected date. Please select another date to proceed");
-            return; 
+            return;
         }
         modalEl.close();
         document.location = "./history.html";
@@ -506,9 +509,9 @@ function handleDateChange(){
     modalEl.show();
 }
 
-function handleSorenessEdit(){
+function handleSystemicFatigueEdit(){
     const modalEl = document.createElement("dialog");
-    modalEl.className = "sorenessmodal";
+    modalEl.className = "systemicfatiguemodal";
     const closeBtn = document.createElement("span");
     closeBtn.className = "modal-close";
     closeBtn.textContent = "❌";
@@ -519,15 +522,15 @@ function handleSorenessEdit(){
     const input = document.createElement("input");
     input.type = "range";
     input.min = 0; input.max = 10; input.step = 1;
-    input.value = finalLog[key]["workoutSoreness"] || 0;
+    input.value = finalLog[key]["workoutSystemicFatigue"] || 0;
     input.className = "gradient-range";
     const doneBtn = document.createElement("button");
     doneBtn.textContent = "Done";
-    doneBtn.addEventListener("click", () => {
-        finalLog[key]["workoutSoreness"] = input.value;
+    doneBtn.addEventListener("click", async () => {
+        finalLog[key]["workoutSystemicFatigue"] = input.value;
         sessionStorage.finalLog = JSON.stringify(Object.entries(finalLog));
         const updatedLog = pastWorkoutsObject.map(arr => arr[0] === key ? [arr[0], finalLog[key]] : arr);
-        localStorage.workoutLogObject = JSON.stringify(updatedLog);
+        await window.LoggerDB.saveWorkoutLog(updatedLog);
         snapshotContainer.lastElementChild.lastElementChild.textContent = input.value;
         modalEl.close();
         modalEl.remove();
@@ -551,7 +554,7 @@ function handleEditData(e){
     // just show blank again.
     input.value = parseFloat(e.target.value.toString().replace(/[^\d.]/g,"")) || "";
     doneBtn.textContent = "Done";
-    doneBtn.addEventListener("touchend",()=>{
+    doneBtn.addEventListener("touchend", async ()=>{
         if(e.target.id.includes("Multiple")) {
             document.querySelectorAll(`#${e.target.id}`).forEach(el => el.value = input.value)
         }
@@ -597,7 +600,7 @@ function handleEditData(e){
         finalLog[key]["workoutExercises"][targetExercise] = dataArray;
         sessionStorage.finalLog = JSON.stringify(Object.entries(finalLog));
         let updatedLog = pastWorkoutsObject.map(arr=> arr[0] === key ? [arr[0],arr[1] = finalLog[key]] : arr);
-        localStorage.workoutLogObject = JSON.stringify(updatedLog);
+        await window.LoggerDB.saveWorkoutLog(updatedLog);
         modalEl.close();
     })
     modalEl.append(input,doneBtn);

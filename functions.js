@@ -57,6 +57,19 @@ if ("serviceWorker" in navigator) {
 }
 
 const sortByDate = Intl.Collator(undefined,{numeric:true}).compare;
+
+// Converts an exercise's display name to its exerciseDB key -- the same
+// transform loadOptions() (exercises.js) already uses for assigning each
+// rendered option's id, extracted here so every OTHER place that needs to
+// reverse a display name back into a key (exercises.js's selection flow,
+// pastworkout.js's calendar lookup) uses the identical, punctuation-safe
+// version instead of each rolling its own ".replaceAll(' ','_')" -- that
+// naive version breaks on anything beyond spaces (parentheses, apostrophes,
+// slashes -- e.g. "Barbell Bench Press (Flat)" or "Farmer's Walk"), which
+// silently produces a key that doesn't exist in the database.
+function nameToId(name){
+    return name.replaceAll(/[ ]|(?<!\d)-/g,"_").replaceAll(/[^-\w]/g,"").toLowerCase();
+}
 String.prototype.capitalizeAllFirst = function(seperator=" ",joiner=" "){
     try{
         return this.split(seperator).map(word => word.replace(word[0],word[0].toUpperCase())).join(joiner);
@@ -368,23 +381,226 @@ class DataInterface extends Object{
     }
 }
 
-// Soreness from a workout is only knowable the day after -- rather than
-// track every unrated past entry, this only ever looks at the single most
-// recently logged workout. If it's still unrated ("" -- see logworkout.js's
-// saveWorkoutFunction) and its date is no longer today, prompt for it right
-// here on app open. Runs on every page (this file is loaded everywhere,
-// same as showUpdateBanner above) since "opening the app" doesn't always
-// mean landing on index.html.
-function checkLastWorkoutSoreness(){
-    // pastworkout.html has its own "Edit Soreness" button (pastworkout.js)
-    // for exactly this -- popping this dialog up there too would sit on
-    // top of the page and block that button (and everything else on the
-    // page) behind a modal the user didn't ask for.
+// ---- Shared muscle-diagram color ramp ----
+//
+// Validated ordinal red ramp (dataviz skill: single hue, monotone
+// lightness, checked against the app's actual dark background) for the 5
+// real fatigue tiers. Tier 0 (no data) is deliberately NOT a color in this
+// palette -- "resting" means restoring whatever that specific element's
+// own SVG source already authored (grey for an ordinary muscle, white for
+// erectorspinae's shape in backsvg.js, etc.), never a hardcoded standin.
+// Color coding only ever TEMPORARILY overrides that native appearance;
+// the absence of workout/soreness data restores it. index.js's own
+// nameMap loop already relies on exactly this (it only ever calls into
+// this function when there's actual volume for a muscle, so an untouched
+// one is simply never written to and stays as authored); profile.js's
+// interactive +/- additionally needs this function to actively restore
+// the native color when a muscle is stepped back down to 0, since by then
+// its fill has already been overwritten once in the same render.
+const TIER_COLORS = [
+    {stroke: "#f6c2ba", fill: "#f6c2ba"}, // 1
+    {stroke: "#e79a8b", fill: "#e79a8b"}, // 2
+    {stroke: "#dc7a63", fill: "#dc7a63"}, // 3
+    {stroke: "#d1543b", fill: "#d1543b"}, // 4
+    {stroke: "#c62a1c", fill: "#c62a1c"}, // 5 -- most fatigued
+];
+function applyTierColor(el, tier){
+    // Captured lazily, the first time this element is ever touched --
+    // before anything below has a chance to overwrite it -- so tier 0 has
+    // the real original value to restore rather than a guess.
+    if (el.dataset.nativeFill === undefined){
+        el.dataset.nativeFill = el.getAttribute("fill");
+        el.dataset.nativeStroke = el.getAttribute("stroke");
+    }
+    if (tier <= 0){
+        el.setAttribute("fill", el.dataset.nativeFill);
+        el.setAttribute("stroke", el.dataset.nativeStroke);
+        return;
+    }
+    const {stroke, fill} = TIER_COLORS[Math.max(0, Math.min(TIER_COLORS.length-1, tier-1))];
+    el.setAttribute("stroke", stroke);
+    el.setAttribute("fill", fill);
+}
+
+// ---- IndexedDB-backed workout log + templates ----
+//
+// workoutLogObject/templates used to live in localStorage, which caps out
+// around 5MB per origin -- a real ceiling for years of logged workouts.
+// IndexedDB draws from the browser's much larger general storage quota
+// instead. This file owns the DB entirely: every other page-specific
+// script (history.js, index.js, logworkout.js, pastworkout.js, settings.js,
+// stats.js, template.js, trends.js, exercises.js) reads the loaded data
+// from window.workoutLogData/window.templatesData (plain globals, already
+// populated by the time those scripts run -- see PAGE_SCRIPTS/initApp
+// below) and writes through window.LoggerDB.saveWorkoutLog/saveTemplates,
+// never touching indexedDB or localStorage for this data directly.
+const DB_NAME = "loggerOneDB";
+const DB_VERSION = 2;
+let dbInstance = null;
+let dbAvailable = true;
+
+function openDB(){
+    return new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = () => {
+            const db = req.result;
+            if (!db.objectStoreNames.contains("workouts")) db.createObjectStore("workouts", {keyPath: "key"});
+            if (!db.objectStoreNames.contains("templates")) db.createObjectStore("templates", {keyPath: "name"});
+            if (!db.objectStoreNames.contains("muscleSoreness")) db.createObjectStore("muscleSoreness", {keyPath: "muscle"});
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+    });
+}
+
+function idbGetAll(db, storeName){
+    return new Promise((resolve, reject) => {
+        const req = db.transaction(storeName, "readonly").objectStore(storeName).getAll();
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+    });
+}
+
+function idbCount(db, storeName){
+    return new Promise((resolve, reject) => {
+        const req = db.transaction(storeName, "readonly").objectStore(storeName).count();
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+    });
+}
+
+// Replaces the ENTIRE contents of a store, matching this app's existing
+// "always rewrite the whole array/object" save pattern (nothing currently
+// does a single-record patch) -- one transaction, so a page reload mid-save
+// can never observe a half-cleared store.
+function idbReplaceAll(db, storeName, records){
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, "readwrite");
+        const store = tx.objectStore(storeName);
+        store.clear();
+        records.forEach(r => store.put(r));
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+    });
+}
+
+// Reconstructs the exact [key, value] tuple-array shape every page already
+// expects from JSON.parse(localStorage.workoutLogObject).
+async function loadWorkoutLog(db){
+    const rows = await idbGetAll(db, "workouts");
+    return rows.map(({key, ...value}) => [key, value]);
+}
+
+// Reconstructs the exact {name: data} shape every page already expects
+// from JSON.parse(localStorage.templates).
+async function loadTemplates(db){
+    const rows = await idbGetAll(db, "templates");
+    return Object.fromEntries(rows.map(({name, data}) => [name, data]));
+}
+
+// {muscle: tier} -- e.g. {biceps: 3}. Absent muscle = tier 0 (resting).
+async function loadMuscleSoreness(db){
+    const rows = await idbGetAll(db, "muscleSoreness");
+    return Object.fromEntries(rows.map(({muscle, tier}) => [muscle, tier]));
+}
+
+async function saveWorkoutLog(db, arrayOfTuples){
+    await idbReplaceAll(db, "workouts", arrayOfTuples.map(([key, value]) => ({key, ...value})));
+    window.workoutLogData = arrayOfTuples;
+}
+
+async function saveTemplates(db, obj){
+    await idbReplaceAll(db, "templates", Object.entries(obj).map(([name, data]) => ({name, data})));
+    window.templatesData = obj;
+}
+
+async function saveMuscleSoreness(db, obj){
+    await idbReplaceAll(db, "muscleSoreness", Object.entries(obj).map(([muscle, tier]) => ({muscle, tier})));
+    window.muscleSorenessData = obj;
+}
+
+// One-time move of whatever's already in localStorage into IndexedDB.
+// Writes the new copy FIRST and only deletes the old localStorage key once
+// that write has actually completed -- an interrupted migration (tab
+// closed mid-way, etc.) just retries on the next load instead of losing
+// anything, since the old key is still sitting there untouched.
+async function migrateFromLocalStorage(db){
+    if (await idbCount(db, "workouts") === 0 && localStorage?.workoutLogObject){
+        const existing = JSON.parse(localStorage.workoutLogObject);
+        if (existing.length) await saveWorkoutLog(db, existing);
+        delete localStorage.workoutLogObject;
+    }
+    if (await idbCount(db, "templates") === 0 && localStorage?.templates){
+        const existing = JSON.parse(localStorage.templates);
+        if (Object.keys(existing).length) await saveTemplates(db, existing);
+        delete localStorage.templates;
+    }
+}
+
+// One-time field rename on existing workout entries: workoutSoreness (the
+// old name) -> workoutSystemicFatigue (what that same whole-workout scale
+// is now called). Runs every load but is a no-op once every entry has
+// already been migrated, since the old key is deleted as it goes.
+async function migrateSorenessField(db, workoutLogData){
+    let changed = false;
+    const migrated = workoutLogData.map(([key, value]) => {
+        if (value.workoutSoreness === undefined || value.workoutSystemicFatigue !== undefined) return [key, value];
+        changed = true;
+        const {workoutSoreness, ...rest} = value;
+        return [key, {...rest, workoutSystemicFatigue: workoutSoreness}];
+    });
+    if (changed) await saveWorkoutLog(db, migrated);
+    return migrated;
+}
+
+// Public write API for every other page's script. Falls back to
+// localStorage if IndexedDB failed to open for this session (private
+// browsing restrictions, browser quirks, etc.) rather than silently
+// dropping the write.
+window.LoggerDB = {
+    saveWorkoutLog: async (arr) => {
+        if (dbAvailable && dbInstance){
+            try { await saveWorkoutLog(dbInstance, arr); return; }
+            catch(e){ console.warn("IndexedDB write failed, falling back to localStorage", e); }
+        }
+        window.workoutLogData = arr;
+        localStorage.workoutLogObject = JSON.stringify(arr);
+    },
+    saveTemplates: async (obj) => {
+        if (dbAvailable && dbInstance){
+            try { await saveTemplates(dbInstance, obj); return; }
+            catch(e){ console.warn("IndexedDB write failed, falling back to localStorage", e); }
+        }
+        window.templatesData = obj;
+        localStorage.templates = JSON.stringify(obj);
+    },
+    saveMuscleSoreness: async (obj) => {
+        if (dbAvailable && dbInstance){
+            try { await saveMuscleSoreness(dbInstance, obj); return; }
+            catch(e){ console.warn("IndexedDB write failed, falling back to localStorage", e); }
+        }
+        window.muscleSorenessData = obj;
+        localStorage.muscleSoreness = JSON.stringify(obj);
+    },
+};
+
+// Systemic fatigue from a workout is only knowable the day after -- rather
+// than track every unrated past entry, this only ever looks at the single
+// most recently logged workout. If it's still unrated ("" -- see
+// logworkout.js's saveWorkoutFunction) and its date is no longer today,
+// prompt for it right here on app open. Runs on every page (this file is
+// loaded everywhere, same as showUpdateBanner above) since "opening the
+// app" doesn't always mean landing on index.html.
+function checkLastWorkoutSystemicFatigue(){
+    // pastworkout.html has its own "Edit Systemic Fatigue" button
+    // (pastworkout.js) for exactly this -- popping this dialog up there too
+    // would sit on top of the page and block that button (and everything
+    // else on the page) behind a modal the user didn't ask for.
     if (document.body.id === "pastworkout") return;
-    const log = localStorage?.workoutLogObject ? JSON.parse(localStorage.workoutLogObject) : [];
+    const log = window.workoutLogData || [];
     if (!log.length) return;
     const [key, entry] = log.slice().sort((a,b) => new Date(a[0]) - new Date(b[0])).at(-1);
-    if (entry.workoutSoreness !== "") return; // already rated
+    if (entry.workoutSystemicFatigue !== "") return; // already rated
     // entry.workoutDate was written with plain toLocaleDateString() (see
     // logworkout.js), whose slash order depends on the runtime's locale --
     // re-parsing that string with new Date() always assumes US month/day
@@ -393,25 +609,25 @@ function checkLastWorkoutSoreness(){
     // toLocaleDateString() strings directly sidesteps that parse entirely.
     const isToday = entry.workoutDate === new Date().toLocaleDateString();
     if (isToday) return; // still today -- not due yet
-    showSorenessPrompt(key, entry, log);
+    showSystemicFatiguePrompt(key, entry, log);
 }
 
-function showSorenessPrompt(key, entry, log){
-    if (document.getElementById("sorenessprompt")) return;
+function showSystemicFatiguePrompt(key, entry, log){
+    if (document.getElementById("systemicfatigueprompt")) return;
     const dialog = document.createElement("dialog");
-    dialog.id = "sorenessprompt";
+    dialog.id = "systemicfatigueprompt";
     const label = document.createElement("p");
-    label.textContent = `How sore are you from "${entry.workoutName}" (${entry.workoutDate})?`;
+    label.textContent = `How's your overall fatigue after "${entry.workoutName}" (${entry.workoutDate})?`;
     const input = document.createElement("input");
     input.type = "range";
     input.min = 0; input.max = 10; input.step = 1; input.value = 0;
     input.className = "gradient-range";
     const saveBtn = document.createElement("button");
     saveBtn.textContent = "Save";
-    saveBtn.addEventListener("click", () => {
-        entry.workoutSoreness = input.value;
+    saveBtn.addEventListener("click", async () => {
+        entry.workoutSystemicFatigue = input.value;
         const updated = log.map(([k,v]) => k === key ? [k, entry] : [k, v]);
-        localStorage.workoutLogObject = JSON.stringify(updated);
+        await window.LoggerDB.saveWorkoutLog(updated);
         dialog.close();
         dialog.remove();
     });
@@ -420,4 +636,47 @@ function showSorenessPrompt(key, entry, log){
     dialog.showModal();
 }
 
-checkLastWorkoutSoreness();
+// Maps each page's own <body id> (already used throughout for CSS scoping)
+// to the script it should run -- but only once the workout/template data
+// it depends on has actually loaded. Pages not listed here (exercisedetails.html,
+// which has no body id or scripts at all) never read this data, so their
+// own script tag stays static in the HTML, untouched by any of this.
+const PAGE_SCRIPTS = {
+    historypage: "history.js",
+    indexpage: "index.js",
+    createworkoutpage: "logworkout.js",
+    pastworkout: "pastworkout.js",
+    settingspage: "settings.js",
+    statspage: "stats.js",
+    createtemplatepage: "template.js",
+    trendspage: "trends.js",
+    createexercisespage: "exercises.js",
+    profilepage: "profile.js",
+};
+
+async function initApp(){
+    try {
+        dbInstance = await openDB();
+        await migrateFromLocalStorage(dbInstance);
+        window.workoutLogData = await migrateSorenessField(dbInstance, await loadWorkoutLog(dbInstance));
+        window.templatesData = await loadTemplates(dbInstance);
+        window.muscleSorenessData = await loadMuscleSoreness(dbInstance);
+    } catch(e){
+        // IndexedDB unavailable this session (private browsing, storage
+        // disabled, etc.) -- fall back to reading localStorage directly so
+        // the app still works, just without the larger storage ceiling.
+        console.warn("IndexedDB unavailable, using localStorage for this session", e);
+        dbAvailable = false;
+        window.workoutLogData = localStorage?.workoutLogObject ? JSON.parse(localStorage.workoutLogObject) : [];
+        window.templatesData = localStorage?.templates ? JSON.parse(localStorage.templates) : {};
+        window.muscleSorenessData = localStorage?.muscleSoreness ? JSON.parse(localStorage.muscleSoreness) : {};
+    }
+    checkLastWorkoutSystemicFatigue();
+    const file = PAGE_SCRIPTS[document.body.id];
+    if (file){
+        const script = document.createElement("script");
+        script.src = file;
+        document.body.append(script);
+    }
+}
+initApp();

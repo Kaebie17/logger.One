@@ -132,6 +132,22 @@ function makeHeadDraggable(view, img, key, onChange, onTap){
 // move. Built as SVG elements in the same coordinate space as the image
 // (not an HTML overlay) so they track its position/size directly without
 // separately converting between screen and SVG coordinates on every move.
+// Shared by the head resize/remove buttons below and the per-muscle
+// soreness stepper further down -- both are plain circle+symbol SVG
+// buttons, just with a different CSS class for their own color/size.
+function makeSvgCircleButton(symbol, className){
+    const g = document.createElementNS(SVG_NS, "g");
+    g.classList.add(className);
+    const circle = document.createElementNS(SVG_NS, "circle");
+    circle.setAttribute("r", "14");
+    const text = document.createElementNS(SVG_NS, "text");
+    text.setAttribute("text-anchor", "middle");
+    text.setAttribute("dominant-baseline", "central");
+    text.textContent = symbol;
+    g.append(circle, text);
+    return g;
+}
+
 const HEAD_RESIZE_STEP = 12;
 const HEAD_MIN_SIZE = 40;
 function addHeadResizeControls(view, img, key, onChange, onRemove){
@@ -139,21 +155,9 @@ function addHeadResizeControls(view, img, key, onChange, onRemove){
     group.classList.add("head-resize-controls");
     group.style.display = "none";
 
-    function makeButton(symbol){
-        const g = document.createElementNS(SVG_NS, "g");
-        g.classList.add("head-resize-btn");
-        const circle = document.createElementNS(SVG_NS, "circle");
-        circle.setAttribute("r", "14");
-        const text = document.createElementNS(SVG_NS, "text");
-        text.setAttribute("text-anchor", "middle");
-        text.setAttribute("dominant-baseline", "central");
-        text.textContent = symbol;
-        g.append(circle, text);
-        return g;
-    }
-    const plusBtn = makeButton("+");
-    const minusBtn = makeButton("−");
-    const removeBtn = makeButton("×");
+    const plusBtn = makeSvgCircleButton("+", "head-resize-btn");
+    const minusBtn = makeSvgCircleButton("−", "head-resize-btn");
+    const removeBtn = makeSvgCircleButton("×", "head-resize-btn");
     removeBtn.classList.add("head-remove-btn");
     group.append(minusBtn, removeBtn, plusBtn);
     view.append(group);
@@ -266,15 +270,125 @@ function setHeadImage(view, dataUri, region, key){
     }
 }
 
+// ---- Per-muscle soreness (+/- stepper on tap) ----
+//
+// Every muscle is always adjustable (no eligibility gating -- this page is
+// a manual, on-demand place to record soreness, not tied to training
+// data). Tier 0-5 on the same TIER_COLORS ramp (functions.js) index.js
+// uses for its volume-driven coloring, clamped at both ends. Stored
+// separately from workout objects entirely (window.muscleSorenessData /
+// LoggerDB.saveMuscleSoreness), keyed by the SVG's own data-name values,
+// so nothing that reads a workout entry is affected by any of this.
+let activeMuscleControls = null; // {group, muscle}
+
+function getMuscleElements(name){
+    return [...container.querySelectorAll(`[data-name="${CSS.escape(name)}"]`)];
+}
+
+function currentMuscleTier(name){
+    return (window.muscleSorenessData || {})[name] || 0;
+}
+
+// Colors every element sharing this data-name, in BOTH views -- some
+// muscles (e.g. "neck", "oblique") are drawn on both the front and back
+// artwork under the same name, and should read as one muscle either way.
+function paintMuscle(name){
+    const tier = currentMuscleTier(name);
+    getMuscleElements(name).forEach(el => applyTierColor(el, tier));
+}
+
+function paintAllMuscles(){
+    const seen = new Set();
+    container.querySelectorAll("[data-name]").forEach(el => {
+        if (seen.has(el.dataset.name)) return;
+        seen.add(el.dataset.name);
+        paintMuscle(el.dataset.name);
+    });
+}
+
+async function adjustMuscleTier(name, delta){
+    const data = window.muscleSorenessData || (window.muscleSorenessData = {});
+    const next = Math.max(0, Math.min(TIER_COLORS.length - 1, (data[name]||0) + delta));
+    if (next === 0) delete data[name]; else data[name] = next;
+    paintMuscle(name);
+    await window.LoggerDB.saveMuscleSoreness(data);
+}
+
+function closeMuscleControls(){
+    activeMuscleControls?.group.remove();
+    activeMuscleControls = null;
+}
+
+// Tapping the same muscle again closes its own controls (toggle); tapping
+// a different muscle switches straight to it. Positioned at the union
+// bounding box of every path sharing this data-name within the CURRENTLY
+// VISIBLE view only (the hidden front/back view's elements report an
+// empty getBBox while display:none).
+function openMuscleControls(view, name){
+    if (activeMuscleControls?.muscle === name){ closeMuscleControls(); return; }
+    closeMuscleControls();
+    const elems = getMuscleElements(name).filter(el => view.contains(el));
+    if (!elems.length) return;
+    const boxes = elems.map(el => el.getBBox());
+    const minX = Math.min(...boxes.map(b => b.x));
+    const minY = Math.min(...boxes.map(b => b.y));
+    const maxX = Math.max(...boxes.map(b => b.x + b.width));
+    const maxY = Math.max(...boxes.map(b => b.y + b.height));
+    const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+
+    const group = document.createElementNS(SVG_NS, "g");
+    group.classList.add("muscle-soreness-controls");
+    const minusBtn = makeSvgCircleButton("−", "muscle-soreness-btn");
+    const plusBtn = makeSvgCircleButton("+", "muscle-soreness-btn");
+    const label = document.createElementNS(SVG_NS, "text");
+    label.classList.add("muscle-soreness-label");
+    label.setAttribute("text-anchor", "middle");
+    label.setAttribute("dominant-baseline", "central");
+
+    function reposition(){
+        minusBtn.setAttribute("transform", `translate(${cx - 26}, ${cy})`);
+        label.setAttribute("transform", `translate(${cx}, ${cy})`);
+        label.textContent = currentMuscleTier(name);
+        plusBtn.setAttribute("transform", `translate(${cx + 26}, ${cy})`);
+    }
+    reposition();
+    minusBtn.addEventListener("click", async (e) => { e.stopPropagation(); await adjustMuscleTier(name, -1); reposition(); });
+    plusBtn.addEventListener("click", async (e) => { e.stopPropagation(); await adjustMuscleTier(name, 1); reposition(); });
+
+    group.append(minusBtn, label, plusBtn);
+    view.append(group);
+    activeMuscleControls = {group, muscle: name};
+}
+
+// Delegated on #container (rather than per-muscle-element) so it survives
+// renderPhysique() rebuilding the SVG from scratch on every call.
+container.addEventListener("click", (e) => {
+    const name = e.target.dataset?.name;
+    if (!name) return;
+    const view = e.target.closest("#frontHumanSVG, #backHumanSVG");
+    if (view) openMuscleControls(view, name);
+});
+// Closes the open stepper on any click outside it (or outside the muscle
+// that opened it) -- same "click outside closes" pattern already used for
+// the head resize controls above.
+document.addEventListener("click", (e) => {
+    if (!activeMuscleControls) return;
+    if (activeMuscleControls.group.contains(e.target)) return;
+    if (e.target.dataset?.name === activeMuscleControls.muscle) return;
+    closeMuscleControls();
+});
+
 // muscularManSvg no longer scales by measurements (PHYSIQUE_PRESETS was
 // part of the old scaling system and svgcode.js doesn't define it) --
 // there's nothing here left for a preset picker to switch between, so it
 // was removed rather than left as a dropdown with no effect. This just
 // renders the one figure on load, then re-applies whatever custom head
-// images are already saved (muscularManSvg always builds a fresh figure
-// with no head, so this has to run every render, not just once).
+// images and muscle soreness tiers are already saved (muscularManSvg
+// always builds a fresh, untinted figure with no head, so both have to
+// run every render, not just once).
 const renderPhysique = async () => {
     container.innerHTML = "";
+    activeMuscleControls = null; // its <g> just got wiped out by innerHTML="" above
     const {frontView, backView} = await muscularManSvg(container,[-30,-10]);
     // Enlarges just THIS page's copies of the viewBox -- see HEAD_VIEWBOXES
     // above for why this isn't done in svgcode.js itself.
@@ -282,6 +396,7 @@ const renderPhysique = async () => {
     backView.setAttribute("viewBox", HEAD_VIEWBOXES.back);
     setHeadImage(frontView, localStorage.customHeadFront || "", HEAD_REGIONS.front, "front");
     setHeadImage(backView, localStorage.customHeadBack || "", HEAD_REGIONS.back, "back");
+    paintAllMuscles();
 }
 
 // A chosen file doesn't get stored directly -- it opens the crop dialog
@@ -477,12 +592,12 @@ cropConfirmBtn.addEventListener("click", () => {
     closeCropper();
     renderPhysique();
 });
-// Not waiting on svgloader's "load" event: script tags without async/defer
-// execute in document order, and svgcodeJS comes before this script in
-// profile.html, so its "load" event has already fired by the time this
-// line runs -- a listener attached now would never see it. (The original
-// code happened to work anyway, because it called muscularManSvg()
-// directly as an expression rather than actually waiting for that event.)
+// Not waiting on svgloader's "load" event: svgcodeJS is a static tag in
+// profile.html, executing in document order before functions.js's async
+// initApp() finishes loading data and dynamically appends this script (see
+// PAGE_SCRIPTS in functions.js) -- so svgcode.js has already loaded by the
+// time this line runs, and a listener attached now would never see its
+// "load" event fire.
 renderPhysique()
 
 //redirect to home page

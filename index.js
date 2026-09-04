@@ -1,4 +1,9 @@
-const indexScript = document.getElementById("indexJS"); 
+// Was document.getElementById("indexJS") -- that only worked while this
+// page had a static <script id="indexJS">. functions.js now injects this
+// script dynamically (see PAGE_SCRIPTS there) with no fixed id, so this
+// needs the standard "whichever script tag is currently running" reference
+// instead, which works the same for a dynamically-inserted script.
+const indexScript = document.currentScript;
 const logWorkout = document.getElementById("logworkout");
 const createWorkout = document.getElementById("createworkout");
 const svgContainer = document.getElementById("svgcontainer");
@@ -20,14 +25,14 @@ const dayNames = ["Su","M","Tu","W","Th","F","Sa"];
 let nameMap =  new Map();
 let script = document.createElement("script");
 sessionStorage.clear();
-const existingTemplates = localStorage?.templates ? JSON.parse(localStorage.templates) : {};
+const existingTemplates = window.templatesData || {};
 if (Object.keys(existingTemplates).length){
     const templates = Object.entries(existingTemplates);
     for (let [program,templateContent] of templates){
         createTemplateItem(program);
     }
 }
-const pastWorkoutsObject = localStorage?.workoutLogObject ? JSON.parse(localStorage.workoutLogObject).sort(dateSorter) : []; 
+const pastWorkoutsObject = (window.workoutLogData||[]).sort(dateSorter);
 dataInterface.new(Object.fromEntries(pastWorkoutsObject));
 const currentMonthWorkouts = dataInterface.byMonth(date.getMonth()+1);
 const pastMonthWorkouts = dataInterface.byMonth(date.getMonth());
@@ -45,7 +50,7 @@ svgcode.addEventListener ("load", async () => {
     // svgContainer.append(backsvg);
     [...frontsvg.querySelectorAll("[data-name]")].forEach(el => nameMap.set(el.dataset.name, nameMap.get(el.dataset.name) || 0));
     [...backsvg.querySelectorAll("[data-name]")].forEach(el => nameMap.set(el.dataset.name, nameMap.get(el.dataset.name) || 0));
-    let temp = JSON.parse(localStorage?.workoutLogObject||"[]");
+    let temp = window.workoutLogData||[];
     temp.forEach(([k,v]) => dailyWorkoutLog.set(v.workoutDate + " " + v.workoutStartTime,v));
     temp = "";
     dailyWorkoutLog.size? recentWorkouts(dailyWorkoutLog) : "";
@@ -116,48 +121,24 @@ function recentWorkouts(object){
     localStorage.nameMap = JSON.stringify([...nameMap]);
 }
 
-// Validated ordinal red ramp (dataviz skill: single hue, monotone
-// lightness, checked against the app's actual dark background) for the
-// 5 real fatigue tiers, plus the artwork's own baked-in resting pair
-// (frontsvg.js/backsvg.js ship muscles as hsl(274,3%,56%)/#222 -- #8f8b92
-// is that same color, so "no data" restores the diagram to how it looks
-// before any highlighting is applied). Previously this defaulted to
-// fill:transparent, which made an unworked muscle invisible rather than
-// resetting it to its resting appearance.
-function rgbValues(el,vol){
+// Maps a volume percentage onto the shared TIER_COLORS ramp (functions.js)
+// and applies it -- same palette profile.js's per-muscle +/- input uses,
+// so both pages agree on what each tier looks like. Previously this
+// defaulted to fill:transparent, which made an unworked muscle invisible
+// rather than its own authored resting color -- tier 0 (applyTierColor)
+// restores that native color instead.
+function tierForVol(vol){
     switch(true) {
-        case vol>60:{
-            el.setAttribute("stroke","#c62a1c");
-            el.setAttribute("fill","#c62a1c")
-            break;
-        };
-        case vol>50&&vol<=60: {
-            el.setAttribute("stroke","#d1543b");
-            el.setAttribute("fill","#d1543b");
-            break;
-        };
-        case vol>40&&vol<=50: {
-            el.setAttribute("stroke","#dc7a63");
-            el.setAttribute("fill","#dc7a63");
-            break;
-        };
-        case vol>20&&vol<=40: {
-            el.setAttribute("stroke","#e79a8b");
-            el.setAttribute("fill","#e79a8b");
-            break;
-        };
-        case vol>0&&vol<=20: {
-            el.setAttribute("stroke","#f6c2ba");
-            el.setAttribute("fill","#f6c2ba");
-            break;
-        };
-        default: {
-            el.setAttribute("stroke","#222");
-            el.setAttribute("fill","#8f8b92");
-            break;
-        }
-
+        case vol>60: return 5;
+        case vol>50: return 4;
+        case vol>40: return 3;
+        case vol>20: return 2;
+        case vol>0: return 1;
+        default: return 0;
     }
+}
+function rgbValues(el,vol){
+    applyTierColor(el, tierForVol(vol));
 }
 
 function createTemplateItem(program,cover){
