@@ -320,21 +320,19 @@ function closeMuscleControls(){
 }
 
 // Tapping the same muscle again closes its own controls (toggle); tapping
-// a different muscle switches straight to it. Positioned at the union
-// bounding box of every path sharing this data-name within the CURRENTLY
-// VISIBLE view only (the hidden front/back view's elements report an
-// empty getBBox while display:none).
-function openMuscleControls(view, name){
+// a different muscle switches straight to it. Positioned at the bounding
+// box of the SPECIFIC path element that was actually tapped -- NOT a union
+// across every element sharing this data-name, which for any paired
+// muscle (biceps, quad, calves, ...) spans both the left and right
+// instance and centers on the body's own midline regardless of which arm
+// or leg was tapped. Adjusting/coloring the tier still applies to every
+// element sharing the name (paintMuscle) -- only the control's ON-SCREEN
+// POSITION is scoped to the one path actually touched.
+function openMuscleControls(view, name, clickedEl){
     if (activeMuscleControls?.muscle === name){ closeMuscleControls(); return; }
     closeMuscleControls();
-    const elems = getMuscleElements(name).filter(el => view.contains(el));
-    if (!elems.length) return;
-    const boxes = elems.map(el => el.getBBox());
-    const minX = Math.min(...boxes.map(b => b.x));
-    const minY = Math.min(...boxes.map(b => b.y));
-    const maxX = Math.max(...boxes.map(b => b.x + b.width));
-    const maxY = Math.max(...boxes.map(b => b.y + b.height));
-    const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+    const b = clickedEl.getBBox();
+    const cx = b.x + b.width / 2, cy = b.y + b.height / 2;
 
     const group = document.createElementNS(SVG_NS, "g");
     group.classList.add("muscle-soreness-controls");
@@ -366,7 +364,7 @@ container.addEventListener("click", (e) => {
     const name = e.target.dataset?.name;
     if (!name) return;
     const view = e.target.closest("#frontHumanSVG, #backHumanSVG");
-    if (view) openMuscleControls(view, name);
+    if (view) openMuscleControls(view, name, e.target);
 });
 // Closes the open stepper on any click outside it (or outside the muscle
 // that opened it) -- same "click outside closes" pattern already used for

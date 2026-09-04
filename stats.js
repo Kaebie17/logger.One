@@ -119,30 +119,41 @@ svgloader.addEventListener("load",()=>{
   addScroll(scrollArea,fields)
 })
 
+// Was registering a brand new touchend listener inside every touchstart,
+// and never removing any of them -- after N swipes there were N stacked
+// touchend listeners, all firing on the next touchend in REGISTRATION
+// order (oldest first). stopImmediatePropagation() then stopped every
+// listener after the first one in that order from running at all, so
+// every swipe past the very first one was actually evaluated against the
+// FIRST swipe's stale touchStartX/Y, not the current gesture's -- only
+// working when that happened to coincidentally still clear the 150px
+// threshold in the right direction. A single pair of listeners sharing
+// these two outer variables replaces that: touchstart always just updates
+// the latest start point, touchend always reads the current one.
+let touchStartX = 0, touchStartY = 0;
 container.addEventListener("touchstart",(e)=>{
-  let touchStartX = e.touches[0].clientX;
-  let touchStartY = e.touches[0].clientY;
-  container.addEventListener("touchend",(z)=>{
-    z.stopImmediatePropagation();
-    let touchEndX = z.changedTouches[0].clientX;
-    let touchEndY = z.changedTouches[0].clientY;
-    let swipeDistanceX = touchEndX-touchStartX;
-    let swipeDistanceY = Math.abs(touchEndY-touchStartY);
-    let currentTab = [...scrollArea.firstElementChild.children].find(el => el.getAttribute("fill") === "black");
-    let contentFieldTab = [...document.querySelectorAll("legend")].find(el => el.textContent === currentTab.id).parentElement;
-    let nextTab = currentTab.nextElementSibling;
-    let prevTab = currentTab.previousElementSibling;
-    if (Math.abs(swipeDistanceX)>150 && swipeDistanceX < 0 && nextTab) {
-      currentTab.setAttribute("fill","white");
-      nextTab.setAttribute("fill","black");
-      contentFieldTab.style.display="none";
-      contentFieldTab.nextElementSibling.style.display="block";
-    };
-    if (Math.abs(swipeDistanceX)>150 && swipeDistanceX > 0 && prevTab) {
-      currentTab.setAttribute("fill","white");
-      prevTab.setAttribute("fill","black");
-      contentFieldTab.style.display="none";
-      contentFieldTab.previousElementSibling.style.display="block";
-    };
-  })
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+})
+container.addEventListener("touchend",(z)=>{
+  let touchEndX = z.changedTouches[0].clientX;
+  let touchEndY = z.changedTouches[0].clientY;
+  let swipeDistanceX = touchEndX-touchStartX;
+  let swipeDistanceY = Math.abs(touchEndY-touchStartY);
+  let currentTab = [...scrollArea.firstElementChild.children].find(el => el.getAttribute("fill") === "black");
+  let contentFieldTab = [...document.querySelectorAll("legend")].find(el => el.textContent === currentTab.id).parentElement;
+  let nextTab = currentTab.nextElementSibling;
+  let prevTab = currentTab.previousElementSibling;
+  if (Math.abs(swipeDistanceX)>150 && swipeDistanceX < 0 && nextTab) {
+    currentTab.setAttribute("fill","white");
+    nextTab.setAttribute("fill","black");
+    contentFieldTab.style.display="none";
+    contentFieldTab.nextElementSibling.style.display="block";
+  };
+  if (Math.abs(swipeDistanceX)>150 && swipeDistanceX > 0 && prevTab) {
+    currentTab.setAttribute("fill","white");
+    prevTab.setAttribute("fill","black");
+    contentFieldTab.style.display="none";
+    contentFieldTab.previousElementSibling.style.display="block";
+  };
 })
