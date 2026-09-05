@@ -668,23 +668,29 @@ svg > path:nth-child(23) {
         justify-content: space-around;
         align-items: center;
         gap: 1vw;
-        padding: 0.5em 1vw;
+        padding-left: 1vw;
+        padding-right: 1vw;
         /* Keeps the nav links clear of the home-indicator swipe bar on
-           notched iPhones once installed standalone -- margin, not padding.
-           This value is 0 in every regular browser context (a plain tab, or
-           even mobile emulation in dev tools), so the bug this caused was
-           invisible there and only ever showed up in an actual installed
-           standalone PWA on a device with a home indicator. As bottom
-           PADDING, it was asymmetric (no matching top padding) on a footer
-           that's now sized to exactly fit its content (see above) -- the
-           flex content box centers itself between the padding edges, which
-           put that centered content box flush against the TOP of the
-           element with all the safe-area space stranded below it, instead
-           of around the visible button row. Margin sits outside the padding
-           box entirely, so it can't skew how the content inside centers --
-           it just pushes the whole already-correctly-centered footer up
-           from the true bottom edge.  */
-        margin-bottom: env(safe-area-inset-bottom, 0px);
+           notched iPhones once installed standalone -- this value is 0 in
+           every regular browser context (a plain tab, or even mobile
+           emulation in dev tools), so this only ever matters on an actual
+           installed standalone PWA. Top and bottom padding use the SAME
+           calc() on purpose, even though only the bottom genuinely needs
+           safe-area clearance: this element is auto-height (see the
+           min-height comment above), so with no explicit height its
+           content box is always exactly as tall as its children -- there is
+           no "extra" room for align-items:center to distribute, the visual
+           center is wherever the padding happens to be equal on both sides.
+           A previous attempt moved this to margin-bottom instead of
+           padding, which centered the buttons correctly but pushed the
+           whole colored bar up from the true edge, uncovering the (visibly
+           different, unrelated) body gradient underneath as a seam/gap --
+           worse than the problem it fixed. Padding keeps the footer's own
+           background filling the full safe-area strip with no seam, while
+           matching top padding is what actually keeps the buttons centered
+           in the space above it. */
+        padding-top: calc(0.5em + env(safe-area-inset-bottom, 0px));
+        padding-bottom: calc(0.5em + env(safe-area-inset-bottom, 0px));
         background-image: linear-gradient(-60deg, var(--template-color-black), var(--template-color-mid), var(--template-color-soft));
     }
     /* Each link reads as its own chip (a translucent white overlay works
