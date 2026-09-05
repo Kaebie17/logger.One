@@ -653,33 +653,18 @@ svg > path:nth-child(23) {
         border: var(--template-color-soft) 1px solid;
     }
   
-    /* Two layers on purpose, after three flat-#footer attempts each traded
-       one bug for another:
-         1) padding-bottom only -> the button row (auto-height, so there's
-            no flex "slack" for align-items to distribute -- padding-top and
-            padding-bottom translate 1:1 into the gap above/below) sat flush
-            against the top with all the safe-area space stranded below it.
-         2) margin-bottom instead -> centered the row correctly, but the
-            margin sits OUTSIDE the padding box, so the footer's own
-            background stopped there too -- the true bottom strip showed the
-            (differently-angled) body gradient through as a seam.
-         3) padding-top AND padding-bottom both carrying the safe-area
-            amount -> no seam, genuinely centered, but now BOTH sides pay
-            for a bottom-only hardware requirement, roughly doubling the
-            bar's height on any device that actually has one.
-       A single flat box can't win all three at once: no seam requires the
-       safe-area space to be part of #footer's own painted padding box;
-       a compact, un-doubled bar requires that space to NOT also be
-       mirrored onto the top; and centering requires whatever "row" the
-       user looks at to not itself be pulled off-center by an asymmetric
-       edge. Splitting the two jobs across two elements resolves that
-       cleanly: #footer owns the background and the (bottom-only, real)
-       safe-area padding; .footer-row is a normal, compact, always-the-
-       same-size bar centered via ordinary margin auto, independent of
-       whatever #footer added beneath it. */
+    /* No safe-area reservation here, on purpose -- every earlier attempt
+       (padding, margin, symmetric padding) kept the button row visually
+       separated from the true bottom edge by a same-colored cushion, which
+       is exactly what was rejected: wanted is the buttons sitting flush,
+       identically to how this already renders in a regular browser (where
+       env(safe-area-inset-bottom) is always 0 and there was never a gap to
+       begin with). #footer and .footer-row stay as two elements only
+       because every page's HTML already wraps its links in .footer-row;
+       collapsing them back into one isn't necessary now that neither one
+       is carrying any extra bottom space. */
     #footer{
         flex-shrink: 0;
-        padding-bottom: env(safe-area-inset-bottom, 0px);
         background-image: linear-gradient(-60deg, var(--template-color-black), var(--template-color-mid), var(--template-color-soft));
     }
     .footer-row{
