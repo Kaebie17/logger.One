@@ -797,6 +797,29 @@ function defineVars(fn,parent,options,id,...params){
 
 
 const statsWebGraph = (container,array,title,unit="%") => {
+    // With no (or no USABLE) data for this metric -- either array is
+    // genuinely empty (a filtered-out RIR/intensity chart, see stats.js),
+    // every part came back NaN (a getStat() chart dividing by a zero total
+    // when nothing's been logged yet), or every part is exactly 0 (the one
+    // stats.js chart that defaults an untrained part to 0 instead of NaN)
+    // -- the radar-chart math below has nothing meaningful to draw: an
+    // empty array indexes n-1 past its own end, producing "M NaN NaN Z"
+    // path data, and an all-zero chart just collapses to a single point at
+    // center. Showing a plain, honest placeholder instead (same
+    // fieldset+legend shape as a real chart, so the dot-nav/swipe tab
+    // logic elsewhere still finds and switches to it exactly like any
+    // other chart) is much clearer than either of those.
+    if (!array.length || array.every(([,v]) => !Number.isFinite(v) || v === 0)){
+        const fieldset = document.createElement("fieldset");
+        const legend = document.createElement("legend");
+        const message = document.createElement("p");
+        message.className = "stats-empty-message";
+        message.textContent = "Not enough workout data yet -- this chart builds automatically once you've logged workouts with matching exercises.";
+        fieldset.append(message, legend);
+        container.lastElementChild.before(fieldset);
+        legend.textContent = title;
+        return;
+    }
     const createMarker = (textX) => {
         let valX = 0;
         let valY = 0;

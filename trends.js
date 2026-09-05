@@ -29,11 +29,32 @@ mainFilterEntries.uniquePrograms = mainFilterEntries.uniquePrograms.sort((a,b)=>
 //redirect to home page
 redirectHome.addEventListener("click" , home);
 
+// Every date this file passes around (allDatesArr and everything derived
+// from it) is built via .toLocaleDateString() -- whose day/month/year
+// ORDER depends on the runtime's locale (en-GB/en-IN: DD/MM/YYYY, en-US:
+// MM/DD/YYYY, ...). Re-parsing one of those strings with plain
+// `new Date(str)` always assumes US month/day order regardless of the
+// locale that actually produced it -- silently landing on the wrong date
+// wherever day<=12 (looks valid, isn't) and throwing an outright Invalid
+// Date wherever day>12 (functions.js's checkLastWorkoutSystemicFatigue
+// already had to work around this exact issue for the same reason, by
+// comparing raw strings instead of re-parsing them). This asks the
+// locale itself, via the same Intl formatter responsible for the
+// string's format, which position is which, instead of assuming.
+const DATE_PART_ORDER = new Intl.DateTimeFormat().formatToParts(new Date(2001,10,22))
+    .filter(p => p.type==="day"||p.type==="month"||p.type==="year")
+    .map(p => p.type);
+function parseLocaleDate(str){
+    const nums = String(str).split(/\D+/).filter(n=>n).map(Number);
+    const parts = Object.fromEntries(DATE_PART_ORDER.map((type,i) => [type, nums[i]]));
+    return new Date(parts.year, parts.month-1, parts.day);
+}
+
 // let extractedStats =  
 // let exerciesRepsArr = {}
 
 const allDatesArr = getDateRange(7);
-const monthSequence = allDatesArr.map(arr => Math.min(...arr.map(e => e.match(/^\d+(?=\/)/)[0]))).flatMap((e,i,arr) => e !== arr?.[i+1] ? [e] : []);
+const monthSequence = allDatesArr.map(arr => Math.min(...arr.map(e => parseLocaleDate(e).getMonth()))).flatMap((e,i,arr) => e !== arr?.[i+1] ? [e] : []);
 let currentIndex = allDatesArr.length-1;
 let customDates;
 let xAxisLabelArr , chartLegend=[];
@@ -50,12 +71,12 @@ const statsByChunk = (stat,chunk,index = currentIndex) => {
     if (chunk==="daily"){
         let dates = allDatesArr[index];
         xAxisLabelArr = dates.map((e,i) => {
-            let d = new Date(e); 
-            let yp = new Date(dates[i-1]).getFullYear();
+            let d = parseLocaleDate(e);
+            let yp = parseLocaleDate(dates[i-1]).getFullYear();
             let y = d.getFullYear();
             if (yp && !chartLegend.includes(yp)){chartLegend.push(yp)};
             if (y && !chartLegend.includes(y)){chartLegend.push(y)};
-            let yearVal = i!==0 && yp!==y ? `-${new Date(allDatesArr[1][0]).getFullYear()}` : "";
+            let yearVal = i!==0 && yp!==y ? `-${parseLocaleDate(allDatesArr[1][0]).getFullYear()}` : "";
             return `${d.getDate()}-${months[d.getMonth()].substring(0,3)}${yearVal}`
         })
         return dataSnippet(stat,label,{targetdates: dates})[label];
@@ -63,14 +84,14 @@ const statsByChunk = (stat,chunk,index = currentIndex) => {
     else if (chunk === "weekly"){
         xAxisLabelArr = weeklyDates.map((ar,i) => {
             let lInx = ar.length-1;
-            let sd = new Date(ar[0]);
-            let ed = new Date(ar[lInx]);
+            let sd = parseLocaleDate(ar[0]);
+            let ed = parseLocaleDate(ar[lInx]);
             let sy = `${sd.getFullYear()}`.substring(2,4);
             let ey = `${ed.getFullYear()}`.substring(2,4);
             let fd = new Date("01-01-"+ sd.getFullYear());
             if (ey!==sy){
-                let lastValIndex = ar.findIndex(e => sd.getMonth() !== new Date(e).getMonth());
-                let nextfd = new Date("01-01-"+ new Date(ar[lastValIndex]).getFullYear());
+                let lastValIndex = ar.findIndex(e => sd.getMonth() !== parseLocaleDate(e).getMonth());
+                let nextfd = new Date("01-01-"+ parseLocaleDate(ar[lastValIndex]).getFullYear());
                 let week1 = Math.floor((ar[lastValIndex-1]-fd)/(24*60*60*1000)/7);
                 let week2 = Math.floor((ed-nextfd)/(24*60*60*1000)/7);
                 if (sy && !chartLegend.includes(sd.getFullYear())){chartLegend.push(sd.getFullYear())};
@@ -87,19 +108,19 @@ const statsByChunk = (stat,chunk,index = currentIndex) => {
         let monthlyDates = {};
         allDatesArr.forEach(arr=> {
             arr = Array.from(arr);
-            let firstIndex = new Date(arr[0]).getMonth();
-            if (firstIndex === new Date(arr[arr.length-1]).getMonth()){
-                monthlyDates?.[months[firstIndex]] ? monthlyDates?.[months[firstIndex]].push(...arr) : monthlyDates[months[firstIndex]] = arr ; 
+            let firstIndex = parseLocaleDate(arr[0]).getMonth();
+            if (firstIndex === parseLocaleDate(arr[arr.length-1]).getMonth()){
+                monthlyDates?.[months[firstIndex]] ? monthlyDates?.[months[firstIndex]].push(...arr) : monthlyDates[months[firstIndex]] = arr ;
             }
             else {
-                let lastValIndex = arr.findIndex(e => firstIndex !== new Date(e).getMonth());
-                let nextMonthNum = new Date(arr[lastValIndex]).getMonth();
+                let lastValIndex = arr.findIndex(e => firstIndex !== parseLocaleDate(e).getMonth());
+                let nextMonthNum = parseLocaleDate(arr[lastValIndex]).getMonth();
                 monthlyDates?.[months[firstIndex]] ? monthlyDates?.[months[firstIndex]].push(...arr.slice(0,lastValIndex)) : monthlyDates[months[firstIndex]] = arr.slice(0,lastValIndex) ;
                 monthlyDates?.[months[nextMonthNum]] ? monthlyDates?.[months[nextMonthNum]].push(...arr.slice(lastValIndex,arr.length)) : monthlyDates[months[nextMonthNum]] = arr.slice(lastValIndex, arr.length) ; 
             }
         })
         xAxisLabelArr = Object.entries(monthlyDates).map(([e,v],i) => {
-            let yr = new Date(v[i]).getFullYear();
+            let yr = parseLocaleDate(v[i]).getFullYear();
             if (yr && !chartLegend.includes(yr)){chartLegend.push(yr)};
             return e.substring(0,3);
         });
@@ -148,7 +169,7 @@ function extractStats(filterStr,f,{targetdates}){
     let targetpart =  mainFilterRadios[2].checked ? mainFilterOptions.value : "" ;
     let targetexercise =  mainFilterRadios[1].checked ? mainFilterOptions.value.replaceAll(" ","_") : "" ;
     let result = {};
-    targetdates = targetdates.sort((d1,d2) => new Date(d1) - new Date(d2));
+    targetdates = targetdates.sort((d1,d2) => parseLocaleDate(d1) - parseLocaleDate(d2));
     targetdates.forEach( dt => {
         let workoutOnDt = [pastWorkoutsArray.find(([d,v]) => d.includes(dt))]; // will find the first workout of the day, any subsequent workouts on the same day would be missed.
         if(!workoutOnDt[0]){result[dt] = {}; return;}
@@ -211,7 +232,16 @@ function groupData(arr,days,f){
     return dateGroups.length? f.call(this,dateGroups) : [] ;
 }
 
-function getDateRange(groupBy=1,today = new Date(),firstday=new Date(new Date(pastWorkoutsArray[0][0].split(" ")[0]) - new Date(pastWorkoutsArray[0][0].split(" ")[0]).getDay()*24*60*60*1000)){
+// Anchors the "start of the current week" window to the earliest logged
+// workout when there is one (original behavior, unchanged) -- or to today
+// when there isn't. pastWorkoutsArray[0] is undefined with zero workouts,
+// and undefined[0] used to throw here before the file's own "No workout
+// database found" redirect further down ever got a chance to run, since
+// getDateRange(7) is called unconditionally at the top of this file.
+function defaultRangeAnchor(){
+    return pastWorkoutsArray.length ? parseLocaleDate(pastWorkoutsArray[0][0].split(" ")[0]) : new Date();
+}
+function getDateRange(groupBy=1,today = new Date(),firstday=new Date(defaultRangeAnchor() - defaultRangeAnchor().getDay()*24*60*60*1000)){
     const dates =  [];
     let ms = 24*60*60*1000;
     let days = (today-firstday)/ms;
