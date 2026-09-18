@@ -13,7 +13,16 @@ const switchListsDisp = (num=0) => {
   suggestionsContainer.style.display = num < 2 ? "none" : "block";
   exerciseDetails.style.display = num < 2 ? "none" : "block" ;
   closeDetails.textContent = num === 1 ? "Add" : "Close"
-  closeDetails.style.display = num===0 ? "none" : num===1 ? "flex" : "block";
+  // Was display:none at num===0 (just browsing the list, nothing selected
+  // yet) -- close()'s own fallback branch already does the right thing
+  // there (navigates back to index.html), so this was only ever a
+  // visibility bug, not a functionality one. Hiding it left the footer
+  // with nothing visible in it at all on first load, collapsing to a
+  // near-invisible sliver instead of the normal-looking bar every other
+  // page always shows. Always "flex" now (not the old "flex"/"block" split
+  // either) so it renders as the same chip .footer-row > a styles every
+  // other footer link as, in every state, not just num===1.
+  closeDetails.style.display = "flex";
   selectionListDisplay.style.display = num===0 ? "none" : num === 1 ? "block" : "none" ;
   saveExercises.style.display = num===0 ? "none" : num === 1 ? "flex" : "none" ;
 }
@@ -263,8 +272,14 @@ exercisesDBpage.onload = (e,urloption) => {
     sessionStorage.searchParams = JSON.stringify([...new URL(document.location).searchParams.values()]);
     doneSelectionFunction();
   }
-  // closeDetails.addEventListener("touchend",close) // for mobile device 
-  closeDetails.textContent = "Add"
+  // closeDetails.addEventListener("touchend",close) // for mobile device
+  // Was an unconditional closeDetails.textContent = "Add" here, stomping
+  // switchListsDisp's own correct per-state label right after either
+  // branch above already set it properly (num=0 -> "Close" for a brand
+  // new selection, num=1 -> "Add" once an existing template's exercises
+  // are pre-loaded) -- always showing "Add" even on first load, when the
+  // button's actual behavior (close()'s fallback branch) is to leave the
+  // page, not add anything.
   closeDetails.addEventListener("click",close)
   doneSelection.addEventListener("touchend", doneSelectionFunction) ; 
   doneSelection.addEventListener("click", doneSelectionFunction);
