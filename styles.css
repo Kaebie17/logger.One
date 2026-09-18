@@ -235,6 +235,12 @@ svg > path:nth-child(23) {
     #indexpage{
         height: 100vh;
         height: 100dvh;
+        /* Real fallback for dvh being unreliable in standalone-PWA mode on
+           some iOS versions -- see setRealViewportHeight in functions.js.
+           A no-op wherever --vh was never set (falls back to 1vh, same as
+           the line above) or dvh already worked correctly (this line just
+           happens to compute the same value). */
+        height: calc(var(--vh, 1vh) * 100);
         overflow: hidden;
     }
     body #container{
@@ -697,6 +703,114 @@ svg > path:nth-child(23) {
         background-color: rgba(255, 255, 255, 0.18);
     }
 
+    /* Quick-log popup (index.js, openQuickLogPopup) -- same dialog chrome
+       as #systemicfatigueprompt (mid-color background, white border,
+       centered column), and the same translucent chip treatment as
+       .footer-row > a for the +/- buttons, so this reads as part of the
+       same design language rather than a one-off. */
+    #quicklogprompt{
+        background-color: var(--template-color-mid);
+        color: white;
+        border: 1px solid white;
+        border-radius: 1vh;
+        padding: 3vh 4vw;
+        width: 85vw;
+        max-height: 80vh;
+        overflow-y: auto;
+        font-family: Georgia, 'Times New Roman', Times, serif;
+    }
+    #quicklogprompt::backdrop{
+        background: rgba(0,0,0,0.6);
+    }
+    #quicklogprompt .quicklog-title{
+        text-align: center;
+        font-size: 1.3rem;
+        margin: 0 0 2vh 0;
+    }
+    #quicklogprompt .quicklog-stepper-row{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 2vw;
+        margin: 1vh 0;
+    }
+    #quicklogprompt .quicklog-stepper-label{
+        flex: 1;
+        font-size: 0.95rem;
+    }
+    #quicklogprompt .quicklog-stepper-value{
+        min-width: 4.5em;
+        text-align: center;
+        font-size: 0.95rem;
+    }
+    #quicklogprompt .quicklog-stepper-btn{
+        width: 2em;
+        height: 2em;
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        color: white;
+        font-size: 1rem;
+        line-height: 1;
+    }
+    #quicklogprompt .quicklog-stepper-btn:active{
+        background-color: rgba(255, 255, 255, 0.18);
+    }
+    #quicklogprompt .quicklog-exercises{
+        border-top: 1px solid rgba(255,255,255,0.3);
+        margin-top: 2vh;
+        padding-top: 1vh;
+    }
+    #quicklogprompt .quicklog-exercise-group{
+        margin-bottom: 2vh;
+    }
+    #quicklogprompt .quicklog-exercise-group > h1{
+        font-size: 1rem;
+        font-style: italic;
+        margin: 0 0 0.5vh 0;
+    }
+    #quicklogprompt .quicklog-set-row{
+        display: flex;
+        align-items: center;
+        gap: 2vw;
+        margin: 0.5vh 0;
+    }
+    #quicklogprompt .quicklog-set-label{
+        width: 3.5em;
+        font-size: 0.85rem;
+        opacity: 0.85;
+    }
+    #quicklogprompt .quicklog-set-row .quicklog-stepper-row{
+        flex: 1;
+        margin: 0;
+    }
+    #quicklogprompt .quicklog-set-row .quicklog-stepper-label{
+        flex: 0 0 auto;
+        font-size: 0.8rem;
+        opacity: 0.85;
+    }
+    #quicklogprompt .quicklog-actions{
+        display: flex;
+        justify-content: space-around;
+        gap: 2vw;
+        margin-top: 2vh;
+    }
+    #quicklogprompt .quicklog-actions > button{
+        flex: 1;
+        height: 4.5vh;
+        border: 0;
+        border-radius: 0.5vh;
+        color: white;
+        font-family: Georgia, 'Times New Roman', Times, serif;
+        font-size: 0.95rem;
+        background-image: linear-gradient(60deg, var(--template-color-light), var(--template-color-soft));
+    }
+    #quicklogprompt .quicklog-actions > button.quicklog-secondary{
+        background-image: none;
+        background-color: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
     /* Styling for create workout page */
     #createworkoutpage{
         /* iOS Safari sizes 100vh against the viewport with its address bar
@@ -708,6 +822,12 @@ svg > path:nth-child(23) {
            fallback for browsers that don't support dvh. */
         height: 100vh;
         height: 100dvh;
+        /* Real fallback for dvh being unreliable in standalone-PWA mode on
+           some iOS versions -- see setRealViewportHeight in functions.js.
+           A no-op wherever --vh was never set (falls back to 1vh, same as
+           the line above) or dvh already worked correctly (this line just
+           happens to compute the same value). */
+        height: calc(var(--vh, 1vh) * 100);
         overflow: hidden;
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
     }
@@ -1002,6 +1122,12 @@ svg > path:nth-child(23) {
     #createexercisespage{
         height: 100vh;
         height: 100dvh;
+        /* Real fallback for dvh being unreliable in standalone-PWA mode on
+           some iOS versions -- see setRealViewportHeight in functions.js.
+           A no-op wherever --vh was never set (falls back to 1vh, same as
+           the line above) or dvh already worked correctly (this line just
+           happens to compute the same value). */
+        height: calc(var(--vh, 1vh) * 100);
         overflow: hidden;
         width: 100vw;
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
@@ -1385,6 +1511,12 @@ svg > path:nth-child(23) {
     #createtemplatepage{
         height: 100vh;
         height: 100dvh;
+        /* Real fallback for dvh being unreliable in standalone-PWA mode on
+           some iOS versions -- see setRealViewportHeight in functions.js.
+           A no-op wherever --vh was never set (falls back to 1vh, same as
+           the line above) or dvh already worked correctly (this line just
+           happens to compute the same value). */
+        height: calc(var(--vh, 1vh) * 100);
         overflow: hidden;
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
     }
@@ -1503,6 +1635,12 @@ svg > path:nth-child(23) {
     #historypage{
         height: 100vh;
         height: 100dvh;
+        /* Real fallback for dvh being unreliable in standalone-PWA mode on
+           some iOS versions -- see setRealViewportHeight in functions.js.
+           A no-op wherever --vh was never set (falls back to 1vh, same as
+           the line above) or dvh already worked correctly (this line just
+           happens to compute the same value). */
+        height: calc(var(--vh, 1vh) * 100);
         overflow: hidden;
         width: 100vw;
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
@@ -1556,6 +1694,12 @@ svg > path:nth-child(23) {
     #pastworkout{
         height: 100vh;
         height: 100dvh;
+        /* Real fallback for dvh being unreliable in standalone-PWA mode on
+           some iOS versions -- see setRealViewportHeight in functions.js.
+           A no-op wherever --vh was never set (falls back to 1vh, same as
+           the line above) or dvh already worked correctly (this line just
+           happens to compute the same value). */
+        height: calc(var(--vh, 1vh) * 100);
         overflow: hidden;
         width: 100vw;
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
@@ -1864,6 +2008,12 @@ svg > path:nth-child(23) {
      #trendspage{
         height: 100vh;
         height: 100dvh;
+        /* Real fallback for dvh being unreliable in standalone-PWA mode on
+           some iOS versions -- see setRealViewportHeight in functions.js.
+           A no-op wherever --vh was never set (falls back to 1vh, same as
+           the line above) or dvh already worked correctly (this line just
+           happens to compute the same value). */
+        height: calc(var(--vh, 1vh) * 100);
         overflow: hidden;
         width: 100vw;
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
@@ -1989,6 +2139,12 @@ svg > path:nth-child(23) {
     #settingspage{
         height: 100vh;
         height: 100dvh;
+        /* Real fallback for dvh being unreliable in standalone-PWA mode on
+           some iOS versions -- see setRealViewportHeight in functions.js.
+           A no-op wherever --vh was never set (falls back to 1vh, same as
+           the line above) or dvh already worked correctly (this line just
+           happens to compute the same value). */
+        height: calc(var(--vh, 1vh) * 100);
         overflow: hidden;
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
     }
@@ -2103,6 +2259,12 @@ svg > path:nth-child(23) {
     #profilepage{
         height: 100vh;
         height: 100dvh;
+        /* Real fallback for dvh being unreliable in standalone-PWA mode on
+           some iOS versions -- see setRealViewportHeight in functions.js.
+           A no-op wherever --vh was never set (falls back to 1vh, same as
+           the line above) or dvh already worked correctly (this line just
+           happens to compute the same value). */
+        height: calc(var(--vh, 1vh) * 100);
         overflow: hidden;
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
     }
@@ -2332,6 +2494,12 @@ svg > path:nth-child(23) {
   #statspage{
         height: 100vh;
         height: 100dvh;
+        /* Real fallback for dvh being unreliable in standalone-PWA mode on
+           some iOS versions -- see setRealViewportHeight in functions.js.
+           A no-op wherever --vh was never set (falls back to 1vh, same as
+           the line above) or dvh already worked correctly (this line just
+           happens to compute the same value). */
+        height: calc(var(--vh, 1vh) * 100);
         overflow: hidden;
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
     }

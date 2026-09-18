@@ -165,10 +165,231 @@ function createTemplateItem(program,cover){
 }
 
 function handleTemplateItemClick(event){
-    const loc = new URL("logworkout.html", document.location);
     let program = event.target.parentElement.lastElementChild.textContent;
+    openQuickLogPopup(program);
+}
+
+// Full page flow (clock-face time pickers, full exercise editor) -- still
+// the answer whenever the quick popup's premise (no new exercise/set)
+// doesn't hold. This is exactly what handleTemplateItemClick used to do
+// unconditionally before the popup existed.
+function openFullEditor(program){
+    const loc = new URL("logworkout.html", document.location);
     loc.searchParams.set("temp", program);
     document.location = loc;
+}
+
+function appendZero2(val){
+    return (val*1) < 10 ? "0"+val : ""+val;
+}
+
+// mins is minutes-since-midnight (0-1439, wrapped). Matches the exact
+// "HH:MM:SS AM/PM" string format workoutStartTime/workoutEndTime are
+// stored in everywhere else (see logworkout.js's periodObject).
+function formatTime12(mins){
+    mins = ((mins % 1440) + 1440) % 1440;
+    const h24 = Math.floor(mins/60);
+    const m = mins % 60;
+    const ampm = h24 < 12 ? "AM" : "PM";
+    let h12 = h24 % 12;
+    if (h12 === 0) h12 = 12;
+    return `${appendZero2(h12)}:${appendZero2(m)}:00 ${ampm}`;
+}
+
+function getTupleValue(tuples, key){
+    return tuples.find(([k]) => k === key)?.[1];
+}
+function setTupleValue(tuples, key, value){
+    const entry = tuples.find(([k]) => k === key);
+    if (entry) entry[1] = value;
+}
+// Set numbers as they actually exist on this exercise (setnum1, setnum2,
+// ...), not assumed contiguous from a possibly-stale setCount.
+function getSetIndices(tuples){
+    return tuples.filter(([k]) => /^setnum\d+$/.test(k)).map(([k]) => k.slice(6)*1).sort((a,b) => a-b);
+}
+
+// Same equipment/settings lookup exercises.js's getStats does (line ~611),
+// just against exerciseDB()'s own equipment array instead of a DOM
+// element's id, since there's no DOM here to read from.
+function getEquipmentWeight(exerciseKey){
+    const equipment = exerciseDB()[exerciseKey]?.["equipment"] || [];
+    const savedSettingsFallback = '{"bweight":"0 kgs","dweight":"0 kgs"}';
+    const settings = JSON.parse(localStorage.savedSettings || savedSettingsFallback);
+    if (equipment.includes("barbell")) return parseFloat(settings.bweight.split(" ")[0]) || 0;
+    if (equipment.includes("dumbbell")) return parseFloat(settings.dweight.split(" ")[0]) || 0;
+    return 0;
+}
+
+// Refreshes load/vol/setCount/repCount on one exercise's tuples after its
+// weight/reps have been edited -- via the shared computeWeightVolume
+// (functions.js), the exact same formula exercises.js's editor uses, so
+// stats/muscle-map volume stay correct for a quick-logged workout.
+function recomputeExerciseTuples(tuples, exerciseKey){
+    const setIdx = getSetIndices(tuples);
+    const setWeights = setIdx.map(i => parseFloat(getTupleValue(tuples, `weight${i}`)) || 0);
+    const setReps = setIdx.map(i => parseFloat(getTupleValue(tuples, `reps${i}`)) || 0);
+    const repMultiple = parseFloat(getTupleValue(tuples, "repMultiple")) || 1;
+    const weightMultiple = parseFloat(getTupleValue(tuples, "wtMultiple")) || 1;
+    const equipmentWt = getEquipmentWeight(exerciseKey);
+    const {totalWeight, totalVol} = computeWeightVolume(setWeights, setReps, repMultiple, weightMultiple, equipmentWt);
+    setTupleValue(tuples, "load", totalWeight);
+    setTupleValue(tuples, "vol", totalVol);
+    setTupleValue(tuples, "setCount", setIdx.length);
+    setTupleValue(tuples, "repCount", setReps.reduce((a,b) => a+b, 0) * repMultiple);
+}
+
+// A small "label  −  value  +" row shared by every stepper in the popup.
+// onStep(delta) mutates whatever backing value this row represents and
+// returns the new display string -- this function only owns the DOM.
+function buildStepperRow(label, initialDisplay, onStep){
+    const row = document.createElement("div");
+    row.className = "quicklog-stepper-row";
+    const labelEl = document.createElement("span");
+    labelEl.className = "quicklog-stepper-label";
+    labelEl.textContent = label;
+    const minusBtn = document.createElement("button");
+    minusBtn.type = "button";
+    minusBtn.className = "quicklog-stepper-btn";
+    minusBtn.textContent = "−";
+    const valueEl = document.createElement("span");
+    valueEl.className = "quicklog-stepper-value";
+    valueEl.textContent = initialDisplay;
+    const plusBtn = document.createElement("button");
+    plusBtn.type = "button";
+    plusBtn.className = "quicklog-stepper-btn";
+    plusBtn.textContent = "+";
+    minusBtn.addEventListener("click", () => { valueEl.textContent = onStep(-1); });
+    plusBtn.addEventListener("click", () => { valueEl.textContent = onStep(1); });
+    row.append(labelEl, minusBtn, valueEl, plusBtn);
+    return row;
+}
+
+// The "just tweak a couple of weights and log it" fast path -- for the
+// common case where a template's exercises/sets don't need to change at
+// all. openFullEditor (the existing logworkout.html?temp= flow) is one tap
+// away for whenever that's not true.
+function openQuickLogPopup(program){
+    const template = existingTemplates[program];
+    if (!template) return;
+    const unit = template.unit === "imperial" ? "imperial" : "metric";
+    const weightStep = unit === "imperial" ? 5 : 2.5;
+    const exerciseKeys = Object.keys(template).filter(k => k !== "unit" && k !== "start" && k !== "end");
+    // Deep clone -- Cancel must never mutate the real, saved template.
+    const workingLog = JSON.parse(JSON.stringify(template));
+    const exDB = exerciseDB();
+
+    const dialog = document.createElement("dialog");
+    dialog.id = "quicklogprompt";
+
+    const title = document.createElement("p");
+    title.className = "quicklog-title";
+    title.textContent = program;
+    dialog.append(title);
+
+    const now = new Date();
+    let startMinutes = Math.round((now.getHours()*60 + now.getMinutes())/5)*5;
+    let durationMinutes = 45;
+    let intensity = 5;
+
+    dialog.append(
+        buildStepperRow("Start", formatTime12(startMinutes), (delta) => {
+            startMinutes = startMinutes + delta*5;
+            return formatTime12(startMinutes);
+        }),
+        buildStepperRow("Duration", `${durationMinutes} min`, (delta) => {
+            durationMinutes = Math.max(5, durationMinutes + delta*5);
+            return `${durationMinutes} min`;
+        }),
+        buildStepperRow("Intensity", `${intensity}`, (delta) => {
+            intensity = Math.max(0, Math.min(10, intensity + delta));
+            return `${intensity}`;
+        })
+    );
+
+    const exercisesContainer = document.createElement("div");
+    exercisesContainer.className = "quicklog-exercises";
+    exerciseKeys.forEach(key => {
+        const tuples = workingLog[key];
+        const group = document.createElement("div");
+        group.className = "quicklog-exercise-group";
+        const name = document.createElement("h1");
+        name.textContent = exDB[key]?.["name"] || key;
+        group.append(name);
+        getSetIndices(tuples).forEach(i => {
+            const setRow = document.createElement("div");
+            setRow.className = "quicklog-set-row";
+            const setLabel = document.createElement("span");
+            setLabel.className = "quicklog-set-label";
+            setLabel.textContent = `Set ${i}`;
+            setRow.append(
+                setLabel,
+                buildStepperRow("Wt", `${getTupleValue(tuples, `weight${i}`)}`, (delta) => {
+                    const next = Math.max(0, (parseFloat(getTupleValue(tuples, `weight${i}`))||0) + delta*weightStep);
+                    setTupleValue(tuples, `weight${i}`, next);
+                    return `${next}`;
+                }),
+                buildStepperRow("Reps", `${getTupleValue(tuples, `reps${i}`)}`, (delta) => {
+                    const next = Math.max(0, (parseFloat(getTupleValue(tuples, `reps${i}`))||0) + delta);
+                    setTupleValue(tuples, `reps${i}`, next);
+                    return `${next}`;
+                })
+            );
+            group.append(setRow);
+        });
+        exercisesContainer.append(group);
+    });
+    dialog.append(exercisesContainer);
+
+    const actions = document.createElement("div");
+    actions.className = "quicklog-actions";
+    const saveBtn = document.createElement("button");
+    saveBtn.textContent = "Save";
+    const editBtn = document.createElement("button");
+    editBtn.textContent = "Full Editor";
+    editBtn.className = "quicklog-secondary";
+    const cancelBtn = document.createElement("button");
+    cancelBtn.textContent = "Cancel";
+    cancelBtn.className = "quicklog-secondary";
+    actions.append(saveBtn, editBtn, cancelBtn);
+    dialog.append(actions);
+
+    const closeDialog = () => { dialog.close(); dialog.remove(); };
+    cancelBtn.addEventListener("click", closeDialog);
+    editBtn.addEventListener("click", () => { closeDialog(); openFullEditor(program); });
+    saveBtn.addEventListener("click", async () => {
+        exerciseKeys.forEach(key => recomputeExerciseTuples(workingLog[key], key));
+
+        // Weight/reps edits become the new template default for next time.
+        existingTemplates[program] = workingLog;
+        await window.LoggerDB.saveTemplates(existingTemplates);
+
+        // Log today's workout, same shape logworkout.js's saveWorkoutFunction
+        // produces -- workoutSystemicFatigue is "" for the same reason it
+        // always is on a same-day save (see updateSystemicFatigueAvailability).
+        const workoutDate = new Date().toLocaleDateString();
+        const workoutStartTime = formatTime12(startMinutes);
+        const workoutEndTime = formatTime12(startMinutes + durationMinutes);
+        const key = workoutDate + " " + workoutStartTime;
+        const entryMap = new Map(window.workoutLogData || []);
+        entryMap.set(key, {
+            workoutName: program,
+            workoutDate,
+            workoutStartTime,
+            workoutEndTime,
+            workoutIntensity: `${intensity}`,
+            workoutSystemicFatigue: "",
+            workoutExercises: workingLog,
+            workoutUnit: unit,
+        });
+        await window.LoggerDB.saveWorkoutLog(Array.from(entryMap));
+
+        closeDialog();
+        document.location.reload();
+    });
+
+    document.body.append(dialog);
+    dialog.showModal();
 }
 
 function showorhideElem(el,value){

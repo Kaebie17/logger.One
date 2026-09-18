@@ -7,6 +7,32 @@
 // where the platform allows it.
 try { screen.orientation?.lock?.("portrait")?.catch(() => {}) } catch (e) {}
 
+// Every page pins its <body> to height:100dvh so only its own inner
+// scroll area moves, never the whole page (see e.g. #indexpage's comment).
+// dvh is supposed to already track the real visible height, but has been
+// reported unreliable in standalone-PWA mode specifically on some iOS
+// versions -- landing short of the true screen height and leaving a bare
+// (unpainted) strip below the footer that no page-level fix can close,
+// since the deficit is in the height value itself, not in how any element
+// divides it up. This computes the real visible height directly from
+// window.innerHeight/visualViewport (both report the actual on-screen
+// pixels, independent of whatever dvh resolves to) into a CSS custom
+// property; every page's height rule falls back to
+// `calc(var(--vh, 1vh) * 100)` as a third line after 100vh/100dvh, so a
+// browser where dvh already works correctly is unaffected (it's simply
+// never reached) and one where it doesn't gets the real value instead.
+// visualViewport specifically (over plain innerHeight) is what actually
+// updates correctly as iOS shows/hides its own chrome and the on-screen
+// keyboard; resize alone can miss those on some versions.
+function setRealViewportHeight(){
+    const h = window.visualViewport?.height || window.innerHeight;
+    document.documentElement.style.setProperty("--vh", `${h * 0.01}px`);
+}
+setRealViewportHeight();
+window.addEventListener("resize", setRealViewportHeight);
+window.visualViewport?.addEventListener("resize", setRealViewportHeight);
+window.addEventListener("orientationchange", setRealViewportHeight);
+
 // Shows a small tap-to-refresh banner once a newer service worker has
 // finished installing and is sitting idle, waiting for permission to take
 // over. Only one instance no matter how many times this fires.
@@ -57,6 +83,25 @@ if ("serviceWorker" in navigator) {
 }
 
 const sortByDate = Intl.Collator(undefined,{numeric:true}).compare;
+
+// Pure weight/volume math, shared by exercises.js's getStats (the full
+// exercise editor, DOM-driven) and index.js's template quick-log popup
+// (edits weight/reps directly on stored data, no DOM to read from) so both
+// compute load/vol identically -- one implementation, not two that could
+// drift apart. setWeights/setReps are plain per-set number arrays, already
+// index-aligned (setReps[i] is the rep count for the same set setWeights[i]
+// is the weight for); repMultiple/weightMultiple/equipmentWt are the same
+// three values getStats already reads off the DOM (a unilateral-exercise
+// rep/weight multiplier, and the bar/dumbbell's own base weight from
+// settings). Matches exercises.js's previous inline formula exactly:
+// totalWeight sums the set weights once, then applies weightMultiple and
+// adds equipmentWt per set; totalVol applies both multipliers per set
+// before summing, adding equipmentWt once per set there too.
+function computeWeightVolume(setWeights, setReps, repMultiple, weightMultiple, equipmentWt){
+    const totalWeight = setWeights.reduce((a,b) => a+b, 0) * weightMultiple + equipmentWt * setWeights.length;
+    const totalVol = setWeights.reduce((sum,w,i) => sum + (w*weightMultiple*setReps[i]*repMultiple + equipmentWt), 0);
+    return { totalWeight, totalVol };
+}
 
 // Converts an exercise's display name to its exerciseDB key -- the same
 // transform loadOptions() (exercises.js) already uses for assigning each

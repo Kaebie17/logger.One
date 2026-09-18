@@ -610,11 +610,17 @@ function getStats(array,exports,lineElms){
   const savedSettingsFallback = '{"bweight":"0 kgs","dweight":"0 kgs"}';
   let equipmentWt = lineElms[6].id.includes("barbell") ? parseFloat(JSON.parse(localStorage.savedSettings||savedSettingsFallback).bweight.split(" ")[0]) : lineElms[6].id.includes("dumbbell") ? parseFloat(JSON.parse(localStorage.savedSettings||savedSettingsFallback).dweight.split(" ")[0]) : 0 ;
   let allSets = calculateField(array,exports[0],val=>val,arr=>arr.length)();
+  // Raw per-set number arrays (not yet summed/multiplied) -- handed to the
+  // shared computeWeightVolume (functions.js) so this and index.js's
+  // template quick-log popup compute totalWeight/totalVol identically.
+  const setWeights = calculateField(array,exports[2],val=>val,getValuesfromInputs)();
+  const setReps = calculateField(array,exports[1],val=>val,getValuesfromInputs)();
+  const {totalWeight, totalVol} = computeWeightVolume(setWeights, setReps, repMultiple, weightMultiple, equipmentWt);
   return {
     totalSets: allSets,
-    totalReps: calculateField(array,exports[1],reducer,getValuesfromInputs)()*repMultiple,
-    totalWeight: calculateField(array,exports[2],reducer,getValuesfromInputs)()*weightMultiple+(equipmentWt*allSets),
-    totalVol: calculateField([],"",getVolume, () => (arr) => arr.reduce(([k1,v1],[k2,v2])=>["",v1+v2])[1])(array.filter(([k,v])=> k.includes(exports[2])))(array.filter(([k,v])=> k.includes(exports[1])),equipmentWt,repMultiple,weightMultiple),
+    totalReps: reducer(setReps)*repMultiple,
+    totalWeight,
+    totalVol,
     avgRIR: calculateField(array,exports[3],reducer,getValuesfromInputs)("average"),
     avgRest: calculateField(array,exports[4],reducer,getValuesfromInputs)("average"),
     avgTUT: calculateField(array,exports[5],reducer,getValuesfromInputs)("average"),
@@ -635,15 +641,6 @@ function reducer(arr,operation=""){
   else return arr.reduce((a,b)=>a+b);
 }
 
-function getVolume(f,outerarr){
-    return function(innerarr,...multiples){
-        let args = [];
-        for (let i=0; i<outerarr.length;i++){
-            args.push(["v", (outerarr[i][1]*multiples[2])*(innerarr[i][1]*multiples[1])+multiples[0]]);
-        }
-        return f.call(this,args);
-    }
-}
 
 function testRegExp(f,input,options = {falseVal: "",flags: ""}){
   let testExp = typeof input === "object" ? input : new RegExp(input,options.flags);
