@@ -12,7 +12,13 @@ const switchListsDisp = (num=0) => {
   exerciseList.style.display = num === 0 ? "grid" : "none"
   suggestionsContainer.style.display = num < 2 ? "none" : "block";
   exerciseDetails.style.display = num < 2 ? "none" : "block" ;
-  closeDetails.textContent = num === 1 ? "Add" : "Close"
+  // "Add More" (not just "Add") -- num===1 is the selection-list stage,
+  // and this button takes you BACK to browsing to pick additional
+  // exercises. It never leads to entering set/rep/weight details (that's
+  // doneSelection below, and tapping a selected item's own card) -- the
+  // plain "Add" label read as if it might, which is exactly what
+  // prompted this rename.
+  closeDetails.textContent = num === 1 ? "Add More" : "Close"
   // Was display:none at num===0 (just browsing the list, nothing selected
   // yet) -- close()'s own fallback branch already does the right thing
   // there (navigates back to index.html), so this was only ever a
@@ -23,6 +29,17 @@ const switchListsDisp = (num=0) => {
   // either) so it renders as the same chip .footer-row > a styles every
   // other footer link as, in every state, not just num===1.
   closeDetails.style.display = "flex";
+  // "Next" (doneSelection) -- confirms the current selection and moves to
+  // the selection-list stage (where tapping an item opens its own
+  // set/rep/weight entry form). Used to be a floating thumbs-up button
+  // layered over the exercise list itself instead of a footer button;
+  // moved here because that floating button was going unnoticed/not
+  // rendering reliably for at least one real user, and a real footer
+  // button is the one control in this app that's been made to reliably
+  // render correctly everywhere. Only meaningful at num===0 -- by num===1
+  // the selection is already confirmed (Save is the equivalent action
+  // there), and num===2 is a single exercise's own details view.
+  doneSelection.style.display = num===0 ? "flex" : "none";
   selectionListDisplay.style.display = num===0 ? "none" : num === 1 ? "block" : "none" ;
   saveExercises.style.display = num===0 ? "none" : num === 1 ? "flex" : "none" ;
 }
