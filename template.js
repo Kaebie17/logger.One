@@ -165,12 +165,9 @@ function displaySnapshot(snapshotdata){
         const button = document.getElementById("addexercises");
         button.style.display = "flex" ;
         button.textContent = "Edit Template"
+        button.style.justifyContent = "space-around"
         button.append(div)
 
-        // Green accent bar. Used to live beside the button as a second grid
-        // column, which forced the button itself to narrow and broke its
-        // own text layout (see styles.css) -- now it's its own row below
-        // the button (grid-row:2) instead, so both can be full width.
         const flag = document.createElement("div");
         flag.id = "flag";
         let flagColor = "rgba(0%, 100%, 0%, 100%)"

@@ -979,15 +979,10 @@ svg > path:nth-child(23) {
        could ever be, on top of which #addexercises below wasn't even
        using this column's width in the first place. */
     grid-template-columns: 1fr 1fr;
-    /* Second row for #flag -- a full-width accent bar under the button
-       instead of the old side-by-side column, which is what forced the
-       button itself to narrow (see the button rule below for why that
-       broke its own text). */
-    grid-template-rows: 1fr auto;
     gap: 2%;
     padding: 0;
     border: 0;
-    height: 6vh;
+    height: 5vh;
     /* Was 95vw -- the viewport's width, not this container's. This sits
        inside #createworkoutform's own 2%-margin/2%-padding card, so 95vw
        ran past that card's actual right edge; width:100% fills the cell
@@ -996,9 +991,10 @@ svg > path:nth-child(23) {
     border-radius: 1vh;
    }
    #createworkoutform > #snapshotcontainer > #addexercises{
-    /* Always spans both columns -- #flag now lives in its own row below
-       (grid-row:2) instead of sharing this row's second column, so the
-       button no longer has to narrow to make room for it. */
+    /* Spans both columns by default (full-width button before any
+       exercises are picked, when #flag doesn't exist yet). Once
+       presentStats() appends #flag as its sibling, the :has() rule below
+       narrows this back to column 1 so #flag can occupy column 2. */
     grid-column: 1 / -1;
     grid-row: 1;
     /* Was height:4vh with padding-top only and no vertical centering --
@@ -1031,30 +1027,30 @@ svg > path:nth-child(23) {
     box-shadow: none;
     opacity: 50%;
    }
-   /* Was narrowed to grid-column:1 (half the card) once a #flag sibling
-      existed, to make room for it in column 2 -- at half width this
-      button's own "Edit Selection" label plus its Volume/Sets/Reps
-      snapshot text no longer fit on one line at this button's inherited
-      1.5rem font-size, wrapping the label to two lines and pushing the
-      snapshot text out past the button's own border. #flag now lives in
-      its own row below (see the rule below) instead of a second column,
-      so this stays full width (grid-column:1/-1 from the base rule
-      above) always. */
-   #createworkoutform > #snapshotcontainer > #flag{
-    grid-column: 1 / -1;
-    grid-row: 2;
-    height: 0.6vh;
-    border-radius: 1vh;
+   #createworkoutform > #snapshotcontainer:has(#flag) > #addexercises{
+    grid-column: 1;
    }
 
    #createworkoutform > #snapshotcontainer  #snapshot {
-    /* fit-content plus a cap lets this size to its own text without
-       overflowing the button it shares space with. */
+    /* Was 38vw, sized against the old ~93vw-wide button. Now that the
+       button fills its actual grid cell (roughly half the card), a fixed
+       viewport-relative width would overflow it; fit-content plus a cap
+       lets it size to its own text without doing that. */
     width: fit-content;
     max-width: 55%;
     height: 3vh;
     padding-top: 0.5vh;
     font-size : 0.9rem;
+   }
+    #createworkoutform > #snapshotcontainer  #flag{
+    grid-area: 1/2/2/3;
+    display: flex;
+    width: 91%;
+    height: 5vh;
+    margin: 0.1vh;
+    border-radius: 1vh;
+    z-index: 1;
+    opacity: 40%;
    }
    /* Unstyled, Chromium's <input type="range"> renders as one flat,
       undifferentiated white capsule -- no track/thumb color, no visual
@@ -1653,19 +1649,17 @@ svg > path:nth-child(23) {
        for why (50%+55% overflowed the grid; 95vw ignored the actual
        card width). */
     grid-template-columns: 1fr 1fr;
-    /* Same second-row-for-#flag layout as #createworkoutform's version --
-       see there for why. */
-    grid-template-rows: 1fr auto;
     gap: 2%;
     padding: 0;
     border: 0;
-    height: 6vh;
+    height: 5vh;
     width: 100%;
     border-radius: 1vh;
    }
    #createtemplatepage #snapshotcontainer > #addexercises{
-    /* Same fix as #createworkoutform's #addexercises -- always spans both
-       columns, #flag lives in its own row below instead of column 2. */
+    /* Same fix as #createworkoutform's #addexercises -- spans both
+       columns until #flag exists as a sibling, see the :has() rule
+       below and the comment on the workout page's version. */
     grid-column: 1 / -1;
     grid-row: 1;
     /* Same min-height + flex-centering fix as the workout page's version
@@ -1688,15 +1682,8 @@ svg > path:nth-child(23) {
     box-shadow: none;
     opacity: 50%;
    }
-   /* Same removal as #createworkoutform's version above -- was narrowed to
-      grid-column:1 once a decorative #flag sibling existed, which broke
-      this button's own text layout at half width. #flag now lives in its
-      own row below instead, so this stays full width always. */
-   #createtemplatepage #snapshotcontainer > #flag{
-    grid-column: 1 / -1;
-    grid-row: 2;
-    height: 0.6vh;
-    border-radius: 1vh;
+   #createtemplatepage #snapshotcontainer:has(#flag) > #addexercises{
+    grid-column: 1;
    }
 
    #createtemplatepage  #snapshotcontainer  #snapshot {
@@ -1705,6 +1692,16 @@ svg > path:nth-child(23) {
     height: 3vh;
     padding-top: 0.5vh;
     font-size : 0.9rem;
+   }
+    #createtemplatepage #snapshotcontainer  #flag{
+    grid-area: 1/2/2/3;
+    display: flex;
+    width: 91%;
+    height: 5vh;
+    margin: 0.1vh;
+    border-radius: 1vh;
+    z-index: 1;
+    opacity: 40%;
    }
     #createtemplatepage #templates{
         height: 25vh;

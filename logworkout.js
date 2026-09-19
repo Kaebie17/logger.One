@@ -380,11 +380,9 @@ function presentStats(){
     const button = document.getElementById("addexercises");
     button.style.display = "flex" ;
     button.textContent = "Edit Selection"
+    button.style.justifyContent = "space-around"
     button.append(div)
 
-    // Green accent bar -- see template.js's displaySnapshot for why this
-    // lives in its own row below the button now instead of a second grid
-    // column beside it.
     const flag = document.createElement("div");
     flag.id = "flag";
     let flagColor = "rgba(0%, 100%, 0%, 100%)"
