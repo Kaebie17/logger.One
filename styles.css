@@ -1637,14 +1637,7 @@ svg > path:nth-child(23) {
     border-radius: 1vh;
    }
    #createtemplatepage #snapshotcontainer > #addexercises{
-    /* Same fix as #createworkoutform's #addexercises -- spans both
-       columns until #flag exists as a sibling, see the :has() rule
-       below and the comment on the workout page's version. */
-    grid-column: 1 / -1;
-    grid-row: 1;
-    /* Same min-height + flex-centering fix as the workout page's version
-       -- see the comment there for why height:4vh + padding-top-only was
-       letting the text spill past the border/shadow. */
+    grid-area: 1/1/2/2;
     display: flex;
     align-items: center;
     justify-content: center;
