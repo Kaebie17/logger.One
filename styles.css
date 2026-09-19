@@ -1223,6 +1223,19 @@ svg > path:nth-child(23) {
         text-align: center;
         background-color: rgba(0%, 0%, 0%, 0.65);
         border-radius: 5rem;
+        /* Was relying purely on DOM order (this element comes after the
+           list's own <section> in the markup, so it paints on top by
+           default) to stay above the scrollable exercise list it shares a
+           grid cell with -- no explicit z-index at all. That default
+           stacking order isn't guaranteed once the section's children are
+           actual custom elements with their own shadow roots
+           (custom-option-element), which is exactly what's rendered here
+           -- shadow-DOM content can establish stacking in ways that don't
+           reliably respect plain sibling DOM order on every engine. An
+           explicit z-index removes the ambiguity instead of depending on
+           implicit ordering. */
+        position: relative;
+        z-index: 10;
     }
     #createexercisespage > #exercisedetails{
         display: none;
