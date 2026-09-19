@@ -446,13 +446,11 @@ class DataInterface extends Object{
 // own SVG source already authored (grey for an ordinary muscle, white for
 // erectorspinae's shape in backsvg.js, etc.), never a hardcoded standin.
 // Color coding only ever TEMPORARILY overrides that native appearance;
-// the absence of workout/soreness data restores it. index.js's own
-// nameMap loop already relies on exactly this (it only ever calls into
-// this function when there's actual volume for a muscle, so an untouched
-// one is simply never written to and stays as authored); profile.js's
-// interactive +/- additionally needs this function to actively restore
-// the native color when a muscle is stepped back down to 0, since by then
-// its fill has already been overwritten once in the same render.
+// the absence of muscle-soreness data (decayedTier returning 0, below)
+// restores it. index.js's renderMuscleSorenessMap and profile.js's
+// interactive +/- both call this on every element unconditionally (tier 0
+// included), so an untouched or fully-decayed muscle actively restores
+// its native color rather than just never being written to.
 const TIER_COLORS = [
     {stroke: "#f6c2ba", fill: "#f6c2ba"}, // 1
     {stroke: "#e79a8b", fill: "#e79a8b"}, // 2
@@ -476,6 +474,106 @@ function applyTierColor(el, tier){
     const {stroke, fill} = TIER_COLORS[Math.max(0, Math.min(TIER_COLORS.length-1, tier-1))];
     el.setAttribute("stroke", stroke);
     el.setAttribute("fill", fill);
+}
+
+// ---- Shared muscle soreness: one persisted tier per muscle ----
+//
+// Single source of truth for "how sore is this muscle right now", read by
+// both index.js's home-page SVG and profile.js's soreness page so they
+// always agree. A workout logged today ADDS a volume-based contribution to
+// whatever a muscle's current (decayed) tier already is; profile.js's +/-
+// adjusts that same stored value directly; the value decays back down on
+// its own the longer a muscle goes untouched. See muscleSoreness's DB
+// layer below for the {tier, lastUpdated} record shape this operates on.
+
+// Calendar-day distance (midnight to midnight), not raw elapsed hours --
+// matches every other today/backdated comparison already in this codebase
+// (checkLastWorkoutSystemicFatigue below, logworkout.js's
+// updateSystemicFatigueAvailability), and is what makes two workouts
+// logged on the same real day both contribute in full with zero spurious
+// decay between them.
+function daysBetweenCalendar(fromMs, toMs){
+    const a = new Date(fromMs); a.setHours(0,0,0,0);
+    const b = new Date(toMs);   b.setHours(0,0,0,0);
+    return Math.round((b - a) / 86400000);
+}
+
+// 1 tier point lost per full elapsed calendar day since this muscle was
+// last touched (a workout contribution or a manual +/-), floored at 0.
+// Never persisted on its own -- purely a read-time view of the stored
+// record; only an actual mutation (see applyWorkoutToMuscleSoreness /
+// profile.js's adjustMuscleTier) bakes a new value back into storage.
+function decayedTier(record, now = Date.now()){
+    if (!record) return 0;
+    const elapsedDays = daysBetweenCalendar(record.lastUpdated, now);
+    return Math.max(0, Math.min(TIER_COLORS.length, record.tier - elapsedDays));
+}
+
+// Distributes ONE workout's own volume across each exercise's mover
+// muscles (["targets", [primary,secondary,tertiary,quaternary,quinary]])
+// at fixed weights 65/25/5/3/2%, as a percentage of that workout's own
+// total volume. Same weighting/mover-name normalization (dehyphenate,
+// traps+rhomboids merge) index.js's recentWorkouts uses for its separate
+// 7-day rolling Red-Zone/stats calculation -- but scoped to exactly one
+// workout, with no dependency on any muscle SVG being present in the DOM
+// (this runs at workout-save time; logworkout.html has no muscle map at
+// all).
+function computeWorkoutMuscleVolumePercents(workoutExercises){
+    const percents = new Map();
+    const addContribution = (muscle, amount) => {
+        if (!muscle) return;
+        muscle = muscle.replace("-", "");
+        if (muscle === "traps" || muscle === "rhomboids") muscle = "traps/rhomboids";
+        percents.set(muscle, (percents.get(muscle) || 0) + amount);
+    };
+    const entries = Object.values(workoutExercises);
+    const movers = entries.map(arr => arr[0][1]);
+    const volumes = entries.map(arr => arr[arr.findIndex(e => e[0] === "vol")][1]);
+    const totalVol = volumes.reduce((a, b) => a + b, 0);
+    if (!totalVol) return percents;
+    movers.forEach(([primary, secondary, tertiary, quaternary, quinary], i) => {
+        addContribution(primary,    (0.65 * volumes[i] * 100) / totalVol);
+        addContribution(secondary,  (0.25 * volumes[i] * 100) / totalVol);
+        addContribution(tertiary,   (0.05 * volumes[i] * 100) / totalVol);
+        addContribution(quaternary, (0.03 * volumes[i] * 100) / totalVol);
+        addContribution(quinary,    (0.02 * volumes[i] * 100) / totalVol);
+    });
+    return percents;
+}
+
+// Same percent->tier thresholds index.js's coloring used to apply
+// directly -- now the shared mapping both the save-time contribution path
+// and index.js's own render call into.
+function tierForVol(vol){
+    switch(true) {
+        case vol>60: return 5;
+        case vol>50: return 4;
+        case vol>40: return 3;
+        case vol>20: return 2;
+        case vol>0: return 1;
+        default: return 0;
+    }
+}
+
+// Call once per newly-logged (today's) workout. For every muscle that
+// actually got real volume, decays its current stored tier, adds this
+// workout's contribution, clamps to the same 0-5 range applyTierColor
+// renders, and stamps lastUpdated=now. A muscle with zero contribution is
+// left completely untouched -- no decay-then-rewrite -- so incidental
+// non-involvement doesn't reset that muscle's own decay clock.
+async function applyWorkoutToMuscleSoreness(workoutExercises){
+    const percents = computeWorkoutMuscleVolumePercents(workoutExercises);
+    const data = window.muscleSorenessData || (window.muscleSorenessData = {});
+    const now = Date.now();
+    let changed = false;
+    percents.forEach((pct, muscle) => {
+        const contribution = tierForVol(pct);
+        if (contribution <= 0) return;
+        const current = decayedTier(data[muscle], now);
+        data[muscle] = { tier: Math.max(0, Math.min(TIER_COLORS.length, current + contribution)), lastUpdated: now };
+        changed = true;
+    });
+    if (changed) await window.LoggerDB.saveMuscleSoreness(data);
 }
 
 // ---- IndexedDB-backed workout log + templates ----
@@ -554,10 +652,14 @@ async function loadTemplates(db){
     return Object.fromEntries(rows.map(({name, data}) => [name, data]));
 }
 
-// {muscle: tier} -- e.g. {biceps: 3}. Absent muscle = tier 0 (resting).
+// {muscle: {tier, lastUpdated}} -- e.g. {biceps: {tier: 3, lastUpdated: 1234567890}}.
+// Absent muscle = tier 0 (resting). lastUpdated (epoch ms, not a
+// toLocaleDateString() string -- see checkLastWorkoutSystemicFatigue's
+// comment on why locale date strings are unsafe to re-parse) drives
+// decayedTier's day-based decay above.
 async function loadMuscleSoreness(db){
     const rows = await idbGetAll(db, "muscleSoreness");
-    return Object.fromEntries(rows.map(({muscle, tier}) => [muscle, tier]));
+    return Object.fromEntries(rows.map(({muscle, tier, lastUpdated}) => [muscle, {tier, lastUpdated}]));
 }
 
 async function saveWorkoutLog(db, arrayOfTuples){
@@ -571,7 +673,7 @@ async function saveTemplates(db, obj){
 }
 
 async function saveMuscleSoreness(db, obj){
-    await idbReplaceAll(db, "muscleSoreness", Object.entries(obj).map(([muscle, tier]) => ({muscle, tier})));
+    await idbReplaceAll(db, "muscleSoreness", Object.entries(obj).map(([muscle, {tier, lastUpdated}]) => ({muscle, tier, lastUpdated})));
     window.muscleSorenessData = obj;
 }
 
@@ -606,6 +708,33 @@ async function migrateSorenessField(db, workoutLogData){
         return [key, {...rest, workoutSystemicFatigue: workoutSoreness}];
     });
     if (changed) await saveWorkoutLog(db, migrated);
+    return migrated;
+}
+
+// Normalizes a muscleSoreness record to the current {tier, lastUpdated}
+// shape regardless of which OLDER shape it's coming from: a bare number
+// (the very first shape, straight from JSON.parse(localStorage.muscleSoreness)
+// on the IndexedDB-unavailable fallback path, which never goes through
+// loadMuscleSoreness above) or an object missing lastUpdated (the DB-row
+// shape before this field existed). True history is unknowable either
+// way, so "now" is the only honest backfilled default -- same reasoning
+// migrateSorenessField above already uses for its own rename backfill.
+function normalizeMuscleSorenessRecord(rec, now = Date.now()){
+    if (typeof rec === "number") return {tier: rec, lastUpdated: now};
+    if (rec.lastUpdated === undefined) return {tier: rec.tier, lastUpdated: now};
+    return rec;
+}
+
+// One-time DB-level backfill using the normalizer above.
+async function migrateMuscleSorenessTimestamps(db, data){
+    let changed = false;
+    const now = Date.now();
+    const migrated = Object.fromEntries(Object.entries(data).map(([muscle, rec]) => {
+        const normalized = normalizeMuscleSorenessRecord(rec, now);
+        if (normalized !== rec) changed = true;
+        return [muscle, normalized];
+    }));
+    if (changed) await saveMuscleSoreness(db, migrated);
     return migrated;
 }
 
@@ -716,7 +845,7 @@ async function initApp(){
         await migrateFromLocalStorage(dbInstance);
         window.workoutLogData = await migrateSorenessField(dbInstance, await loadWorkoutLog(dbInstance));
         window.templatesData = await loadTemplates(dbInstance);
-        window.muscleSorenessData = await loadMuscleSoreness(dbInstance);
+        window.muscleSorenessData = await migrateMuscleSorenessTimestamps(dbInstance, await loadMuscleSoreness(dbInstance));
     } catch(e){
         // IndexedDB unavailable this session (private browsing, storage
         // disabled, etc.) -- fall back to reading localStorage directly so
@@ -725,7 +854,11 @@ async function initApp(){
         dbAvailable = false;
         window.workoutLogData = localStorage?.workoutLogObject ? JSON.parse(localStorage.workoutLogObject) : [];
         window.templatesData = localStorage?.templates ? JSON.parse(localStorage.templates) : {};
-        window.muscleSorenessData = localStorage?.muscleSoreness ? JSON.parse(localStorage.muscleSoreness) : {};
+        // This path bypasses loadMuscleSoreness/migrateMuscleSorenessTimestamps
+        // entirely (no DB to read from), so old-shape records need the same
+        // normalization applied here directly instead.
+        const rawSoreness = localStorage?.muscleSoreness ? JSON.parse(localStorage.muscleSoreness) : {};
+        window.muscleSorenessData = Object.fromEntries(Object.entries(rawSoreness).map(([muscle, rec]) => [muscle, normalizeMuscleSorenessRecord(rec)]));
     }
     checkLastWorkoutSystemicFatigue();
     const file = PAGE_SCRIPTS[document.body.id];

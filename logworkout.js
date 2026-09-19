@@ -271,6 +271,10 @@ async function saveWorkoutFunction(event) {
     temp.set(key , {workoutName,workoutDate,workoutStartTime,workoutEndTime,workoutIntensity,workoutSystemicFatigue,workoutExercises,workoutUnit});
     await window.LoggerDB.saveWorkoutLog(Array.from(temp));
     temp = "";
+    // Same today-vs-backdated distinction workoutSystemicFatigue's own
+    // eligibility check above already draws -- a "log past workout" entry
+    // backfilling old history shouldn't spike CURRENT muscle soreness.
+    if (workoutDate === new Date().toLocaleDateString()) await applyWorkoutToMuscleSoreness(workoutExercises);
     let bool = prompt("Save as template/Replace template");
     if (bool || bool === ""){
         let templatesArr = Object.entries(window.templatesData || {});

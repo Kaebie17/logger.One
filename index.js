@@ -54,6 +54,7 @@ svgcode.addEventListener ("load", async () => {
     temp.forEach(([k,v]) => dailyWorkoutLog.set(v.workoutDate + " " + v.workoutStartTime,v));
     temp = "";
     dailyWorkoutLog.size? recentWorkouts(dailyWorkoutLog) : "";
+    renderMuscleSorenessMap();
     dayNumContainers.forEach(el => {
         let dimentionRatio = ((window.innerWidth/window.innerHeight)); 
         let h = parseInt(window.getComputedStyle(el).width)-dimentionRatio ;     
@@ -114,31 +115,29 @@ function recentWorkouts(object){
         });
     })
 
-    nameMap.entries().forEach(([key, val])=> {
-        let elemArr = val? document.querySelectorAll(`svg [data-name='${key}']`) : [];
-        elemArr.forEach(elem => rgbValues(elem,val));
-    })
+    // nameMap itself still feeds calcRZ() (Red Zone Hits, below) and
+    // stats.js's muscle-group volume chart (reads localStorage.nameMap) --
+    // both a rolling 7-day volume view, unrelated to and unchanged by the
+    // persisted/decaying muscleSorenessData the SVG is now colored from
+    // (see renderMuscleSorenessMap). Only the coloring this function used
+    // to also do here was removed.
     localStorage.nameMap = JSON.stringify([...nameMap]);
 }
 
-// Maps a volume percentage onto the shared TIER_COLORS ramp (functions.js)
-// and applies it -- same palette profile.js's per-muscle +/- input uses,
-// so both pages agree on what each tier looks like. Previously this
-// defaulted to fill:transparent, which made an unworked muscle invisible
-// rather than its own authored resting color -- tier 0 (applyTierColor)
-// restores that native color instead.
-function tierForVol(vol){
-    switch(true) {
-        case vol>60: return 5;
-        case vol>50: return 4;
-        case vol>40: return 3;
-        case vol>20: return 2;
-        case vol>0: return 1;
-        default: return 0;
-    }
-}
-function rgbValues(el,vol){
-    applyTierColor(el, tierForVol(vol));
+// Paints the muscle SVG from the shared, persisted, decaying soreness
+// store (functions.js: window.muscleSorenessData / decayedTier /
+// TIER_COLORS / applyTierColor) instead of the old from-scratch 7-day
+// volume recompute -- so this page and profile.js's soreness page always
+// agree on a given muscle's color. Called unconditionally (tier 0
+// included) so a muscle that's fully decayed since the last visit
+// actively restores its native color rather than staying stuck on a
+// stale one.
+function renderMuscleSorenessMap(){
+    const data = window.muscleSorenessData || {};
+    const now = Date.now();
+    // Matches the old rgbValues call site's own selector (document.querySelectorAll(`svg [data-name='${key}']`))
+    // rather than assuming svgContainer is the SVGs' direct container.
+    document.querySelectorAll("svg [data-name]").forEach(el => applyTierColor(el, decayedTier(data[el.dataset.name], now)));
 }
 
 function createTemplateItem(program,cover){
@@ -444,6 +443,11 @@ function openQuickLogPopup(program){
             workoutUnit: unit,
         });
         await window.LoggerDB.saveWorkoutLog(Array.from(entryMap));
+        // workoutDate here is always today's (line above), so this always
+        // contributes -- unlike logworkout.js's saveWorkoutFunction, which
+        // also handles deliberately backdated "log past workout" saves and
+        // gates on that.
+        await applyWorkoutToMuscleSoreness(workoutExercises);
 
         closeDialog();
         document.location.reload();

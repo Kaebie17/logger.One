@@ -272,13 +272,18 @@ function setHeadImage(view, dataUri, region, key){
 
 // ---- Per-muscle soreness (+/- stepper on tap) ----
 //
-// Every muscle is always adjustable (no eligibility gating -- this page is
-// a manual, on-demand place to record soreness, not tied to training
-// data). Tier 0-5 on the same TIER_COLORS ramp (functions.js) index.js
-// uses for its volume-driven coloring, clamped at both ends. Stored
-// separately from workout objects entirely (window.muscleSorenessData /
-// LoggerDB.saveMuscleSoreness), keyed by the SVG's own data-name values,
-// so nothing that reads a workout entry is affected by any of this.
+// Every muscle is always adjustable (no eligibility gating -- this is a
+// manual, on-demand place to bump soreness up or down). Tier 0-5 on the
+// same TIER_COLORS ramp (functions.js) index.js's volume-driven coloring
+// also uses -- both pages now read/write the SAME underlying value
+// (window.muscleSorenessData / LoggerDB.saveMuscleSoreness, keyed by the
+// SVG's own data-name values), via the shared decayedTier (functions.js):
+// a same-day workout ADDS a volume-based contribution to a muscle's
+// current tier (see functions.js's applyWorkoutToMuscleSoreness, called
+// from logworkout.js/index.js's save paths), the +/- here adjusts that
+// same stored value directly, and it decays back down the longer a
+// muscle goes untouched -- so this page and index.js's home-page map
+// always show the same color for the same muscle.
 let activeMuscleControls = null; // {group, muscle}
 
 function getMuscleElements(name){
@@ -286,7 +291,7 @@ function getMuscleElements(name){
 }
 
 function currentMuscleTier(name){
-    return (window.muscleSorenessData || {})[name] || 0;
+    return decayedTier((window.muscleSorenessData || {})[name]);
 }
 
 // Colors every element sharing this data-name, in BOTH views -- some
@@ -308,8 +313,12 @@ function paintAllMuscles(){
 
 async function adjustMuscleTier(name, delta){
     const data = window.muscleSorenessData || (window.muscleSorenessData = {});
-    const next = Math.max(0, Math.min(TIER_COLORS.length - 1, (data[name]||0) + delta));
-    if (next === 0) delete data[name]; else data[name] = next;
+    // Was TIER_COLORS.length - 1 (capped manual adjustment at tier 4, one
+    // short of the workout-driven path's max of 5, TIER_COLORS.length) --
+    // now that both paths share one stored value, they need the same cap.
+    const current = decayedTier(data[name]);
+    const next = Math.max(0, Math.min(TIER_COLORS.length, current + delta));
+    if (next === 0) delete data[name]; else data[name] = {tier: next, lastUpdated: Date.now()};
     paintMuscle(name);
     await window.LoggerDB.saveMuscleSoreness(data);
 }
