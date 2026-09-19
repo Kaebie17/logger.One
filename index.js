@@ -269,30 +269,51 @@ function buildStepperRow(label, initialDisplay, onStep){
 // common case where a template's exercises/sets don't need to change at
 // all. openFullEditor (the existing logworkout.html?temp= flow) is one tap
 // away for whenever that's not true.
+//
+// One page per logical step (Start/Duration/Intensity, then one exercise
+// per page) instead of a single long scroll -- the program name and the
+// escape hatches (Full Editor, close) live in a header that's the same on
+// every page, and a prev/dots/next bar at the bottom drives which page is
+// showing; the next button becomes "Save" on the last page instead of
+// being a separate action outside the page flow.
 function openQuickLogPopup(program){
     const template = existingTemplates[program];
     if (!template) return;
     const unit = template.unit === "imperial" ? "imperial" : "metric";
     const weightStep = unit === "imperial" ? 5 : 2.5;
     const exerciseKeys = Object.keys(template).filter(k => k !== "unit" && k !== "start" && k !== "end");
-    // Deep clone -- Cancel must never mutate the real, saved template.
+    // Deep clone -- closing must never mutate the real, saved template.
     const workingLog = JSON.parse(JSON.stringify(template));
     const exDB = exerciseDB();
 
     const dialog = document.createElement("dialog");
     dialog.id = "quicklogprompt";
 
-    const title = document.createElement("p");
-    title.className = "quicklog-title";
-    title.textContent = program;
-    dialog.append(title);
+    // ---- Header: program name, Full Editor, close -- same on every page ----
+    const header = document.createElement("div");
+    header.className = "quicklog-header";
+    const progName = document.createElement("span");
+    progName.className = "quicklog-progname";
+    progName.textContent = program;
+    const editBtn = document.createElement("a");
+    editBtn.className = "quicklog-fulleditor";
+    editBtn.textContent = "Full Editor";
+    const closeBtn = document.createElement("button");
+    closeBtn.type = "button";
+    closeBtn.className = "quicklog-close";
+    closeBtn.textContent = "×";
+    header.append(progName, editBtn, closeBtn);
+    dialog.append(header);
 
     const now = new Date();
     let startMinutes = Math.round((now.getHours()*60 + now.getMinutes())/5)*5;
     let durationMinutes = 45;
     let intensity = 5;
 
-    dialog.append(
+    // ---- Page 0: Start/Duration/Intensity ----
+    const detailsPage = document.createElement("div");
+    detailsPage.className = "quicklog-page";
+    detailsPage.append(
         buildStepperRow("Start", formatTime12(startMinutes), (delta) => {
             startMinutes = startMinutes + delta*5;
             return formatTime12(startMinutes);
@@ -307,24 +328,27 @@ function openQuickLogPopup(program){
         })
     );
 
-    const exercisesContainer = document.createElement("div");
-    exercisesContainer.className = "quicklog-exercises";
-    exerciseKeys.forEach(key => {
+    // ---- One page per exercise ----
+    const exercisePages = exerciseKeys.map(key => {
         const tuples = workingLog[key];
-        const group = document.createElement("div");
-        group.className = "quicklog-exercise-group";
+        const page = document.createElement("div");
+        page.className = "quicklog-page";
         const name = document.createElement("h1");
         name.textContent = exDB[key]?.["name"] || key;
-        group.append(name);
+        page.append(name);
+        // A full-page-per-exercise gives each set room for its own two
+        // FULL-WIDTH stepper rows (same width as Start/Duration/Intensity
+        // on page 0) instead of cramming a Wt stepper and a Reps stepper
+        // side by side on one line, which overflowed the dialog's edge.
         getSetIndices(tuples).forEach(i => {
-            const setRow = document.createElement("div");
-            setRow.className = "quicklog-set-row";
-            const setLabel = document.createElement("span");
+            const setGroup = document.createElement("div");
+            setGroup.className = "quicklog-set-group";
+            const setLabel = document.createElement("p");
             setLabel.className = "quicklog-set-label";
             setLabel.textContent = `Set ${i}`;
-            setRow.append(
+            setGroup.append(
                 setLabel,
-                buildStepperRow("Wt", `${getTupleValue(tuples, `weight${i}`)}`, (delta) => {
+                buildStepperRow("Weight", `${getTupleValue(tuples, `weight${i}`)}`, (delta) => {
                     const next = Math.max(0, (parseFloat(getTupleValue(tuples, `weight${i}`))||0) + delta*weightStep);
                     setTupleValue(tuples, `weight${i}`, next);
                     return `${next}`;
@@ -335,29 +359,57 @@ function openQuickLogPopup(program){
                     return `${next}`;
                 })
             );
-            group.append(setRow);
+            page.append(setGroup);
         });
-        exercisesContainer.append(group);
+        return page;
     });
-    dialog.append(exercisesContainer);
 
-    const actions = document.createElement("div");
-    actions.className = "quicklog-actions";
-    const saveBtn = document.createElement("button");
-    saveBtn.textContent = "Save";
-    const editBtn = document.createElement("button");
-    editBtn.textContent = "Full Editor";
-    editBtn.className = "quicklog-secondary";
-    const cancelBtn = document.createElement("button");
-    cancelBtn.textContent = "Cancel";
-    cancelBtn.className = "quicklog-secondary";
-    actions.append(saveBtn, editBtn, cancelBtn);
-    dialog.append(actions);
+    const pages = [detailsPage, ...exercisePages];
+    const pageViewport = document.createElement("div");
+    pageViewport.className = "quicklog-viewport";
+    pageViewport.append(...pages);
+    dialog.append(pageViewport);
+
+    // ---- Nav: prev, page dots, next/save ----
+    const nav = document.createElement("div");
+    nav.className = "quicklog-nav";
+    const prevBtn = document.createElement("button");
+    prevBtn.type = "button";
+    prevBtn.className = "quicklog-nav-btn";
+    prevBtn.textContent = "‹";
+    const dots = pages.map(() => {
+        const dot = document.createElement("span");
+        dot.className = "quicklog-dot";
+        return dot;
+    });
+    const dotsRow = document.createElement("div");
+    dotsRow.className = "quicklog-dots";
+    dotsRow.append(...dots);
+    const nextBtn = document.createElement("button");
+    nextBtn.type = "button";
+    nextBtn.className = "quicklog-nav-btn";
+    nav.append(prevBtn, dotsRow, nextBtn);
+    dialog.append(nav);
+
+    let currentIndex = 0;
+    function showPage(i){
+        currentIndex = i;
+        pages.forEach((p, idx) => { p.hidden = idx !== i; });
+        dots.forEach((d, idx) => d.classList.toggle("quicklog-dot-active", idx === i));
+        prevBtn.disabled = i === 0;
+        const isLast = i === pages.length - 1;
+        nextBtn.textContent = isLast ? "Save" : "›";
+        nextBtn.className = isLast ? "quicklog-nav-btn quicklog-nav-save" : "quicklog-nav-btn";
+    }
+    showPage(0);
+    prevBtn.addEventListener("click", () => { if (currentIndex > 0) showPage(currentIndex - 1); });
 
     const closeDialog = () => { dialog.close(); dialog.remove(); };
-    cancelBtn.addEventListener("click", closeDialog);
+    closeBtn.addEventListener("click", closeDialog);
     editBtn.addEventListener("click", () => { closeDialog(); openFullEditor(program); });
-    saveBtn.addEventListener("click", async () => {
+    nextBtn.addEventListener("click", async () => {
+        if (currentIndex < pages.length - 1){ showPage(currentIndex + 1); return; }
+
         exerciseKeys.forEach(key => recomputeExerciseTuples(workingLog[key], key));
 
         // Weight/reps edits become the new template default for next time.

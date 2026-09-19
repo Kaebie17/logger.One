@@ -716,15 +716,62 @@ svg > path:nth-child(23) {
         padding: 3vh 4vw;
         width: 85vw;
         max-height: 80vh;
-        overflow-y: auto;
+        /* The header/nav stay fixed; .quicklog-viewport below is the only
+           part that scrolls, if a single page (many sets) ever needs it --
+           overflow lived on the whole dialog before pagination existed, but
+           now that would let the header/nav drift out of view with it. */
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
         font-family: Georgia, 'Times New Roman', Times, serif;
     }
     #quicklogprompt::backdrop{
         background: rgba(0,0,0,0.6);
     }
-    #quicklogprompt .quicklog-title{
-        text-align: center;
+    /* Same on every page -- program name, the escape hatch to the full
+       editor, and close, all in one row instead of the name alone up top
+       and Full Editor/Cancel buried in the action row at the bottom. */
+    #quicklogprompt .quicklog-header{
+        display: flex;
+        align-items: center;
+        gap: 2vw;
+        margin: 0 0 2vh 0;
+        flex-shrink: 0;
+    }
+    #quicklogprompt .quicklog-progname{
+        flex: 1;
         font-size: 1.3rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    #quicklogprompt .quicklog-fulleditor{
+        flex-shrink: 0;
+        font-size: 0.8rem;
+        color: white;
+        text-decoration: underline;
+        cursor: pointer;
+    }
+    #quicklogprompt .quicklog-close{
+        flex-shrink: 0;
+        width: 1.8em;
+        height: 1.8em;
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        color: white;
+        font-size: 1.2rem;
+        line-height: 1;
+    }
+    #quicklogprompt .quicklog-viewport{
+        overflow-y: auto;
+        flex: 1;
+        min-height: 0;
+    }
+    #quicklogprompt .quicklog-page > h1{
+        font-size: 1.1rem;
+        font-style: italic;
+        text-align: center;
         margin: 0 0 2vh 0;
     }
     #quicklogprompt .quicklog-stepper-row{
@@ -756,59 +803,64 @@ svg > path:nth-child(23) {
     #quicklogprompt .quicklog-stepper-btn:active{
         background-color: rgba(255, 255, 255, 0.18);
     }
-    #quicklogprompt .quicklog-exercises{
-        border-top: 1px solid rgba(255,255,255,0.3);
-        margin-top: 2vh;
-        padding-top: 1vh;
+    #quicklogprompt .quicklog-set-group{
+        margin: 0 0 2.5vh 0;
+        padding-bottom: 1.5vh;
+        border-bottom: 1px solid rgba(255,255,255,0.15);
     }
-    #quicklogprompt .quicklog-exercise-group{
-        margin-bottom: 2vh;
-    }
-    #quicklogprompt .quicklog-exercise-group > h1{
-        font-size: 1rem;
-        font-style: italic;
-        margin: 0 0 0.5vh 0;
-    }
-    #quicklogprompt .quicklog-set-row{
-        display: flex;
-        align-items: center;
-        gap: 2vw;
-        margin: 0.5vh 0;
+    #quicklogprompt .quicklog-set-group:last-child{
+        border-bottom: 0;
     }
     #quicklogprompt .quicklog-set-label{
-        width: 3.5em;
         font-size: 0.85rem;
         opacity: 0.85;
+        margin: 0 0 0.5vh 0;
     }
-    #quicklogprompt .quicklog-set-row .quicklog-stepper-row{
-        flex: 1;
-        margin: 0;
-    }
-    #quicklogprompt .quicklog-set-row .quicklog-stepper-label{
-        flex: 0 0 auto;
-        font-size: 0.8rem;
-        opacity: 0.85;
-    }
-    #quicklogprompt .quicklog-actions{
+    /* prev arrow | page dots | next-or-save, fixed at the bottom of every
+       page (outside .quicklog-viewport, so it never scrolls away). */
+    #quicklogprompt .quicklog-nav{
         display: flex;
-        justify-content: space-around;
+        align-items: center;
+        justify-content: space-between;
         gap: 2vw;
         margin-top: 2vh;
+        padding-top: 1.5vh;
+        border-top: 1px solid rgba(255,255,255,0.3);
+        flex-shrink: 0;
     }
-    #quicklogprompt .quicklog-actions > button{
-        flex: 1;
-        height: 4.5vh;
+    #quicklogprompt .quicklog-dots{
+        display: flex;
+        gap: 1.5vw;
+    }
+    #quicklogprompt .quicklog-dot{
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 0.25);
+    }
+    #quicklogprompt .quicklog-dot-active{
+        background-color: white;
+    }
+    #quicklogprompt .quicklog-nav-btn{
+        flex-shrink: 0;
+        min-width: 3rem;
+        height: 4vh;
         border: 0;
         border-radius: 0.5vh;
         color: white;
         font-family: Georgia, 'Times New Roman', Times, serif;
-        font-size: 0.95rem;
-        background-image: linear-gradient(60deg, var(--template-color-light), var(--template-color-soft));
-    }
-    #quicklogprompt .quicklog-actions > button.quicklog-secondary{
-        background-image: none;
+        font-size: 1.1rem;
         background-color: rgba(255, 255, 255, 0.08);
         border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+    #quicklogprompt .quicklog-nav-btn:disabled{
+        opacity: 0.35;
+    }
+    #quicklogprompt .quicklog-nav-btn.quicklog-nav-save{
+        flex: 1;
+        font-size: 0.95rem;
+        background-image: linear-gradient(60deg, var(--template-color-light), var(--template-color-soft));
+        border: 0;
     }
 
     /* Styling for create workout page */
@@ -960,30 +1012,24 @@ svg > path:nth-child(23) {
     box-shadow: none;
     opacity: 50%;
    }
-   #createworkoutform > #snapshotcontainer:has(#flag) > #addexercises{
-    grid-column: 1;
-   }
+   /* Was narrowed to grid-column:1 (half the card) once a #flag sibling
+      existed, to make room for it in column 2 -- #flag was a purely
+      decorative gradient bar, and at half width this button's own "Edit
+      Selection" label plus its Volume/Sets/Reps snapshot text no longer
+      fit on one line at this button's inherited 1.5rem font-size,
+      wrapping the label to two lines and pushing the snapshot text out
+      past the button's own border. #flag and the JS that created it are
+      both gone now (logworkout.js's presentStats) -- this stays full
+      width (grid-column:1/-1 from the base rule above) always. */
 
    #createworkoutform > #snapshotcontainer  #snapshot {
-    /* Was 38vw, sized against the old ~93vw-wide button. Now that the
-       button fills its actual grid cell (roughly half the card), a fixed
-       viewport-relative width would overflow it; fit-content plus a cap
-       lets it size to its own text without doing that. */
+    /* fit-content plus a cap lets this size to its own text without
+       overflowing the button it shares space with. */
     width: fit-content;
     max-width: 55%;
     height: 3vh;
     padding-top: 0.5vh;
     font-size : 0.9rem;
-   }
-    #createworkoutform > #snapshotcontainer  #flag{
-    grid-area: 1/2/2/3;
-    display: flex;
-    width: 91%;
-    height: 5vh;
-    margin: 0.1vh;
-    border-radius: 1vh;
-    z-index: 1;
-    opacity: 40%;
    }
    /* Unstyled, Chromium's <input type="range"> renders as one flat,
       undifferentiated white capsule -- no track/thumb color, no visual
@@ -1615,9 +1661,10 @@ svg > path:nth-child(23) {
     box-shadow: none;
     opacity: 50%;
    }
-   #createtemplatepage #snapshotcontainer:has(#flag) > #addexercises{
-    grid-column: 1;
-   }
+   /* Same removal as #createworkoutform's version above -- was narrowed to
+      grid-column:1 once a decorative #flag sibling existed, which broke
+      this button's own text layout at half width. Stays full width
+      always now. */
 
    #createtemplatepage  #snapshotcontainer  #snapshot {
     width: fit-content;
@@ -1625,16 +1672,6 @@ svg > path:nth-child(23) {
     height: 3vh;
     padding-top: 0.5vh;
     font-size : 0.9rem;
-   }
-    #createtemplatepage #snapshotcontainer  #flag{
-    grid-area: 1/2/2/3;
-    display: flex;
-    width: 91%;
-    height: 5vh;
-    margin: 0.1vh;
-    border-radius: 1vh;
-    z-index: 1;
-    opacity: 40%;
    }
     #createtemplatepage #templates{
         height: 25vh;

@@ -364,13 +364,9 @@ function presentStats(){
     const button = document.getElementById("addexercises");
     button.style.display = "flex" ;
     button.textContent = "Edit Selection"
-    button.style.justifyContent = "space-around"
     button.append(div)
-
-    const flag = document.createElement("div");
-    flag.id = "flag";
-    let flagColor = "rgba(0%, 100%, 0%, 100%)"
-    flag.style.backgroundImage = `linear-gradient(90deg, #232D3F, ${flagColor}, ${flagColor})`;
-    button.parentElement.append(flag);
+    // Was also appending #flag -- see the same removal in template.js's
+    // displaySnapshot for why (narrowing this button to make room for a
+    // decorative bar was breaking its own text layout at that width).
 }
 
