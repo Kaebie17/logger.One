@@ -646,6 +646,9 @@ svg > path:nth-child(23) {
         height: 30vh;
         margin-bottom: 1%;
         overflow-x: scroll;
+        /* Same iOS native elastic-bounce-per-scroller issue as
+           #suggestions (exercises.html) -- see the comment there. */
+        overscroll-behavior-x: none;
     }
     #templates > div{
         height: 100%;
@@ -1329,6 +1332,15 @@ svg > path:nth-child(23) {
         width: 95vw;
         overflow-x: scroll;
         overflow-y: hidden;
+        /* html/body's overscroll-behavior:none only stops the ROOT page's
+           own bounce -- every independently-scrollable element (overflow-x
+           or overflow-y set to scroll/auto) gets its OWN native elastic
+           rubber-band effect in iOS Safari by default, regardless of what
+           the page itself does. Dragging past either end of this carousel
+           was stretching and snapping back exactly like the page-level
+           bounce this app already goes out of its way to suppress
+           elsewhere -- same fix, just scoped to this specific scroller. */
+        overscroll-behavior-x: none;
         /* border: 1px white solid; */
     }
     #createexercisespage > #suggestionscontainer > #suggestions > div 
@@ -1626,6 +1638,9 @@ svg > path:nth-child(23) {
         height: 25vh;
         margin-bottom: 1%;
         overflow-x: scroll;
+        /* Same iOS native elastic-bounce-per-scroller issue as
+           #suggestions (exercises.html) -- see the comment there. */
+        overscroll-behavior-x: none;
     }
     #createtemplatepage #templates > div{
         height: 100%;
