@@ -1005,6 +1005,7 @@ svg > path:nth-child(23) {
     width: 100%;
     margin: 0;
     border-radius: 1vh;
+    z-index: 1;
    }
     #createworkoutform > #snapshotcontainer > #addexercises:active{
     border-color:transparent;
@@ -1033,7 +1034,6 @@ svg > path:nth-child(23) {
     height: 5vh;
     margin: 0.1vh;
     border-radius: 1vh;
-    z-index: 1;
     opacity: 40%;
    }
    /* Unstyled, Chromium's <input type="range"> renders as one flat,
@@ -1649,6 +1649,7 @@ svg > path:nth-child(23) {
     width: 100%;
     margin: 0;
     border-radius: 1vh;
+    z-index: 1;
    }
     #createtemplatepage  #snapshotcontainer > #addexercises:active{
     border-color:transparent;
@@ -1673,7 +1674,6 @@ svg > path:nth-child(23) {
     height: 5vh;
     margin: 0.1vh;
     border-radius: 1vh;
-    z-index: 1;
     opacity: 40%;
    }
     #createtemplatepage #templates{
