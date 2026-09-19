@@ -149,6 +149,25 @@ const close = (event) => {
   }    
 } 
 
+// The real saved template/workout for the current program, OR -- when it
+// hasn't actually been persisted yet (still mid first-time creation, or a
+// brand-new ad-hoc past workout) -- the selection this exact page's own
+// saveExercisesFunction just wrote to sessionStorage.finalLog before the
+// eData round trip. start/end (present only on a logworkout.html-originated
+// round trip) aren't real exercise keys, so they're stripped the same way
+// logworkout.js itself always strips them before a workout becomes
+// template data. Shared by exercisesDBpage.onload (to know what to
+// pre-populate the selection list with) and doneSelectionFunction (to know
+// which items should auto-open pre-filled instead of blank).
+function getEffectiveTemplateData(){
+  if (existingTemplates?.[sessionStorage.program]) return existingTemplates[sessionStorage.program];
+  if (sessionStorage.finalLog){
+    const {start, end, ...rest} = JSON.parse(sessionStorage.finalLog);
+    return rest;
+  }
+  return undefined;
+}
+
 const doneSelectionFunction = (event) => {
   const allSelection = CustomOptionElement.selectedOptionArr;
   const prevSelection = sessionStorage?.restoreSelection ? JSON.parse(sessionStorage.restoreSelection) : []; 
@@ -179,7 +198,8 @@ const doneSelectionFunction = (event) => {
       elm.addEventListener("pointerdown", dragAction) ;
       // event ? doneSelection.removeEventListener(event.type, doneSelectionFunction)  : "" ;  
       if(!window.location.search.includes('new=true')){
-        if(existingTemplates?.[sessionStorage.program] && Object.keys(existingTemplates?.[sessionStorage.program]).includes(elm.id)){elm.addEventListener("click", addData,{once: true}); elm.click(); } ;
+        const effectiveTemplateData = getEffectiveTemplateData();
+        if(effectiveTemplateData && Object.keys(effectiveTemplateData).includes(elm.id)){elm.addEventListener("click", addData,{once: true}); elm.click(); } ;
       }
     })
   }
@@ -257,7 +277,15 @@ exercisesDBpage.onload = (e,urloption) => {
   else {
     // sessionStorage.program = new URL(document.location).searchParams.get("temp");
     // let selection = sessionStorage?.restoreSelection ? JSON.parse(sessionStorage?.restoreSelection) : "";
-    let templateData = existingTemplates[sessionStorage.program];
+    // Falls back to sessionStorage.finalLog (see getEffectiveTemplateData)
+    // when the program hasn't actually been saved as a template yet --
+    // still mid first-time creation (template.html) or a brand-new ad-hoc
+    // past workout (logworkout.html). Without that fallback,
+    // Object.keys(undefined) below threw, aborting before
+    // doneSelectionFunction() ever ran -- which is what left the selection
+    // list empty and the footer stuck on its default Close-only state
+    // instead of showing Add/Save with the selection restored.
+    let templateData = getEffectiveTemplateData();
     sessionStorage.unit = templateData?.["unit"];
     sessionStorage.unit ? delete templateData["unit"] : ""
     // Was el.capitalizeAllFirst("_") -- reconstructing a "clean" name from
@@ -490,7 +518,7 @@ const addData = (event) => {
   let i = 0;
   template.innerHTML = content(i,template.id);
   template.append(button);
-  const keyValPair = existingTemplates?.[sessionStorage.program]?.[template.id] || "";
+  const keyValPair = getEffectiveTemplateData()?.[template.id] || "";
   if (keyValPair && !window.location.search.includes('new=true')){
     repopulateValues(keyValPair,template,button); 
   }

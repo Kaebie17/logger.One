@@ -99,6 +99,15 @@ function handleRedirectToPg(page){
         programDisplay.className = "mark";
         const templateLog = {...JSON.parse(sessionStorage?.finalLog)};
         displaySnapshot(templateLog);
+        // Same cleanup logworkout.js's own eData=true handler already does.
+        // Without it, exercises.js's doneSelectionFunction sees
+        // sessionStorage.restoreSelection still matching the freshly
+        // rebuilt CustomOptionElement.selectedOptionArr on the NEXT "Edit
+        // Template" click, wrongly concludes nothing changed, and skips
+        // populating #selectionlistdisplay -- leaving the selection list
+        // empty on an otherwise blank page even though the exercise data
+        // itself loaded fine.
+        delete sessionStorage.restoreSelection;
         if (Object.keys(existingTemplates).length){
             const templates = Object.entries(existingTemplates);
             for (let [program,template] of templates){
