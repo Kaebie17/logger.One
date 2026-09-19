@@ -315,8 +315,13 @@ function jsonToCSV(){
         outemp.push(temp)
         }) 
         exerCon[k] = outemp;
-    })
-
+    });
+    // The semicolon above is load-bearing: without it, ASI doesn't split
+    // this from the next statement (which also starts with "(") -- JS
+    // instead parses them as one chained call, (thing).forEach(...)(more
+    // stuff).forEach(...), silently trying to invoke the first forEach's
+    // return value (undefined) as a function. That's what was actually
+    // throwing "...forEach(...) is not a function" on every export.
     (window.workoutLogData||[]).forEach(([k,o])=> {
         let temp=[]; 
         Object.entries(o).forEach(([a,b])=> {

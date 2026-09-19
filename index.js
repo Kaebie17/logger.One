@@ -416,6 +416,15 @@ function openQuickLogPopup(program){
         existingTemplates[program] = workingLog;
         await window.LoggerDB.saveTemplates(existingTemplates);
 
+        // workoutExercises must hold ONLY per-exercise tuple arrays --
+        // workingLog is a clone of the whole template, which also carries
+        // "unit" (a plain string, not a tuple array) alongside the real
+        // exercise keys. Saving workingLog itself here leaked "unit" into
+        // every quick-logged workout's workoutExercises, which then broke
+        // settings.js's export (jsonToCSV tries to .filter() that string
+        // as if it were a tuple array) for any workout logged this way.
+        const workoutExercises = Object.fromEntries(exerciseKeys.map(key => [key, workingLog[key]]));
+
         // Log today's workout, same shape logworkout.js's saveWorkoutFunction
         // produces -- workoutSystemicFatigue is "" for the same reason it
         // always is on a same-day save (see updateSystemicFatigueAvailability).
@@ -431,7 +440,7 @@ function openQuickLogPopup(program){
             workoutEndTime,
             workoutIntensity: `${intensity}`,
             workoutSystemicFatigue: "",
-            workoutExercises: workingLog,
+            workoutExercises,
             workoutUnit: unit,
         });
         await window.LoggerDB.saveWorkoutLog(Array.from(entryMap));
