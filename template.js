@@ -166,14 +166,14 @@ function displaySnapshot(snapshotdata){
         button.style.display = "flex" ;
         button.textContent = "Edit Template"
         button.append(div)
-        // Was also appending #flag, a decorative green gradient bar living
-        // in #snapshotcontainer's second grid column -- CSS narrowed this
-        // button to grid-column:1 (half the card) once #flag existed to
-        // make room for it. At half width, "Edit Template" plus the
-        // Volume/Sets/Reps text no longer fit on one line at this button's
-        // inherited 1.5rem font-size, wrapping the label to two lines and
-        // pushing the snapshot text out past the button's own border onto
-        // the flag's gradient. Button stays full width now (see styles.css
-        // -- the narrowing rule and #flag's own rule are both gone), so
-        // there's nothing left for #flag to make room for.
+
+        // Green accent bar. Used to live beside the button as a second grid
+        // column, which forced the button itself to narrow and broke its
+        // own text layout (see styles.css) -- now it's its own row below
+        // the button (grid-row:2) instead, so both can be full width.
+        const flag = document.createElement("div");
+        flag.id = "flag";
+        let flagColor = "rgba(0%, 100%, 0%, 100%)"
+        flag.style.backgroundImage = `linear-gradient(90deg, #232D3F, ${flagColor}, ${flagColor})`;
+        button.parentElement.append(flag);
 }
