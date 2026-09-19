@@ -1398,8 +1398,22 @@ svg > path:nth-child(23) {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding-left: 1vw;  
+        padding-left: 1vw;
         color: white;
+        /* exercises.js's dragAction/onmove drive a custom pointerdown+
+           pointermove swipe (shrinking this element's width, growing its
+           sibling Delete button's, to reveal it) directly on this element.
+           With no touch-action set, iOS Safari's own native touch/gesture
+           handling stays active on the SAME gesture alongside that JS --
+           and since the parent #selectionlistdisplay is a vertically
+           scrollable list, that native handling can register as an
+           attempted scroll and produce its own elastic bounce, layered on
+           top of (and fighting) the JS-driven width change. Same fix
+           already used for the profile-page head-image drag (.custom-head
+           in this file): pan-y keeps real vertical list scrolling working
+           natively while telling the browser this element's horizontal
+           movement is JS's to handle, not the browser's. */
+        touch-action: pan-y;
     }
     #createexercisespage > #selectionlistdisplay > span > button{
         margin: 0;
