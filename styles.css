@@ -1667,7 +1667,7 @@ svg > path:nth-child(23) {
     font-size : 0.9rem;
    }
     #createtemplatepage #snapshotcontainer  #flag{
-    grid-area: 1/2/2/3;
+    grid-area: 1/1/2/2;
     display: flex;
     width: 91%;
     height: 5vh;
