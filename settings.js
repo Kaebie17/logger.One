@@ -135,7 +135,12 @@ const readFile = (file) => {
     fileReader.onload = async ()=>{
         const decoder = new TextDecoder()
         const contents = new Int8Array(fileReader.result);
-        const result = decoder.decode(contents).split("\r\n").filter(f => f).map(e => e.replaceAll(/[\"]/g,"").split(","))
+        // jsonToCSV's own output uses \r\n, but a hardcoded split on exactly
+        // that sequence silently produced zero rows (not an error -- just
+        // nothing imported) for any file using plain \n line endings, which
+        // is exactly what a CSV edited/saved outside Windows, or normalized
+        // by git, ends up with. Splitting on either handles both.
+        const result = decoder.decode(contents).split(/\r\n|\n/).filter(f => f).map(e => e.replaceAll(/[\"]/g,"").split(","))
         const keys = result.map(ar => ar[0]+ " " +ar[2]).flatMap((el,i,arr) => i===0? [] : arr[i-1]!==arr[i] ? arr[i] : []);
         // key is "date time meridiem" (e.g. "8/24/2026 06:00:00 AM") -- the
         // time itself already contains a space before AM/PM, so splitting on
