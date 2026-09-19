@@ -80,12 +80,27 @@ html{
 }
 /* Mobile-app polish -- makes this feel like an installed app rather than a
    website in a frame, now that it's meant to be installed as one. */
-html, body{
-    /* Stops the browser's own pull-to-refresh / rubber-band bounce at the
-       top and bottom of the page. Without this, dragging down at the top of
-       any page triggers the OS's native refresh gesture instead of just
-       scrolling the app's own content. */
+*{
+    /* Was html,body only -- but html/body are never themselves the element
+       that scrolls (every page's real scrolling happens in an inner
+       height:100dvh; overflow-y:scroll container), so the rubber-band/
+       pull-to-refresh bounce at those inner containers' own edges was never
+       actually covered by that rule. overscroll-behavior is a no-op on an
+       element that isn't scrollable, so applying it universally is safe --
+       it just means whichever element turns out to be the real scroll
+       container (now or in any page added later) gets this for free instead
+       of needing to be hunted down and listed individually. */
     overscroll-behavior: none;
+    /* Disables pinch-zoom and double-tap-zoom everywhere while still
+       allowing normal panning/scrolling -- the CSS-level half of the zoom
+       fix (see index.html etc.'s viewport meta tag, and functions.js's
+       gesturestart guard, for the rest: iOS Safari both ignores
+       user-scalable=no for accessibility reasons and still recognizes
+       pinch as its own native gesture event alongside touch-action, so all
+       three are needed together). More specific touch-action rules
+       elsewhere in this file (pan-y for swipeable rows, none for drag
+       handles) still win over this via normal CSS specificity. */
+    touch-action: manipulation;
 }
 *{
     /* The gray flash every browser shows on tap by default -- suppressing it

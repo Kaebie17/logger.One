@@ -33,6 +33,17 @@ window.addEventListener("resize", setRealViewportHeight);
 window.visualViewport?.addEventListener("resize", setRealViewportHeight);
 window.addEventListener("orientationchange", setRealViewportHeight);
 
+// Disables pinch-zoom app-wide. CSS's touch-action:manipulation (styles.css)
+// already covers double-tap-zoom and pinch-zoom in every standards-following
+// browser, and the viewport meta tag's user-scalable=no covers the rest --
+// except iOS Safari, which ignores user-scalable=no (an accessibility
+// override since iOS 10) and still fires this non-standard two-finger-pinch
+// event independent of touch-action. Left as the one JS-level backstop
+// needed; unlike a touchend-timing double-tap guard, this can't misfire on
+// legitimate fast repeated taps (e.g. mashing a weight/reps stepper), since
+// it only ever fires for an actual multi-touch pinch gesture.
+document.addEventListener("gesturestart", (e) => e.preventDefault());
+
 // Shows a small tap-to-refresh banner once a newer service worker has
 // finished installing and is sitting idle, waiting for permission to take
 // over. Only one instance no matter how many times this fires.

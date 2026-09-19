@@ -523,24 +523,54 @@ const addData = (event) => {
 
 }
 
-const onmove = (event) => {
-  let parentwidth = parseInt(window.getComputedStyle(selectionListDisplay).width); 
-  let elemwidth =  parseInt(window.getComputedStyle(event.target).width);
-  let btnwidth =  parseInt(window.getComputedStyle(event.target.nextElementSibling).width);
-  let change = (elemwidth + event.movementX < parentwidth*0.8) ? 0 : (elemwidth + event.movementX > parentwidth*0.99) ? 0 : event.movementX;
-  let font =  parseInt(window.getComputedStyle(event.target.nextElementSibling).fontSize);
-  event.target.style.width =  `${elemwidth + change}px`;
-  event.target.nextElementSibling.style.width = `${btnwidth - change}px`;
-  event.target.nextElementSibling.style.fontSize = (font - change) > 12 || (font - change) < 0  ? font : `${font - change}px`;
-}
+// Swipe-to-delete reveal width, as a fraction of the row's own width -- 0.2
+// matches the effective cap the old clamp-based version settled at.
+const SWIPE_REVEAL_FRACTION = 0.2;
+// How far into the reveal (as a fraction of SWIPE_REVEAL_FRACTION) a drag
+// has to get before release snaps it open instead of back closed.
+const SWIPE_SNAP_THRESHOLD = 0.4;
+const SWIPE_TRANSITION = "width 0.18s ease-out";
 
 const dragAction = (event) => {
   event.preventDefault();
   event.stopPropagation();
-  event.target.addEventListener("pointermove",(event) => onmove(event))
-  const onup = event => event.target.removeEventListener("pointermove",(event) => onmove(event));
-  event.target.addEventListener("pointerup",onup,{once:true})
-  
+  const elm = event.target;
+  const delBtn = elm.nextElementSibling;
+  const parentWidth = elm.parentElement.getBoundingClientRect().width;
+  const revealWidth = parentWidth * SWIPE_REVEAL_FRACTION;
+  // Start from whatever width the row is already at (mid-swipe re-grab, or
+  // already-open from a previous swipe) rather than assuming closed, so a
+  // second swipe on an already-open row doesn't jump.
+  let btnWidth = delBtn.getBoundingClientRect().width;
+  const fullFont = 1.25 * parseFloat(getComputedStyle(document.documentElement).fontSize);
+  // No transition while actively dragging -- it fights 1:1 finger tracking,
+  // producing exactly the laggy/clunky feel being fixed here. Transition is
+  // reserved for the deliberate snap-open/snap-closed on release below.
+  elm.style.transition = "none";
+  delBtn.style.transition = "none";
+
+  const onmove = (moveEvent) => {
+    btnWidth = Math.max(0, Math.min(revealWidth, btnWidth - moveEvent.movementX));
+    delBtn.style.width = `${btnWidth}px`;
+    delBtn.style.fontSize = `${(btnWidth / revealWidth) * fullFont}px`;
+    elm.style.width = `${parentWidth - btnWidth}px`;
+  };
+
+  const onEnd = () => {
+    elm.removeEventListener("pointermove", onmove);
+    elm.removeEventListener("pointerup", onEnd);
+    elm.removeEventListener("pointercancel", onEnd);
+    const openEnough = btnWidth > revealWidth * SWIPE_SNAP_THRESHOLD;
+    elm.style.transition = SWIPE_TRANSITION;
+    delBtn.style.transition = SWIPE_TRANSITION;
+    delBtn.style.width = openEnough ? `${revealWidth}px` : "0px";
+    delBtn.style.fontSize = openEnough ? `${fullFont}px` : "0px";
+    elm.style.width = openEnough ? `${parentWidth - revealWidth}px` : `${parentWidth}px`;
+  };
+
+  elm.addEventListener("pointermove", onmove);
+  elm.addEventListener("pointerup", onEnd, {once:true});
+  elm.addEventListener("pointercancel", onEnd, {once:true});
 }
 
 const removeSet = (event, parent) => {

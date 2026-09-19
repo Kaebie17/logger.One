@@ -61,13 +61,24 @@ if(new URL(document.location).searchParams.get("eData")){
     newTemplateEntries[programDisplay.value] = Object.fromEntries(Object.entries(finalLog).filter(([key,value]) => key!=="start" && key!=="end" && key!=="unit"));
     delete sessionStorage.restoreSelection;
     sessionStorage.templates = JSON.stringify(newTemplateEntries);
-    [startDate,startTime,startAmPm] = finalLog.start.split(", ").flatMap((e,i) => i===1 ? e.split(" ") : e).map((el,j) => j===1 ? el.split(":").slice(0,2).join(":") : el) ;
-    [endDate,endTime,endAmPm] = finalLog.end.split(", ").flatMap((e,i) => i===1 ? e.split(" ") : e).map((el,j) => j===1 ? el.split(":").slice(0,2).join(":") : el) ;
-    periodObject.login = startTime + " " + startAmPm ; 
+    // finalLog.start/.end carry a "|<isoDate>" suffix (see updateTimeRecord)
+    // alongside the toLocaleDateString()-based display string -- the date
+    // portion of that display string is locale-formatted (e.g. "19/9/2026"
+    // in non-US locales), and `new Date(...)` always parses bare slash-form
+    // strings as US M/D/Y regardless of runtime locale, so reconstructing
+    // the <input type=date> value by re-parsing it threw "Invalid time
+    // value" outside US locales -- which in turn skipped every line below
+    // this block (clock left unmarked/unlocked, Save button never wired
+    // up). The ISO suffix sidesteps that reparse entirely.
+    const [startDisplay, startIso] = finalLog.start.split("|");
+    const [endDisplay, endIso] = finalLog.end.split("|");
+    [startDate,startTime,startAmPm] = startDisplay.split(", ").flatMap((e,i) => i===1 ? e.split(" ") : e).map((el,j) => j===1 ? el.split(":").slice(0,2).join(":") : el) ;
+    [endDate,endTime,endAmPm] = endDisplay.split(", ").flatMap((e,i) => i===1 ? e.split(" ") : e).map((el,j) => j===1 ? el.split(":").slice(0,2).join(":") : el) ;
+    periodObject.login = startTime + " " + startAmPm ;
     periodObject.logout = endTime + " " + endAmPm ;
-    
-    dateElements[0].value = new Date(startDate).toISOString().split("T")[0];
-    dateElements[1].value = new Date(endDate).toISOString().split("T")[0];
+
+    dateElements[0].value = startIso;
+    dateElements[1].value = endIso;
     fromClock_output[0].value = startTime.split(":")[0];
     fromClock_output[1].value =  startTime.split(":")[1];
     toClock_output[0].value = endTime.split(":")[0];
@@ -224,8 +235,13 @@ addExercises.onclick = () => {
         // document.querySelectorAll("input[type=date]~span>output").forEach(el => el.value = el.value);
         const loc = new URL("exercises.html", document.location);
         {
-            loc.searchParams.set("s", new Date(startDate + " " + periodObject.login).toLocaleString());
-            loc.searchParams.set("e", new Date(endDate + " " + periodObject.logout).toLocaleString());
+            // Reuse finalLog.start/.end as-is (just set by updateTimeRecord()
+            // above) instead of re-deriving them through a fresh
+            // Date/toLocaleString() round trip -- that reconstruction is both
+            // redundant and, being locale-formatted, unsafe to re-parse later
+            // (see the eData block below).
+            loc.searchParams.set("s", finalLog.start);
+            loc.searchParams.set("e", finalLog.end);
             loc.searchParams.set("temp",sessionStorage.program)
         } //probably not necessary due to sessionstorage property : program
         if (!new URL(document.location).searchParams.size) {loc.searchParams.set("new",true);}
@@ -295,8 +311,8 @@ function updateSystemicFatigueAvailability(){
 function updateTimeRecord(){
     [startDate,startTime,startAmPm] = [new Date(dateElements[0].value).toLocaleDateString(),`${fromClock_output[0].value}:${fromClock_output[1].value}:00`, fromClock_AMorPM[0].value];
     [endDate,endTime,endAmPm] = [new Date(dateElements[1].value).toLocaleDateString(),`${toClock_output[0].value}:${toClock_output[1].value}:00`, toClock_AMorPM[0].value];
-    finalLog["start"] = `${startDate}, ${startTime} ${startAmPm}`;  
-    finalLog["end"] =  `${endDate}, ${endTime} ${endAmPm}`;
+    finalLog["start"] = `${startDate}, ${startTime} ${startAmPm}|${dateElements[0].value}`;
+    finalLog["end"] =  `${endDate}, ${endTime} ${endAmPm}|${dateElements[1].value}`;
     periodObject.login = startTime + " " + startAmPm ; 
     periodObject.logout = endTime + " " + endAmPm ;
 }
