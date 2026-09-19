@@ -975,10 +975,6 @@ svg > path:nth-child(23) {
    } 
     #createworkoutform > #snapshotcontainer{
     display: grid;
-    /* Was 50% 55% -- summed to 105%, wider than the container itself
-       could ever be, on top of which #addexercises below wasn't even
-       using this column's width in the first place. */
-    grid-template-columns: 1fr 1fr;
     gap: 2%;
     padding: 0;
     border: 0;
@@ -991,19 +987,7 @@ svg > path:nth-child(23) {
     border-radius: 1vh;
    }
    #createworkoutform > #snapshotcontainer > #addexercises{
-    /* Spans both columns by default (full-width button before any
-       exercises are picked, when #flag doesn't exist yet). Once
-       presentStats() appends #flag as its sibling, the :has() rule below
-       narrows this back to column 1 so #flag can occupy column 2. */
-    grid-column: 1 / -1;
-    grid-row: 1;
-    /* Was height:4vh with padding-top only and no vertical centering --
-       at this element's inherited 1.5rem text, that box was shorter than
-       its own line of text, so the text spilled past the bottom edge
-       right where the border/box-shadow sit, reading as the border
-       cutting through the letters. min-height instead of height lets the
-       box grow to fit the text instead of clipping it; flex centering
-       replaces the asymmetric padding-top hack. */
+    grid-area: 1/1/2/2;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1043,7 +1027,7 @@ svg > path:nth-child(23) {
     font-size : 0.9rem;
    }
     #createworkoutform > #snapshotcontainer  #flag{
-    grid-area: 1/2/2/3;
+    grid-area: 1/1/2/2;
     display: flex;
     width: 91%;
     height: 5vh;
@@ -1645,10 +1629,6 @@ svg > path:nth-child(23) {
    }
    #createtemplatepage #snapshotcontainer{
     display: grid;
-    /* Same fix as #createworkoutform > #snapshotcontainer -- see there
-       for why (50%+55% overflowed the grid; 95vw ignored the actual
-       card width). */
-    grid-template-columns: 1fr 1fr;
     gap: 2%;
     padding: 0;
     border: 0;
