@@ -216,6 +216,19 @@ svg > path:nth-child(23) {
     display: grid;
     grid-template-columns: 1;
     grid-template-rows: 1;
+    /* Transition lives here (not just on .long-press-active) so both the
+       press-down AND the release/cancel back to normal size animate --
+       removing the modifier class reverts to this rule, which needs its
+       own transition to animate that reversion smoothly too. */
+    transition: transform 0.15s ease-out, opacity 0.15s ease-out;
+}
+/* Visual feedback while a long-press-to-delete is building up (see
+   attachLongPressDelete, template.js/index.js) -- shrinks and dims
+   slightly so it's clear something is happening before the delete
+   confirmation appears, rather than an unexplained dialog popping up. */
+.template-item.long-press-active{
+    transform: scale(0.94);
+    opacity: 0.6;
 }
 .template-label{
     margin: 0;

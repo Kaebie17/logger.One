@@ -154,8 +154,44 @@ function createTemplateItem(program,cover){
     templateContainer.append(templateItem);
     templateItem.append(coverImg);
     templateItem.append(label);
-    
+
     templateItem.addEventListener("click", handleTemplateItemClick)
+    attachLongPressDelete(templateItem, program);
+}
+
+// Long-press (not a plain tap, which still opens/edits the template as
+// normal) a template card to delete it. Uses pointer events (not
+// touchstart/touchend) to work identically for touch and mouse, matching
+// exercises.js's own dragAction. The capture-phase click listener is what
+// actually stops a long-press from ALSO firing handleTemplateItemClick's
+// normal open/edit behavior once the press is released -- capture always
+// runs before the plain (bubble-phase) click listener registered above,
+// regardless of which was attached first, so it can veto that listener
+// via stopImmediatePropagation before it ever runs.
+const LONG_PRESS_MS = 550;
+function attachLongPressDelete(templateItem, program){
+    let pressTimer = null;
+    let longPressTriggered = false;
+    const cancelPress = () => { clearTimeout(pressTimer); templateItem.classList.remove("long-press-active"); };
+    templateItem.addEventListener("pointerdown", () => {
+        longPressTriggered = false;
+        templateItem.classList.add("long-press-active");
+        pressTimer = setTimeout(async () => {
+            longPressTriggered = true;
+            templateItem.classList.remove("long-press-active");
+            if (confirm(`Delete template "${program}"?`)){
+                delete existingTemplates[program];
+                await window.LoggerDB.saveTemplates(existingTemplates);
+                templateItem.remove();
+            }
+        }, LONG_PRESS_MS);
+    });
+    templateItem.addEventListener("pointerup", cancelPress);
+    templateItem.addEventListener("pointercancel", cancelPress);
+    templateItem.addEventListener("pointerleave", cancelPress);
+    templateItem.addEventListener("click", (e) => {
+        if (longPressTriggered) { e.stopImmediatePropagation(); e.preventDefault(); }
+    }, true);
 }
 
 function displaySnapshot(snapshotdata){
