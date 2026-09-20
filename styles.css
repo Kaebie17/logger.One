@@ -738,13 +738,24 @@ svg > path:nth-child(23) {
            later and never got it. A no-op wherever --vh was never set or
            dvh already worked correctly. */
         max-height: calc(var(--vh, 1vh) * 80);
-        /* The header/nav stay fixed; .quicklog-viewport below is the only
-           part that scrolls, if a single page (many sets) ever needs it --
-           overflow lived on the whole dialog before pagination existed, but
-           now that would let the header/nav drift out of view with it. */
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
+        /* Was display:flex; flex-direction:column; overflow:hidden, with
+           .quicklog-viewport as flex:1; min-height:0; overflow-y:auto
+           underneath -- header/nav sized by content, viewport getting
+           whatever's left over to scroll within. That's a real WebKit bug
+           class: flex:1 + min-height:0 + overflow-y:auto nested inside a
+           <dialog> has unreliably resolved to zero height on some
+           WKWebView versions specifically (reported: installed-PWA-only,
+           never in a regular browser tab or in Chromium/desktop WebKit) --
+           the dialog's own chrome (header/nav) rendered fine since those
+           aren't flex:1, but the viewport silently collapsed to nothing,
+           with no error, no matter what was inside it.
+           Sticking header/nav within a dialog that scrolls itself sidesteps
+           that whole fragile height-distribution computation -- no nested
+           flex:1 child depending on the dialog correctly reporting its own
+           available height, just two elements pinned to the scrollport's
+           edges (see the sticky rules on .quicklog-header/.quicklog-nav
+           below), a far more broadly-supported pattern. */
+        overflow-y: auto;
         font-family: Georgia, 'Times New Roman', Times, serif;
     }
     #quicklogprompt::backdrop{
@@ -758,7 +769,16 @@ svg > path:nth-child(23) {
         align-items: center;
         gap: 2vw;
         margin: 0 0 2vh 0;
-        flex-shrink: 0;
+        /* Sticks to the (now scrolling) dialog's own top edge -- respects
+           #quicklogprompt's padding automatically (sticky offsets are
+           relative to the scrollport's padding edge), so this still sits
+           inset exactly like it did as a flex-column child. Needs its own
+           opaque background since page content now scrolls underneath it
+           instead of the viewport scrolling in its own separate box. */
+        position: sticky;
+        top: 0;
+        background-color: var(--template-color-mid);
+        z-index: 1;
     }
     #quicklogprompt .quicklog-progname{
         flex: 1;
@@ -785,11 +805,9 @@ svg > path:nth-child(23) {
         font-size: 1.2rem;
         line-height: 1;
     }
-    #quicklogprompt .quicklog-viewport{
-        overflow-y: auto;
-        flex: 1;
-        min-height: 0;
-    }
+    /* .quicklog-viewport itself needs no rules -- it's no longer its own
+       scroll region (#quicklogprompt scrolls now, see the comment there),
+       just a plain block sized to its own content. */
     #quicklogprompt .quicklog-page > h1{
         font-size: 1.1rem;
         font-style: italic;
@@ -838,8 +856,9 @@ svg > path:nth-child(23) {
         opacity: 0.85;
         margin: 0 0 0.5vh 0;
     }
-    /* prev arrow | page dots | next-or-save, fixed at the bottom of every
-       page (outside .quicklog-viewport, so it never scrolls away). */
+    /* prev arrow | page dots | next-or-save, stuck to the bottom of the
+       (now-scrolling) dialog the same way .quicklog-header sticks to the
+       top -- see the comments on #quicklogprompt and .quicklog-header. */
     #quicklogprompt .quicklog-nav{
         display: flex;
         align-items: center;
@@ -848,7 +867,10 @@ svg > path:nth-child(23) {
         margin-top: 2vh;
         padding-top: 1.5vh;
         border-top: 1px solid rgba(255,255,255,0.3);
-        flex-shrink: 0;
+        position: sticky;
+        bottom: 0;
+        background-color: var(--template-color-mid);
+        z-index: 1;
     }
     #quicklogprompt .quicklog-dots{
         display: flex;
