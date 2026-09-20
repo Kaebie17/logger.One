@@ -165,7 +165,18 @@ function createTemplateItem(program,cover){
 
 function handleTemplateItemClick(event){
     let program = event.target.parentElement.lastElementChild.textContent;
-    openQuickLogPopup(program);
+    // Temporary diagnostic: openQuickLogPopup builds the whole dialog
+    // (including document.body.append(dialog)) at the very end of one
+    // synchronous function -- if anything inside throws, NOTHING gets
+    // appended and it fails completely silently, which matches an
+    // installed-PWA-only report of the popup's chrome showing but every
+    // page's content being empty on a device with no devtools attached.
+    // Surfaces the actual error instead of guessing further.
+    try {
+        openQuickLogPopup(program);
+    } catch (err) {
+        alert("Quick-log popup error: " + err.name + ": " + err.message);
+    }
 }
 
 // Full page flow (clock-face time pickers, full exercise editor) -- still
