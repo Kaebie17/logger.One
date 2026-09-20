@@ -731,6 +731,13 @@ svg > path:nth-child(23) {
         padding: 3vh 4vw;
         width: 85vw;
         max-height: 80vh;
+        max-height: 80dvh;
+        /* Same real fallback every other page-level height in this file
+           already uses (see #indexpage) for dvh being unreliable in
+           standalone-PWA mode on some iOS versions -- this popup was added
+           later and never got it. A no-op wherever --vh was never set or
+           dvh already worked correctly. */
+        max-height: calc(var(--vh, 1vh) * 80);
         /* The header/nav stay fixed; .quicklog-viewport below is the only
            part that scrolls, if a single page (many sets) ever needs it --
            overflow lived on the whole dialog before pagination existed, but
