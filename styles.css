@@ -77,6 +77,24 @@ html{
        it scale fluidly a bit smaller on narrow phones, a bit larger on
        wide ones, without ever leaving the 11-15px band. */
     font-size: clamp(11px, 3.2vw, 15px);
+    /* Every page already stops ITS OWN overflow (each #pageid rule sets
+       height:calc(var(--vh,1vh)*100); overflow:hidden, with a flex:1 inner
+       container doing the actual scrolling) -- but that doesn't reliably
+       stop a SEPARATE, native mobile-browser behavior: scrolling the whole
+       page to keep a newly-focused input visible once the on-screen
+       keyboard opens, which can fight the app's own flex layout and land
+       header/footer somewhere they were never positioned to be (reported:
+       footer pushed up near the header, with a gap of plain background
+       below it, focusing a reps/weight field on exercises.html). A
+       position:fixed element is outside what the browser can natively
+       scroll at all, so this forces every scroll to go through one of the
+       app's own designated containers instead -- the standard fix for
+       this well-documented class of bug. inset:0 alone is enough to
+       stretch this to the full viewport with no separate width/height
+       needed. */
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
 }
 /* Mobile-app polish -- makes this feel like an installed app rather than a
    website in a frame, now that it's meant to be installed as one. */
