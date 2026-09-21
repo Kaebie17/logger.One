@@ -96,11 +96,24 @@ const labelStatArr1RM = Object.entries(partsObject).map(([part,groups]) => {
     .filter(target => d.byTarget(target,2,0).length > 0)
     .map(target => d.getValue(target,"meanRIR",trueAverage,2,0));
   return [part, subGroupAverages.length ? subGroupAverages.reduce(trueAverage) : null];
-}).filter(([part,avg]) => avg !== null)
-  // RIR is a manually-entered, uncapped number, not a fixed 0-10 scale --
-  // clamping at 0 keeps an unusually high logged RIR from producing a
-  // negative chart value instead of just flooring out at "not intense".
-  .map(([part,avg]) => [part, Math.max(0, 10-avg).toFixed(2)*1]);
+})
+  // Was .filter(([part,avg]) => avg !== null) here -- dropping a whole
+  // untrained PART (not just an untrained sub-name, which is still
+  // legitimately excluded above) from the array entirely. statsWebGraph
+  // (svgcode.js) draws an n-vertex shape where n is literally array.length
+  // -- every OTHER chart on this page always hands it all 8 partsObject
+  // entries (getStat's own unconditional iteration defaults an untrained
+  // part to 0), so they render as a proper octagon; this one could shrink
+  // to as few vertices as however many parts happened to have RIR data,
+  // rendering as a square/triangle/etc instead. Mapping a null (no data)
+  // average to a chart value of 0 instead keeps this chart's shape
+  // consistent with every other one -- statsWebGraph's own "not enough
+  // data" placeholder already covers the case where EVERY part is 0.
+  .map(([part,avg]) => [part, avg === null ? 0 :
+    // RIR is a manually-entered, uncapped number, not a fixed 0-10 scale --
+    // clamping at 0 keeps an unusually high logged RIR from producing a
+    // negative chart value instead of just flooring out at "not intense".
+    Math.max(0, 10-avg).toFixed(2)*1]);
 partsMap = new Map();
 const labelStatArrIntensity = Object.entries(partsObject).map(([part,groups]) => {let arr = groups.map(target => d.byTarget(target).map(a =>{ return Object.keys(a[1]).map(k => (allExercises[k]["technicality"]*1 + allExercises[k]["fatigue"]*1 + d.get(a[0])["workoutIntensity"]*1)/3)}).flat()) ; let flatArr = arr.flat(); return [part, flatArr.length? (flatArr.reduce(trueAverage)).toFixed(1)*1 : 0]});
 partsMap = new Map();
