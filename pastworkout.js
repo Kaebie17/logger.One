@@ -573,16 +573,36 @@ function handleEditData(e){
         // it actually needs to stick.
         dataArray = dataArray.some(([k])=>k==="repMultiple") ? dataArray : dataArray.concat([["repMultiple","1"]]);
         dataArray = dataArray.some(([k])=>k==="wtMultiple") ? dataArray : dataArray.concat([["wtMultiple","1"]]);
-        if(e.target.id.includes("weight") || e.target.id.includes("reps") || e.target.id.includes("Multiple")){
-            let eqwt = targetExercise.includes("dumbbell") ? dWt : targetExercise.includes("barbell") ? bWt : 0;  
+        // Isometric volume (vol = weight * (reps*TUT/divisor(effort)), see
+        // functions.js's computeIsometricVolume) depends on TUT and Effort
+        // too, not just weight/reps/Multiple like the dynamic formula --
+        // so an isometric exercise needs the recompute to also fire when
+        // those fields are the one just edited here.
+        const isIso = exerciseDB()[targetExercise]?.type === "isometric";
+        if(e.target.id.includes("weight") || e.target.id.includes("reps") || e.target.id.includes("Multiple") || (isIso && (e.target.id.includes("tut") || e.target.id.includes("rir")))){
+            let eqwt = targetExercise.includes("dumbbell") ? dWt : targetExercise.includes("barbell") ? bWt : 0;
             let rx = dataArray.find(arr => arr[0]==="repMultiple")[1]*1;
             let wx = dataArray.find(arr => arr[0]==="wtMultiple")[1]*1
-            let repsValArr = dataArray.filter(([k,v])=> k.includes("reps")).map(arr => arr[1]*rx)
-            let totalReps = repsValArr.reduce((a,b)=>a*1+b*1);
-            let weightValArr = dataArray.filter(([k,v])=> k.includes("weight")).map(arr => (arr[1]*1+eqwt)*wx)
-            let totalLoad = weightValArr.reduce((a,b)=>a*1+b*1);
-            let volTotal = repsValArr.crossMult(weightValArr);
-            dataArray = dataArray.map(arr => [arr[0], arr[0]==="repCount" ? arr[1] = totalReps : arr[0]==="load" ? arr[1] = totalLoad : arr[0]==="vol" ? arr[1] = volTotal : arr[1]]);
+            if (isIso){
+                const setIdx = dataArray.filter(([k]) => /^setnum\d+$/.test(k)).map(([k]) => k.slice(6)*1);
+                const setWeights = setIdx.map(i => (dataArray.find(([k])=>k===`weight${i}`)?.[1]*1)||0);
+                const setReps = setIdx.map(i => (dataArray.find(([k])=>k===`reps${i}`)?.[1]*1)||0);
+                const setTUTs = setIdx.map(i => {
+                    let v = (dataArray.find(([k])=>k===`tut${i}`)?.[1]||"").toString().replace("Sec","");
+                    return v==="-" ? 0 : (v*1||0);
+                });
+                const setEfforts = setIdx.map(i => (dataArray.find(([k])=>k===`rir${i}`)?.[1]*1)||0);
+                const {totalWeight, totalVol} = computeIsometricVolume(setWeights, setReps, setTUTs, setEfforts, rx, wx, eqwt);
+                const totalReps = setReps.reduce((a,b)=>a+b,0)*rx;
+                dataArray = dataArray.map(arr => [arr[0], arr[0]==="repCount" ? arr[1] = totalReps : arr[0]==="load" ? arr[1] = totalWeight : arr[0]==="vol" ? arr[1] = totalVol : arr[1]]);
+            } else {
+                let repsValArr = dataArray.filter(([k,v])=> k.includes("reps")).map(arr => arr[1]*rx)
+                let totalReps = repsValArr.reduce((a,b)=>a*1+b*1);
+                let weightValArr = dataArray.filter(([k,v])=> k.includes("weight")).map(arr => (arr[1]*1+eqwt)*wx)
+                let totalLoad = weightValArr.reduce((a,b)=>a*1+b*1);
+                let volTotal = repsValArr.crossMult(weightValArr);
+                dataArray = dataArray.map(arr => [arr[0], arr[0]==="repCount" ? arr[1] = totalReps : arr[0]==="load" ? arr[1] = totalLoad : arr[0]==="vol" ? arr[1] = volTotal : arr[1]]);
+            }
         }
         if(e.target.id.includes("rir") || e.target.id.includes("tut") || e.target.id.includes("rest") ){
             let totalRIR = dataArray.filter(([k,v])=> k.includes("rir")).flatMap(arr => {let val = arr[1]; return val === "-" ? [0] : val*1 ? [val*1] : []}).reduce((a,b)=>(a*1+b*1)/2);

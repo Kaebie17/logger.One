@@ -1553,6 +1553,16 @@ svg > path:nth-child(23) {
         gap: 0.8vw;
         padding: 1vh 0;
     }
+    /* Isometric rows (exercises.js's content(), the isometric-row class)
+       keep the exact same underlying field order/count as a dynamic row --
+       getStats's equipment-weight lookup and repopulateValues/addData's
+       per-index child access both depend on that staying put -- but TUT is
+       the primary field for a hold (duration), not an afterthought like it
+       is for a dynamic set, so it's moved to visually appear first via
+       order alone, with no markup/array change underneath. */
+    #createexercisespage > #selectionlistdisplay > div > span.isometric-row > select[name^="tut"]{
+        order: -1;
+    }
     #createexercisespage > #selectionlistdisplay > div > span > input:first-child{
         width: 5vw;
         min-width: 1.1rem;

@@ -199,8 +199,20 @@ function attachLongPressDelete(templateItem, program){
     }, true);
 }
 
-function handleTemplateItemClick(event){
+async function handleTemplateItemClick(event){
     let program = event.target.parentElement.lastElementChild.textContent;
+    // Only prompts if the template actually needs bweight/dweight (a
+    // barbell/dumbbell exercise) and they're not already set -- no reason
+    // to interrupt opening a template that's entirely machine/bodyweight
+    // work. getEquipmentWeight itself falls back to 0 either way, so this
+    // is purely about giving the user a chance to fill in a real number
+    // before the popup shows a load calculated against a blank setting.
+    const template = existingTemplates[program] || {};
+    const usesWeightedEquipment = Object.keys(template).some(key => {
+        const equipment = exerciseDB()[key]?.["equipment"] || [];
+        return equipment.includes("barbell") || equipment.includes("dumbbell");
+    });
+    if (usesWeightedEquipment) await ensureWeightSettings();
     // Temporary diagnostic: openQuickLogPopup builds the whole dialog
     // (including document.body.append(dialog)) at the very end of one
     // synchronous function -- if anything inside throws, NOTHING gets
@@ -278,7 +290,17 @@ function recomputeExerciseTuples(tuples, exerciseKey){
     const repMultiple = parseFloat(getTupleValue(tuples, "repMultiple")) || 1;
     const weightMultiple = parseFloat(getTupleValue(tuples, "wtMultiple")) || 1;
     const equipmentWt = getEquipmentWeight(exerciseKey);
-    const {totalWeight, totalVol} = computeWeightVolume(setWeights, setReps, repMultiple, weightMultiple, equipmentWt);
+    let totalWeight, totalVol;
+    if (exerciseDB()[exerciseKey]?.type === "isometric"){
+        // Effort is stored under the same "rir" tuple key dynamic RIR
+        // uses (exercises.js's effortOptions) -- its raw values (2/4/6)
+        // are already the volume formula's own divisor, no lookup needed.
+        const setTUTs = setIdx.map(i => parseFloat(getTupleValue(tuples, `tut${i}`)) || 0);
+        const setEfforts = setIdx.map(i => parseFloat(getTupleValue(tuples, `rir${i}`)) || 0);
+        ({totalWeight, totalVol} = computeIsometricVolume(setWeights, setReps, setTUTs, setEfforts, repMultiple, weightMultiple, equipmentWt));
+    } else {
+        ({totalWeight, totalVol} = computeWeightVolume(setWeights, setReps, repMultiple, weightMultiple, equipmentWt));
+    }
     setTupleValue(tuples, "load", totalWeight);
     setTupleValue(tuples, "vol", totalVol);
     setTupleValue(tuples, "setCount", setIdx.length);

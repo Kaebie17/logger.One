@@ -114,6 +114,94 @@ function computeWeightVolume(setWeights, setReps, repMultiple, weightMultiple, e
     return { totalWeight, totalVol };
 }
 
+// Isometric-exercise equivalent of computeWeightVolume above, same
+// {totalWeight, totalVol} shape so it drops into the exact same
+// load/vol tuple slots every downstream consumer (stats.js's charts,
+// index.js's muscle map, the muscle-soreness feature, CSV export) already
+// reads -- none of them care which formula produced the number.
+//
+// A hold has no natural "reps" the way a lifted weight does, so volume is
+// built from time under tension instead: reps here means how many
+// discrete holds/pulses happened within this ONE set (not multiple
+// separate sets, which already have their own rest between them), TUT is
+// the duration of each hold in seconds, and effort (2/4/6, see
+// exercises.js's effortOptions -- Hard/Moderate/Easy) is a "seconds per
+// rep-equivalent" divisor: a harder hold earns more volume credit per
+// second than an easy one, since a genuinely hard hold is inherently
+// brief and shouldn't be undervalued just for being short, while an easy
+// hold sustained a long time shouldn't be over-credited just for
+// lasting. setEfforts[i] falling back to 6 (Easy) if unset matches
+// leaving the Effort select on its default/unset option -- the least
+// volume credit per second, not the most, if effort was never actually
+// selected.
+function computeIsometricVolume(setWeights, setReps, setTUTs, setEfforts, repMultiple, weightMultiple, equipmentWt){
+    const totalWeight = setWeights.reduce((a,b) => a+b, 0) * weightMultiple + equipmentWt * setWeights.length;
+    const totalVol = setWeights.reduce((sum,w,i) => {
+        const repEquivalent = (setReps[i]*repMultiple * setTUTs[i]) / (setEfforts[i] || 6);
+        return sum + (w*weightMultiple*repEquivalent + equipmentWt);
+    }, 0);
+    return { totalWeight, totalVol };
+}
+
+// Multi-state bodyweight-toggle fractions (exercises.js's bodyweight()) --
+// index 0 is "off" (manual entry), the rest cycle through how much of
+// bodyweight a given movement/variation actually loads (a plank loads
+// only a fraction of bodyweight, a pull-up loads essentially all of it --
+// the exact fraction is a per-movement judgment call the user makes live,
+// not something this app tries to guess per exercise).
+const BW_FRACTIONS = [0, 0.25, 0.5, 0.75, 1];
+const BW_LABELS = ["BW", "BW ¼", "BW ½", "BW ¾", "BW 1×"];
+
+// Heaviest weight ever logged at true failure (RIR "-", this app's stored
+// value for RIR 0 -- see timeOptions()'s j===0 special case in
+// exercises.js) for one specific exercise, across all of workout history.
+// Used as the TUT-suggestion's %1RM stand-in (see the user's own stated
+// rule: any RIR-0 set's weight counts as the reference, no Epley-style
+// extrapolation). Returns 0 if no such set has ever been logged for this
+// exercise -- callers treat that as "no basis for a load-based estimate
+// yet," not an error.
+function getReferenceWeight(exerciseKey){
+    let max = 0;
+    (window.workoutLogData || []).forEach(([, entry]) => {
+        const tuples = entry.workoutExercises?.[exerciseKey];
+        if (!tuples) return;
+        const setIdx = tuples.filter(([k]) => /^setnum\d+$/.test(k)).map(([k]) => k.slice(6)*1);
+        setIdx.forEach(i => {
+            const rir = tuples.find(([k]) => k === `rir${i}`)?.[1];
+            if (rir !== "-") return;
+            const w = parseFloat(tuples.find(([k]) => k === `weight${i}`)?.[1]) || 0;
+            if (w > max) max = w;
+        });
+    });
+    return max;
+}
+
+// Estimates a whole-set TUT (seconds) to pre-fill as a starting suggestion
+// -- always freely overridable via the same TUT dropdown afterward, same
+// as any other field. Built from two additive effects: a load term (how
+// heavy this set's weight is relative to the heaviest RIR-0 set ever
+// logged for this exercise -- 0 if no reference exists yet, degrading to
+// a fatigue-only estimate rather than skipping it) and a three-tier
+// fatigue term (RIR 3-5 barely matters; RIR 1-2 climbs faster; RIR 0 gets
+// its own dedicated jump rather than a continued slope, since "couldn't
+// do another rep" is a discrete endpoint, not a point on a curve). None
+// of these five constants are derived from a citation -- they're a
+// starting heuristic shaped to match how a set actually feels (near-max
+// effort ~1.5-4x slower than a relaxed rep, failure itself disproportionately
+// slower still), not a validated model. Deliberately not exposed as
+// settings -- the override mechanism is just picking a different TUT
+// value directly.
+const TUT_TEMPO = 3, TUT_LOADCOEF = 0.6, TUT_MILDCOEF = 0.15, TUT_NEARFAILCOEF = 0.4, TUT_FAILCOEF = 1.8;
+function suggestTUTSeconds(reps, rir, weight, referenceWeight){
+    let fatigueAddition;
+    if (rir === 0) fatigueAddition = TUT_MILDCOEF*2 + TUT_NEARFAILCOEF*2 + TUT_FAILCOEF;
+    else if (rir === 1 || rir === 2) fatigueAddition = TUT_MILDCOEF*2 + TUT_NEARFAILCOEF*(3-rir);
+    else fatigueAddition = TUT_MILDCOEF*(5-Math.min(Math.max(rir,3),5));
+    const pctRef = referenceWeight > 0 ? weight/referenceWeight : 0;
+    const combinedFactor = 1 + TUT_LOADCOEF*pctRef + fatigueAddition;
+    return Math.round(TUT_TEMPO * combinedFactor * reps);
+}
+
 // Converts an exercise's display name to its exerciseDB key -- the same
 // transform loadOptions() (exercises.js) already uses for assigning each
 // rendered option's id, extracted here so every OTHER place that needs to
@@ -819,6 +907,76 @@ function showSystemicFatiguePrompt(key, entry, log){
     dialog.append(label, input, saveBtn);
     document.body.append(dialog);
     dialog.showModal();
+}
+
+// Bodyweight, barbell weight, and dumbbell weight are central to every
+// weight calculation (the BW toggle below, getStats's equipment-weight
+// lookup, ...) but a user can reach exercises.html without ever having
+// set them. NOT settings.html's "Bodyweight factor" (bodywt) -- that's an
+// unrelated, pre-existing feature (a 0.1-1 multiplier paired with its own
+// live-computed display value). The real raw bodyweight this reads is
+// savedSettings.weight, personal info, same "<num> <unit>" format as
+// bweight/dweight.
+function getMissingWeightFields(){
+    const s = JSON.parse(localStorage.savedSettings || "{}");
+    const missing = [];
+    if (!parseFloat(s.weight?.split(" ")[0])) missing.push("weight");
+    if (!parseFloat(s.bweight?.split(" ")[0])) missing.push("bweight");
+    if (!parseFloat(s.dweight?.split(" ")[0])) missing.push("dweight");
+    return missing;
+}
+
+// Same dynamically-created <dialog> pattern as showSystemicFatiguePrompt
+// above. Resolves immediately (no dialog shown) if nothing's missing --
+// callers can unconditionally `await ensureWeightSettings()` right before
+// anything that needs these values. Merges into whatever partial
+// savedSettings already exists (spreads it first) rather than clobbering
+// name/email/height/etc -- this only ever asks about the three weight
+// fields, never the rest of settings.html's own form.
+function ensureWeightSettings(){
+    const missing = getMissingWeightFields();
+    if (!missing.length) return Promise.resolve();
+    return new Promise((resolve) => {
+        if (document.getElementById("weightsettingsprompt")) { resolve(); return; }
+        const existing = JSON.parse(localStorage.savedSettings || "{}");
+        const unit = existing.unit === "imperial" ? "imperial" : "metric";
+        const unitLabel = unit === "imperial" ? "lbs" : "kgs";
+        const dialog = document.createElement("dialog");
+        dialog.id = "weightsettingsprompt";
+        const label = document.createElement("p");
+        label.textContent = "Complete your weight settings to continue";
+        dialog.append(label);
+        const fields = { weight: "Bodyweight", bweight: "Barbell weight", dweight: "Dumbbell weight" };
+        const inputs = {};
+        Object.entries(fields).forEach(([key, text]) => {
+            if (!missing.includes(key)) return;
+            const row = document.createElement("label");
+            row.textContent = `${text} (${unitLabel})`;
+            const input = document.createElement("input");
+            input.type = "number"; input.step = "0.1"; input.min = "0";
+            inputs[key] = input;
+            row.append(input);
+            dialog.append(row);
+        });
+        const saveBtn = document.createElement("button");
+        saveBtn.textContent = "Save";
+        saveBtn.addEventListener("click", () => {
+            const merged = { ...existing, unit: existing.unit || "metric" };
+            let allFilled = true;
+            Object.entries(inputs).forEach(([key, input]) => {
+                if (input.value) merged[key] = `${input.value} ${unitLabel}`;
+                else allFilled = false;
+            });
+            if (!allFilled) return; // stay open until every missing field has a value
+            localStorage.savedSettings = JSON.stringify(merged);
+            dialog.close();
+            dialog.remove();
+            resolve();
+        });
+        dialog.append(saveBtn);
+        document.body.append(dialog);
+        dialog.showModal();
+    });
 }
 
 // Maps each page's own <body id> (already used throughout for CSS scoping)

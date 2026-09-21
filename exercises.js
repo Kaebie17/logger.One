@@ -102,7 +102,11 @@ const selectExercise = document.getElementById("exercises");
 const searchExercise = document.getElementById("searchexercise");
 const redirectHome = document.querySelector("#header > h1");
 const existingTemplates = sessionStorage?.templates?.length>2 ? JSON.parse(sessionStorage.templates) : (window.templatesData || {});
-const unitUsed = !localStorage?.savedSettings ? alert("Please update settings before proceeding") : JSON.parse(localStorage?.savedSettings)["unit"]; 
+// Was a blocking alert() here if savedSettings was missing entirely, with
+// nothing the user could actually do about it except leave the page --
+// ensureWeightSettings() (functions.js), awaited at the top of addData()
+// below, replaces this with an inline popup that actually lets them fill
+// the missing fields in and continue, instead of just being told to.
 
 // A pre-built section to be attached to each option when hovered/dblclicked 
 
@@ -239,13 +243,19 @@ const saveExercisesFunction = (event) => {
           i>=0 ? "" : value.push(["repMultiple", el.lastElementChild.textContent]);
         }
       }) 
-      const statsExport = getStats(value,["setnum","reps","weight","rir","rest","tut"],decendentObj[1]);
+      const isIso = exercises[key]?.type === "isometric";
+      const statsExport = getStats(value,["setnum","reps","weight","rir","rest","tut"],decendentObj[1],isIso);
       const {totalSets, totalReps, totalWeight, totalVol, avgRIR, avgRest, avgTUT} = statsExport;
       if (totalReps==="error" || totalWeight==="error" || avgRest==="error" ){alert("Incorrect or incomplete data. Please enter correct information to proceed."); proceed=false; return}
       value.push(["setCount", totalSets],["repCount", totalReps],["load", totalWeight], ["vol", totalVol], ["meanRIR", avgRIR], ["meanRest", avgRest], ["MeanTUT", avgTUT] ) ;
       savedworkouts[key] = value;
     })
-    savedworkouts["unit"] = unitUsed;
+    // Was the stale unitUsed const (computed once at script load) -- if
+    // settings were only just completed via ensureWeightSettings() this
+    // same session, unitUsed still held whatever it evaluated to before
+    // that (undefined, if savedSettings didn't exist at all yet). Reading
+    // fresh here reflects a mid-session settings completion correctly.
+    savedworkouts["unit"] = JSON.parse(localStorage.savedSettings || "{}").unit;
     if (!proceed) return;
     saveExercises.removeEventListener(event.type,saveExercisesFunction);
     sessionStorage.finalLog = JSON.stringify(savedworkouts);
@@ -404,11 +414,27 @@ const timeOptions = (i,id,name,string,loops,placeholder,step) => {
   return elem;
 }
 
+// Cycles off -> 1/4 -> 1/2 -> 3/4 -> 1x -> off on each tap, instead of the
+// old plain on/off, since many bodyweight-loaded movements (a plank vs a
+// pull-up, an incline vs decline push-up) only put a FRACTION of
+// bodyweight on the target muscles, not all of it -- the exact fraction
+// is a judgment call the user makes live per exercise/variation, not
+// something this app tries to guess. e.currentTarget (not e.target) is
+// used for the toggle's own identity, since a tap can land on either the
+// <p> this listener is attached to or its inner <i>BW</i> text -- state
+// needs a stable element to live on regardless of which one was hit.
+// Reads savedSettings.weight (real bodyweight), NOT bodywt (settings.html's
+// unrelated "Bodyweight factor" multiplier feature).
 const bodyweight = (e,refElem,i) => {
   e.stopPropagation();
-  let bw = JSON.parse(localStorage.savedSettings||'{"bodywt":"0 0"}')['bodywt'].split(" ")[1]-0;
-  const targetElem = document.querySelector(`div[id="${refElem}"] [name="weight${i}"]`); 
-  !targetElem.disabled ? (targetElem.disabled = true, targetElem.value = bw) : (targetElem.disabled = false, targetElem.value = "")
+  const toggleEl = e.currentTarget;
+  const bw = parseFloat(JSON.parse(localStorage.savedSettings||"{}").weight?.split(" ")[0]) || 0;
+  const state = ((parseInt(toggleEl.dataset.bwState) || 0) + 1) % BW_FRACTIONS.length;
+  toggleEl.dataset.bwState = state;
+  toggleEl.firstElementChild.textContent = BW_LABELS[state];
+  const targetElem = document.querySelector(`div[id="${refElem}"] [name="weight${i}"]`);
+  if (state === 0) { targetElem.disabled = false; targetElem.value = ""; }
+  else { targetElem.disabled = true; targetElem.value = (bw * BW_FRACTIONS[state]).toFixed(1); }
 }
 const typeMultiple = (e) => {
   e.stopPropagation();
@@ -497,21 +523,61 @@ const autoAssignMultiple = (el1,el2,refElem) => {
   if (WEIGHT_DOUBLES_EXERCISES.has(refElem)) el1.textContent = "2";
   else if (REPS_DOUBLES_EXERCISES.has(refElem)) el2.textContent = "2";
 }
-const content = (i,parent) => `
-  <span id="line${i}">
+// RIR's replacement for isometric exercises -- keeps name="rir${i}", the
+// EXACT same tuple key dynamic RIR uses, so getStats, pastworkout.js, and
+// settings.js's CSV export/import all keep working with zero schema
+// change; only exercises.js's own volume formula (see getStats below)
+// treats this exercise type's rir value differently. Option values (2/4/6)
+// ARE the volume formula's seconds-per-rep-equivalent divisor directly --
+// Hard earns more volume credit per second held (it's inherently brief),
+// Easy earns less (sustaining it a long time at low effort shouldn't be
+// over-credited just for lasting).
+const effortOptions = (i,parent) => `<select id="${parent}Effort${i}" name="rir${i}"><option>Effort</option><option value="2">Hard</option><option value="4">Moderate</option><option value="6">Easy</option></select>`;
+// Isometric branch keeps the EXACT same 8-child order/count as the dynamic
+// template (setnum, reps, repX, weight, BW-span, rest, tut, rir/effort,
+// remove) -- getStats below finds its equipment-weight carrier by
+// searching for an .id rather than a fixed index, but repopulateValues/
+// addData's own per-index child access elsewhere still depends on this
+// shape staying put. "TUT first" for isometrics is done with CSS
+// order:-1 (styles.css, .isometric-row) instead of physically reordering
+// the markup.
+const content = (i,parent) => {
+  const isIso = exerciseDB()[parent]?.type === "isometric";
+  return `
+  <span id="line${i}"${isIso ? ' class="isometric-row"' : ""}>
     <input type="text" name="setnum${i}" value = ${i} disabled>
-    <input type="number" name="reps${i}" placeholder="Reps" required>
+    <input type="number" name="reps${i}" placeholder="${isIso ? "Holds" : "Reps"}" required>
     <p>x<i name="repX${i}">1</i></p>
     <input type="number" name="weight${i}" placeholder="Load" required>
     <span><p><i>BW</i></p><p>x<i name="wtX${i}">1</i></p></span>
     ${timeOptions(i,parent,"rest"+i,"Min",60,"Rest",2)}
     ${timeOptions(i,parent,"tut"+i,"Sec",180,"TUT")}
-    ${timeOptions(i,parent,"rir"+i,"",11,"RIR")}
+    ${isIso ? effortOptions(i,parent) : timeOptions(i,parent,"rir"+i,"",11,"RIR")}
     <input type="submit" class="remove" id="${i}" name="${parent}" onclick="removeSet(event,name)" value="X" disabled>
   </span>
-  ` 
-const addData = (event) => { 
+  `;
+}
+// Reads this row's own reps/weight against the just-changed RIR value to
+// pre-fill a suggested TUT (functions.js's suggestTUTSeconds) -- skipped
+// entirely for isometric exercises (Effort isn't RIR, and TUT there is a
+// direct user entry, not something to estimate). Only ever sets an
+// initial value into the existing TUT select; freely overridable
+// afterward like any other field.
+const wireTUTSuggestion = (rirSelect, weightInput, repsInput, tutSelect, exerciseKey) => {
+  if (exerciseDB()[exerciseKey]?.type === "isometric") return;
+  rirSelect.addEventListener("change", (e) => {
+    const reps = parseFloat(repsInput.value) || 0;
+    const weight = parseFloat(weightInput.value) || 0;
+    const rir = e.target.value === "-" ? 0 : parseFloat(e.target.value);
+    if (!reps || isNaN(rir)) return;
+    const ref = getReferenceWeight(exerciseKey);
+    const seconds = Math.min(179, Math.max(1, suggestTUTSeconds(reps, rir, weight, ref)));
+    tutSelect.value = `${seconds.toFixed(1)}Sec`;
+  });
+};
+const addData = async (event) => {
   event.stopPropagation();
+  await ensureWeightSettings();
   const template = document.createElement("div");
   const button = document.createElement("button");
   template.id = event.target.id.match(/[\d\w]+[a-zA-Z]/g);
@@ -520,17 +586,18 @@ const addData = (event) => {
   template.append(button);
   const keyValPair = getEffectiveTemplateData()?.[template.id] || "";
   if (keyValPair && !window.location.search.includes('new=true')){
-    repopulateValues(keyValPair,template,button); 
+    repopulateValues(keyValPair,template,button);
   }
   else{
     button.previousElementSibling.children[2].addEventListener("click",(e)=>typeMultiple(e));
     button.previousElementSibling.children[4].firstElementChild.addEventListener("click",(e)=>bodyweight(e,template.id,i))
     button.previousElementSibling.children[4].lastElementChild.addEventListener("click",(e)=>typeMultiple(e));
     autoAssignMultiple(button.previousElementSibling.children[4].lastElementChild.lastElementChild, button.previousElementSibling.children[2].lastElementChild,template.id);
+    wireTUTSuggestion(button.previousElementSibling.children[7], button.previousElementSibling.children[3], button.previousElementSibling.children[1], button.previousElementSibling.children[6], template.id);
   }
   button.onclick = (e)=>{
     const referenceNode = e.target.parentElement ;
-    let childNum = referenceNode.childElementCount-1; 
+    let childNum = referenceNode.childElementCount-1;
     if(Array.from(referenceNode.querySelectorAll(`input[required]`)).some(e => !e.value)){alert("Update sets and weight data to add new column."); return}
     const firstdecendents = decendents(referenceNode.firstElementChild,0,referenceNode.firstElementChild.firstElementChild.name,"remove");
     button.insertAdjacentHTML("beforebegin",content(childNum,template.id));
@@ -538,6 +605,7 @@ const addData = (event) => {
     button.previousElementSibling.children[4].firstElementChild.addEventListener("click",(e)=>bodyweight(e,template.id,childNum))
     button.previousElementSibling.children[4].lastElementChild.addEventListener("click",(e)=>typeMultiple(e));
     autoAssignMultiple(button.previousElementSibling.children[4].lastElementChild.lastElementChild, button.previousElementSibling.children[2].lastElementChild,template.id);
+    wireTUTSuggestion(button.previousElementSibling.children[7], button.previousElementSibling.children[3], button.previousElementSibling.children[1], button.previousElementSibling.children[6], template.id);
     // button.previousElementSibling.children[4].firstElementChild.addEventListener("click",(e)=>bodyweight(e,template.id,childNum))
     // if (childNum > 1){button.previousElementSibling.lastElementChild.disabled = false}
     const nextdecendents = decendents(referenceNode.querySelector(`#line${(childNum)}`),0,`setnum${(childNum)}`);   
@@ -677,18 +745,37 @@ function calculateField(AoA,filter,mainF,transform){
  }
 
 
-function getStats(array,exports,lineElms){
+function getStats(array,exports,lineElms,isIsometric=false){
   let repMultiple = lineElms[2].lastElementChild.textContent;
   let weightMultiple = lineElms[4].lastElementChild.lastElementChild.textContent;
   const savedSettingsFallback = '{"bweight":"0 kgs","dweight":"0 kgs"}';
-  let equipmentWt = lineElms[6].id.includes("barbell") ? parseFloat(JSON.parse(localStorage.savedSettings||savedSettingsFallback).bweight.split(" ")[0]) : lineElms[6].id.includes("dumbbell") ? parseFloat(JSON.parse(localStorage.savedSettings||savedSettingsFallback).dweight.split(" ")[0]) : 0 ;
+  // Was lineElms[6].id -- a hardcoded index that happened to land on the
+  // TUT select (the only elements carrying a real .id are the rest/tut/
+  // rir-or-effort selects, all three of which embed the same parent
+  // exercise key in their id regardless of which one this finds first).
+  // Searching by "has an id" instead of a fixed position is robust to any
+  // future field-order change instead of silently reading the wrong
+  // element.
+  const idCarrier = lineElms.find(el => el.id)?.id || "";
+  let equipmentWt = idCarrier.includes("barbell") ? parseFloat(JSON.parse(localStorage.savedSettings||savedSettingsFallback).bweight.split(" ")[0]) : idCarrier.includes("dumbbell") ? parseFloat(JSON.parse(localStorage.savedSettings||savedSettingsFallback).dweight.split(" ")[0]) : 0 ;
   let allSets = calculateField(array,exports[0],val=>val,arr=>arr.length)();
   // Raw per-set number arrays (not yet summed/multiplied) -- handed to the
   // shared computeWeightVolume (functions.js) so this and index.js's
   // template quick-log popup compute totalWeight/totalVol identically.
   const setWeights = calculateField(array,exports[2],val=>val,getValuesfromInputs)();
   const setReps = calculateField(array,exports[1],val=>val,getValuesfromInputs)();
-  const {totalWeight, totalVol} = computeWeightVolume(setWeights, setReps, repMultiple, weightMultiple, equipmentWt);
+  let totalWeight, totalVol;
+  if (isIsometric){
+    // getValuesfromInputs already strips the "Sec" suffix off TUT values
+    // and parses the Effort select's plain "2"/"4"/"6" values correctly
+    // with no special-casing needed -- same extraction pipeline as
+    // weight/reps above, just handed to the isometric formula instead.
+    const setTUTs = calculateField(array,exports[5],val=>val,getValuesfromInputs)();
+    const setEfforts = calculateField(array,exports[3],val=>val,getValuesfromInputs)();
+    ({totalWeight, totalVol} = computeIsometricVolume(setWeights, setReps, setTUTs, setEfforts, repMultiple, weightMultiple, equipmentWt));
+  } else {
+    ({totalWeight, totalVol} = computeWeightVolume(setWeights, setReps, repMultiple, weightMultiple, equipmentWt));
+  }
   return {
     totalSets: allSets,
     totalReps: reducer(setReps)*repMultiple,
@@ -730,6 +817,7 @@ function repopulateValues(arr,elem,refElem){
   refElem.previousElementSibling.children[2].addEventListener("click",(e)=>typeMultiple(e));
   refElem.previousElementSibling.children[4].firstElementChild.addEventListener("click",(e)=>bodyweight(e,elem.id,0))
   refElem.previousElementSibling.children[4].lastElementChild.addEventListener("click",(e)=>typeMultiple(e));
+  wireTUTSuggestion(refElem.previousElementSibling.children[7], refElem.previousElementSibling.children[3], refElem.previousElementSibling.children[1], refElem.previousElementSibling.children[6], elem.id);
   // autoAssignMultiple(refElem.previousElementSibling.children[4].lastElementChild.lastElementChild, refElem.previousElementSibling.children[2].lastElementChild, elem.id);
   refElem.previousElementSibling.children[2].lastElementChild.textContent = repX;
   refElem.previousElementSibling.children[4].lastElementChild.lastElementChild.textContent = wtX;
@@ -739,11 +827,12 @@ function repopulateValues(arr,elem,refElem){
     refElem.previousElementSibling.children[2].addEventListener("click",(e)=>typeMultiple(e));
     refElem.previousElementSibling.children[4].firstElementChild.addEventListener("click",(e)=>bodyweight(e,elem.id,i))
     refElem.previousElementSibling.children[4].lastElementChild.addEventListener("click",(e)=>typeMultiple(e));
+    wireTUTSuggestion(refElem.previousElementSibling.children[7], refElem.previousElementSibling.children[3], refElem.previousElementSibling.children[1], refElem.previousElementSibling.children[6], elem.id);
     // autoAssignMultiple(refElem.previousElementSibling.children[4].lastElementChild.lastElementChild, refElem.previousElementSibling.children[2].lastElementChild, elem.id);
     refElem.previousElementSibling.children[2].lastElementChild.textContent = repX;
     refElem.previousElementSibling.children[4].lastElementChild.lastElementChild.textContent = wtX;
     let children = decendents(elem.querySelector(`#line${i}`),0,`setnum${i}`,"span","p")[0];
-    let remSymbol = children.pop(); 
+    let remSymbol = children.pop();
     remSymbol.disabled = false;
     children.forEach(el => el.value = arr.find(([n,v]) => n===el.name)[1]);
   }
