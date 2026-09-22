@@ -41,7 +41,7 @@ const historyElem = document.getElementById("history");
 const logItem = document.createElement("custom-option-element");
 const coverItem = document.createElement("span");
 const redirectHome = document.querySelector("#header > h1");
-const pastWorkouts = (window.workoutLogData||[]).sort(([k1,v1],[k2,v2])=> new Date(k1) - new Date(k2));
+const pastWorkouts = (window.workoutLogData||[]).sort(([k1,v1],[k2,v2])=> parseWorkoutKey(k1) - parseWorkoutKey(k2));
 let numOfWorkouts = pastWorkouts.length; 
 // historyElem.style.gridTemplateRows = `repeat(${numOfWorkouts})`
 
@@ -90,7 +90,7 @@ function extractData(object){
   const logEntry = Object.fromEntries(object);
   let date = Object.keys(logEntry)[0];
   const name = logEntry[date]["workoutName"];
-  const duration = (new Date(logEntry[date]["workoutDate"] + ", "+ logEntry[date]["workoutEndTime"]) - new Date(logEntry[date]["workoutDate"] + ", "+ logEntry[date]["workoutStartTime"]))/(60*1000);
+  const duration = (parseLocaleDateTime(logEntry[date]["workoutDate"], logEntry[date]["workoutEndTime"]) - parseLocaleDateTime(logEntry[date]["workoutDate"], logEntry[date]["workoutStartTime"]))/(60*1000);
   const exerciseData = logEntry[date]["workoutExercises"];
   const intensityValue = logEntry[date]["workoutIntensity"];
   const fatigueValue = Object.keys(exerciseData).map(e => exerciseDB()[e]["fatigue"]).reduce((a,b) => a+b);
@@ -104,7 +104,7 @@ function extractData(object){
   const reps = exerciseDataValues.filter(([k,v])=>k.includes("reps")).flatMap(([k,v])=> parseFloat(v)).reduce((a,b)=>a+b);
   const vol = exerciseDataValues.filter(([k,v])=>k.includes("vol")).flatMap(([k,v])=> parseFloat(v)).reduce((a,b)=>a+b);
   const max = Math.max(...exerciseDataValues.filter(([k,v])=>k.includes("weight")).flatMap(([k,v])=> parseFloat(v)));
-  date = new Date(date).toLocaleDateString();
+  date = parseWorkoutKey(date).toLocaleDateString();
   return {date,name,duration,targets,sets,reps,vol,max,intensityValue,fatigueValue};
 }
 

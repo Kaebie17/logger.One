@@ -178,28 +178,36 @@ function getReferenceWeight(exerciseKey){
 
 // Estimates a whole-set TUT (seconds) to pre-fill as a starting suggestion
 // -- always freely overridable via the same TUT dropdown afterward, same
-// as any other field. Built from two additive effects: a load term (how
-// heavy this set's weight is relative to the heaviest RIR-0 set ever
-// logged for this exercise -- 0 if no reference exists yet, degrading to
-// a fatigue-only estimate rather than skipping it) and a three-tier
-// fatigue term (RIR 3-5 barely matters; RIR 1-2 climbs faster; RIR 0 gets
-// its own dedicated jump rather than a continued slope, since "couldn't
-// do another rep" is a discrete endpoint, not a point on a curve). None
-// of these five constants are derived from a citation -- they're a
-// starting heuristic shaped to match how a set actually feels (near-max
-// effort ~1.5-4x slower than a relaxed rep, failure itself disproportionately
-// slower still), not a validated model. Deliberately not exposed as
-// settings -- the override mechanism is just picking a different TUT
-// value directly.
-const TUT_TEMPO = 3, TUT_LOADCOEF = 0.6, TUT_MILDCOEF = 0.15, TUT_NEARFAILCOEF = 0.4, TUT_FAILCOEF = 1.8;
+// as any other field.
+//
+// Earlier version multiplied one combined "how hard was this set" factor
+// across EVERY rep -- so a longer set to failure (e.g. 13 reps) got just
+// as inflated per rep as a short one, producing suggestions like 176s
+// that nobody's bar speed stays that slow for. Real sets don't fail that
+// way: the bar moves at roughly normal speed for most of the set, then a
+// small, fairly fixed number of reps at the very end grind -- failure
+// itself arrives abruptly, it doesn't gradually slow the whole set down.
+// So grinding time is only ever added to a FIXED small rep count near the
+// end (2 reps at true failure, 1 near failure, 0 otherwise), never scaled
+// by total reps. The total still grows with rep count -- more reps
+// legitimately takes longer -- just not because every rep is treated as
+// a grind.
+//
+// Two effects: a load term (this set's weight relative to the heaviest
+// RIR-0 set ever logged for this exercise -- 0 if no reference exists
+// yet) nudges every rep's baseline tempo up a little, since heavier
+// relative loads genuinely move slower throughout, not just at the end;
+// and a grinding term adds extra time to only the last 1-2 reps. Neither
+// constant is derived from a citation -- this is a starting heuristic,
+// not a validated model. Deliberately not exposed as settings -- the
+// override mechanism is just picking a different TUT value directly.
+const TUT_TEMPO = 3, TUT_LOADCOEF = 0.3, TUT_GRIND_MULTIPLIER = 3;
 function suggestTUTSeconds(reps, rir, weight, referenceWeight){
-    let fatigueAddition;
-    if (rir === 0) fatigueAddition = TUT_MILDCOEF*2 + TUT_NEARFAILCOEF*2 + TUT_FAILCOEF;
-    else if (rir === 1 || rir === 2) fatigueAddition = TUT_MILDCOEF*2 + TUT_NEARFAILCOEF*(3-rir);
-    else fatigueAddition = TUT_MILDCOEF*(5-Math.min(Math.max(rir,3),5));
     const pctRef = referenceWeight > 0 ? weight/referenceWeight : 0;
-    const combinedFactor = 1 + TUT_LOADCOEF*pctRef + fatigueAddition;
-    return Math.round(TUT_TEMPO * combinedFactor * reps);
+    const baseTempo = TUT_TEMPO * (1 + TUT_LOADCOEF*pctRef);
+    const grindingReps = Math.min(reps, rir === 0 ? 2 : (rir === 1 || rir === 2) ? 1 : 0);
+    const grindingExtra = grindingReps * baseTempo * (TUT_GRIND_MULTIPLIER - 1);
+    return Math.round(reps*baseTempo + grindingExtra);
 }
 
 // Converts an exercise's display name to its exerciseDB key -- the same
@@ -857,6 +865,57 @@ window.LoggerDB = {
     },
 };
 
+// toLocaleDateString()'s day/month/year ORDER depends on the runtime's
+// locale (en-GB/en-IN: DD/MM/YYYY, en-US: MM/DD/YYYY, ...) -- every workout
+// Map key and workoutDate/workoutStartTime/workoutEndTime field in this
+// app is built with plain toLocaleDateString()/12-hour time strings (see
+// logworkout.js's saveWorkoutFunction), and re-parsing one of those with
+// plain `new Date(str)` always assumes US month/day order regardless of
+// locale: silently wrong wherever day<=12, outright Invalid Date (and
+// therefore NaN durations, blank calendars) wherever day>12. This asks the
+// locale itself, via the same Intl formatter responsible for the string's
+// format, which position is which, instead of assuming -- works for
+// already-saved data too since it derives the order live rather than
+// storing it, as long as the device's own date-format locale hasn't
+// changed since. (trends.js used to keep its own private copy of exactly
+// this fix; it now calls this shared one instead.)
+const DATE_PART_ORDER = new Intl.DateTimeFormat().formatToParts(new Date(2001,10,22))
+    .filter(p => p.type==="day"||p.type==="month"||p.type==="year")
+    .map(p => p.type);
+function parseLocaleDate(str){
+    const nums = String(str).split(/\D+/).filter(n=>n).map(Number);
+    const parts = Object.fromEntries(DATE_PART_ORDER.map((type,i) => [type, nums[i]]));
+    return new Date(parts.year, parts.month-1, parts.day);
+}
+
+// Same idea, but also carries the "H:MM:SS AM/PM" time portion that
+// workoutStartTime/workoutEndTime store, for duration math.
+function parseLocaleDateTime(dateStr, timeStr){
+    const d = parseLocaleDate(dateStr);
+    if (isNaN(d)) return d;
+    const m = String(timeStr).match(/(\d+):(\d+)(?::(\d+))?\s*([AaPp][Mm])?/);
+    if (!m) return d;
+    let [, hh, mm, ss, ampm] = m;
+    hh = Number(hh); mm = Number(mm); ss = Number(ss||0);
+    if (ampm){
+        ampm = ampm.toUpperCase();
+        if (ampm === "PM" && hh !== 12) hh += 12;
+        if (ampm === "AM" && hh === 12) hh = 0;
+    }
+    d.setHours(hh, mm, ss, 0);
+    return d;
+}
+
+// A workout Map key is "<localeDate> <H:MM:SS AM/PM>" (see logworkout.js:
+// `workoutDate + " " + workoutStartTime`) -- splits at the first space and
+// parses both halves with the two helpers above.
+function parseWorkoutKey(key){
+    key = String(key);
+    const spaceIdx = key.indexOf(" ");
+    if (spaceIdx === -1) return parseLocaleDate(key);
+    return parseLocaleDateTime(key.slice(0, spaceIdx), key.slice(spaceIdx+1));
+}
+
 // Systemic fatigue from a workout is only knowable the day after -- rather
 // than track every unrated past entry, this only ever looks at the single
 // most recently logged workout. If it's still unrated ("" -- see
@@ -872,7 +931,7 @@ function checkLastWorkoutSystemicFatigue(){
     if (document.body.id === "pastworkout") return;
     const log = window.workoutLogData || [];
     if (!log.length) return;
-    const [key, entry] = log.slice().sort((a,b) => new Date(a[0]) - new Date(b[0])).at(-1);
+    const [key, entry] = log.slice().sort((a,b) => parseWorkoutKey(a[0]) - parseWorkoutKey(b[0])).at(-1);
     if (entry.workoutSystemicFatigue !== "") return; // already rated
     // entry.workoutDate was written with plain toLocaleDateString() (see
     // logworkout.js), whose slash order depends on the runtime's locale --

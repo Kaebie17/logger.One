@@ -112,7 +112,30 @@ const existingTemplates = sessionStorage?.templates?.length>2 ? JSON.parse(sessi
 
 
 //redirect to home page
-redirectHome.addEventListener("click" , home); 
+redirectHome.addEventListener("click" , home);
+
+// #selectionlistdisplay is its own overflow-y:scroll container (not the
+// page itself, which html{position:fixed} already keeps the browser from
+// natively scrolling -- see styles.css). Focusing an input inside it still
+// triggers the browser's OWN "scroll this into view" against that nearest
+// scrollable ancestor, independent of our own --vh keyboard-aware resize
+// (setRealViewportHeight, functions.js). For the first selected exercise's
+// rows -- sitting right at the top of an initially near-empty list -- that
+// native scroll is a no-op, nothing visibly happens. For the second
+// exercise onward, its rows sit further down and actually need scrolling,
+// so the native scroll runs for real -- and if it runs before --vh's own
+// resize (driven by visualViewport's resize event) has settled for the
+// now-keyboard-shrunk viewport, it scrolls against stale dimensions,
+// landing the footer up near the header with unpainted space below it
+// (reported: exercises.html, second exercise onward). Doing the scroll
+// ourselves after two animation frames (long enough for the resize to have
+// already fired and laid out) replaces the native one instead of racing it.
+selectionListDisplay.addEventListener("focusin", (e) => {
+  if (e.target.tagName !== "INPUT" && e.target.tagName !== "SELECT") return;
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    e.target.scrollIntoView({block: "center", behavior: "instant"});
+  }));
+});
 
 // const showExerciseList
 

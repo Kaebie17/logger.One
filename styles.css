@@ -1202,6 +1202,56 @@ svg > path:nth-child(23) {
     font-size: 1.1rem;
     border-radius: 0.5vh;
    }
+   /* Same "appears on top of any page" reasoning as #systemicfatigueprompt
+      above -- ensureWeightSettings (functions.js) builds this the exact
+      same way. Had no dedicated rule at all before (bare browser <dialog>
+      defaults), which is what made it render as an unstyled white box with
+      its label/input rows running together with no spacing. */
+   #weightsettingsprompt{
+    background-color: var(--template-color-mid);
+    color: white;
+    border: 1px solid white;
+    border-radius: 1vh;
+    padding: 3vh 4vw;
+    width: 80vw;
+    max-width: 22rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2vh;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+   }
+   #weightsettingsprompt::backdrop{
+    background: rgba(0,0,0,0.6);
+   }
+   #weightsettingsprompt > p{
+    text-align: center;
+    font-size: 1.1rem;
+    margin: 0;
+   }
+   #weightsettingsprompt > label{
+    display: flex;
+    flex-direction: column;
+    gap: 0.8vh;
+    font-size: 0.9rem;
+   }
+   #weightsettingsprompt > label > input{
+    border: 0;
+    border-radius: 0.5vh;
+    padding: 1.2vh 3vw;
+    font-size: 1rem;
+   }
+   #weightsettingsprompt > button{
+    align-self: center;
+    width: 50%;
+    height: 4vh;
+    background-image: linear-gradient(60deg, var(--template-color-light), var(--template-color-soft));
+    border: 0;
+    color: white;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    font-size: 1.1rem;
+    border-radius: 0.5vh;
+    margin-top: 1vh;
+   }
    #createworkoutform .scale{
     display: flex;
     justify-content: space-between;
@@ -2075,7 +2125,44 @@ svg > path:nth-child(23) {
         overflow: visible;
         display: flex;
         flex-direction: column;
-        justify-content: center;
+        gap: 1.6vh;
+        padding: 3vh 4vw;
+        background-color: var(--template-color-mid);
+        color: white;
+        border: 1px white solid;
+        border-radius: 1vh;
+        width: 75vw;
+        max-width: 22rem;
+        font-family: Georgia, 'Times New Roman', Times, serif;
+     }
+     #pastworkout .changesmodal::backdrop{
+        background: rgba(0,0,0,0.6);
+     }
+     /* Every field is now a label wrapping its input (was four bare inputs
+        stacked with no gap, which is what read as fields overlapping/
+        crowding each other). */
+     #pastworkout .changesmodal > label{
+        font-size: 0.85rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6vh;
+     }
+     #pastworkout .changesmodal > label > input{
+        border: 0;
+        border-radius: 0.5vh;
+        padding: 1.2vh 3vw;
+        font-size: 1rem;
+        width: 100%;
+        box-sizing: border-box;
+     }
+     #pastworkout .changesmodal > input[type="submit"]{
+        margin-top: 1vh;
+        background-image: linear-gradient(60deg, var(--template-color-light), var(--template-color-soft));
+        color: white;
+        font-family: Georgia, 'Times New Roman', Times, serif;
+        font-size: 1.1rem;
+        height: 4vh;
+        padding: 0;
      }
      /* Shared by both pastworkout dialogs (.changesmodal, .systemicfatiguemodal).
         Negative top/right pulls it half off the dialog's own corner --

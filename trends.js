@@ -29,28 +29,12 @@ mainFilterEntries.uniquePrograms = mainFilterEntries.uniquePrograms.sort((a,b)=>
 //redirect to home page
 redirectHome.addEventListener("click" , home);
 
-// Every date this file passes around (allDatesArr and everything derived
-// from it) is built via .toLocaleDateString() -- whose day/month/year
-// ORDER depends on the runtime's locale (en-GB/en-IN: DD/MM/YYYY, en-US:
-// MM/DD/YYYY, ...). Re-parsing one of those strings with plain
-// `new Date(str)` always assumes US month/day order regardless of the
-// locale that actually produced it -- silently landing on the wrong date
-// wherever day<=12 (looks valid, isn't) and throwing an outright Invalid
-// Date wherever day>12 (functions.js's checkLastWorkoutSystemicFatigue
-// already had to work around this exact issue for the same reason, by
-// comparing raw strings instead of re-parsing them). This asks the
-// locale itself, via the same Intl formatter responsible for the
-// string's format, which position is which, instead of assuming.
-const DATE_PART_ORDER = new Intl.DateTimeFormat().formatToParts(new Date(2001,10,22))
-    .filter(p => p.type==="day"||p.type==="month"||p.type==="year")
-    .map(p => p.type);
-function parseLocaleDate(str){
-    const nums = String(str).split(/\D+/).filter(n=>n).map(Number);
-    const parts = Object.fromEntries(DATE_PART_ORDER.map((type,i) => [type, nums[i]]));
-    return new Date(parts.year, parts.month-1, parts.day);
-}
+// parseLocaleDate/DATE_PART_ORDER now live in functions.js (loaded before
+// every page script -- see PAGE_SCRIPTS) since history.js/pastworkout.js
+// need the exact same locale-safe re-parse for workout keys/dates. This
+// file used to keep its own private copy of the identical fix.
 
-// let extractedStats =  
+// let extractedStats =
 // let exerciesRepsArr = {}
 
 const allDatesArr = getDateRange(7);

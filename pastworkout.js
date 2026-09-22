@@ -15,10 +15,10 @@ const deleteWorkoutBtn = document.getElementById("deleteworkout");
 const changeDateBtn = document.getElementById("changedate");
 const editSystemicFatigueBtn = document.getElementById("editsystemicfatigue");
 const redirectHome = document.querySelector("#header > h1");
-const pastWorkoutsObject = (window.workoutLogData||[]).sort((a,b)=>new Date(a[0])-new Date(b[0]));
+const pastWorkoutsObject = (window.workoutLogData||[]).sort((a,b)=>parseWorkoutKey(a[0])-parseWorkoutKey(b[0]));
 const finalLog = Object.fromEntries(JSON.parse(sessionStorage.finalLog));
 const key = Object.keys(finalLog)[0];
-const date = new Date(key).toLocaleDateString();
+const date = parseWorkoutKey(key).toLocaleDateString();
 const intensity = finalLog[key]["workoutIntensity"];
 const fatigue = "";
 const headingVal = finalLog[key]["workoutName"];
@@ -63,7 +63,7 @@ const extractData = () => {
   const exerciseDataValues = Object.values(exerciseData).flat();
   let ar = [];
   exerciseDataValues.filter(([k,v])=>k==="targets").flatMap(([k,v])=> v ).forEach(v => !ar.includes(v)? ar.push(v) : "") ;
-  const duration = (new Date(date + ", "+ finalLog[key]["workoutEndTime"]) - new Date(date + ", "+ finalLog[key]["workoutStartTime"]))/(60*1000);
+  const duration = (parseLocaleDateTime(date, finalLog[key]["workoutEndTime"]) - parseLocaleDateTime(date, finalLog[key]["workoutStartTime"]))/(60*1000);
   const intensity = finalLog[key]["workoutIntensity"];
   const fatigue = Object.keys(exerciseData).map(e => exerciseDB()[e]["fatigue"]).reduce((a,b) => a+b);
   const targets = ar.join(", ");
@@ -248,9 +248,9 @@ createCalendar(date);
 
 
 function durationCalc(date){
-    const startMS = new Date(date + " "+finalLog[key]["workoutStartTime"]).getTime();
-    const endMS = new Date(date + " "+finalLog[key]["workoutEndTime"]).getTime();
-    return Math.round((endMS-startMS)/(60*60*1000));
+    const startMS = parseLocaleDateTime(date, finalLog[key]["workoutStartTime"]).getTime();
+    const endMS = parseLocaleDateTime(date, finalLog[key]["workoutEndTime"]).getTime();
+    return Math.round((endMS-startMS)/(60*1000));
 }
 function addlabels(el,outerEl){
     let labels = ["Sets", "Reps", "xR", "Load","xW", "Rest", "TUT", "RIR"];
@@ -345,7 +345,7 @@ function fillShapeColor(object,bool=false){
 }
 
 function createCalendar(d){
-    const _date = new Date(d);
+    const _date = d instanceof Date ? d : parseLocaleDate(d);
     const label = document.createElement("label");
     label.textContent = months[_date.getMonth()] ;
     calendarArea.firstElementChild.firstElementChild.after(label);
@@ -366,7 +366,7 @@ function createCalendar(d){
     calendarArea.firstElementChild.after(calendarBody);
 }
 function scrollMonth(e){
-    const d = new Date(date);
+    const d = parseLocaleDate(date);
     let monthnum = months.findIndex(m => m===e.target.parentElement.children[1].textContent)+1;
     if(e.target.textContent === "<<"){
         monthnum -= 1;
@@ -376,19 +376,19 @@ function scrollMonth(e){
     }
     e.target.parentElement.children[1].remove();
     e.target.parentElement.parentElement.lastElementChild.remove();
-    createCalendar(`${monthnum}/${d.getDate()}/${d.getFullYear()}`);
+    createCalendar(new Date(d.getFullYear(), monthnum-1, d.getDate()));
 }
 function monthlyWorkoutDates(){
     let monthnum = months.findIndex(m => m===calendarArea.firstElementChild.children[1].textContent);
-    return pastWorkoutsObject.flatMap(([k,{workoutName, ...v}])=> { 
-        let d = new Date(k);
+    return pastWorkoutsObject.flatMap(([k,{workoutName, ...v}])=> {
+        let d = parseWorkoutKey(k);
         return d.getMonth() === monthnum && workoutName === headingVal ? [d.getDate()] : [] ;
     })
 }
 function monthlyExerciseDates(){
     let monthnum = months.findIndex(m => m===calendarArea.firstElementChild.children[1].textContent);
-    return pastWorkoutsObject.flatMap(([k,{workoutExercises, ...v}])=> { 
-        let d = new Date(k);
+    return pastWorkoutsObject.flatMap(([k,{workoutExercises, ...v}])=> {
+        let d = parseWorkoutKey(k);
         return d.getMonth() === monthnum && Object.keys(workoutExercises).includes(nameToId(titleElem.textContent)) ? [d.getDate()] : [] ;
     })
 }
@@ -451,24 +451,55 @@ async function handleDeleteOperation(){
 async function handleDateChange(){
     let modalEl = document.createElement("dialog");
     let closeBtn = document.createElement("span");
+    let nameLabel = document.createElement("label");
+    let program = document.createElement("input");
+    let dateLabel = document.createElement("label");
     let datepicker = document.createElement("input");
+    let timeLabel = document.createElement("label");
+    let timepicker = document.createElement("input");
+    let durationLabel = document.createElement("label");
     let durationEl = document.createElement("input");
     let submit = document.createElement("input");
-    let program = document.createElement("input");
+
     closeBtn.className = "modal-close";
     closeBtn.textContent = "❌";
+
+    nameLabel.textContent = "Workout Name";
     program.type = "text";
     program.value = headingVal;
+    nameLabel.append(program);
+
+    // type="datetime-local" doesn't reliably render a usable native picker
+    // in every mobile WebView -- separate date + time inputs are far more
+    // consistently supported everywhere (same split logworkout.html's own
+    // date field + clock widget already uses). Prefilled with the
+    // workout's current date/time/duration so this is an edit form, not
+    // three blank fields the user has to fully retype to change just one.
+    const curStart = parseLocaleDateTime(date, finalLog[key]["workoutStartTime"]);
+    const curEnd = parseLocaleDateTime(date, finalLog[key]["workoutEndTime"]);
+    dateLabel.textContent = "Date";
+    datepicker.type = "date";
+    datepicker.value = `${curStart.getFullYear()}-${String(curStart.getMonth()+1).padStart(2,"0")}-${String(curStart.getDate()).padStart(2,"0")}`;
+    dateLabel.append(datepicker);
+
+    timeLabel.textContent = "Start Time";
+    timepicker.type = "time";
+    timepicker.value = `${String(curStart.getHours()).padStart(2,"0")}:${String(curStart.getMinutes()).padStart(2,"0")}`;
+    timeLabel.append(timepicker);
+
+    durationLabel.textContent = "Duration (min)";
+    durationEl.type = "number";
+    durationEl.min = "0";
+    durationEl.value = Math.round((curEnd-curStart)/(60*1000));
+    durationEl.id = "duration";
+    durationLabel.append(durationEl);
+
     submit.type = "submit";
     submit.textContent = "Done";
-    durationEl.type = "number";
-    durationEl.placeholder = "Enter duration (min)";
-    durationEl.id = "duration";
-    datepicker.type = "datetime-local";
-    datepicker.id = "newKey"
-    modalEl.append(closeBtn, program, datepicker,durationEl,submit);
+
+    modalEl.append(closeBtn, nameLabel, dateLabel, timeLabel, durationLabel, submit);
     modalEl.className = "changesmodal";
-    modalEl.style.marginTop = "40vh";
+
     let newHistory = pastWorkoutsObject.filter(([k,v])=>k!==key);
     // Same-session-only undo stash -- never needs to survive a reload, so
     // this is just a plain variable now instead of a localStorage.templog
@@ -481,27 +512,35 @@ async function handleDateChange(){
         modalEl.close();
         modalEl.remove();
     });
-    submit.addEventListener("click", async (e) => {
-        let el2 = e.target.previousElementSibling;
-        let el1 = el2.previousElementSibling;
-        let el0 = el1.previousElementSibling;
+    submit.addEventListener("click", async () => {
         let thisWorkout = pastWorkoutsObject.filter(([k,v])=>k===key);
-        if (el1.value && el2.value) {
-            thisWorkout[0][0] = new Date(el1.value).toLocaleString() ;
-            thisWorkout[0][1]["workoutStartTime"] = new Date(el1.value).toLocaleTimeString();
-            thisWorkout[0][1]["workoutEndTime"] = new Date(new Date(el1.value).getTime()+60*el2.value*1000).toLocaleTimeString();
-            thisWorkout[0][1]["workoutDate"] = new Date(el1.value).toDateString();
-        }
-        thisWorkout[0][1]["workoutName"] = el0.value ;
-        let bool = pastWorkoutsObject.some(([k,v]) => new Date(k).toDateString() === thisWorkout[0][0]);
-        if (!bool){
-            let newlog = (window.workoutLogData||[]).concat(thisWorkout);
-            await window.LoggerDB.saveWorkoutLog(newlog);
-        }
-        else{
+        // "YYYY-MM-DD" + "T" + "HH:MM" is a plain ISO-8601 local datetime
+        // string -- one of the few forms `new Date(str)` is spec-guaranteed
+        // to parse the same way regardless of runtime locale, unlike the
+        // toLocaleDateString()-based strings this app stores elsewhere.
+        const newStart = new Date(`${datepicker.value}T${timepicker.value}`);
+        const newEnd = new Date(newStart.getTime() + (Number(durationEl.value)||0)*60*1000);
+        const fmtTime = (d) => {
+            const h = d.getHours();
+            const ampm = h >= 12 ? "PM" : "AM";
+            const h12 = h % 12 === 0 ? 12 : h % 12;
+            return `${h12}:${String(d.getMinutes()).padStart(2,"0")}:00 ${ampm}`;
+        };
+        const newDateLocale = newStart.toLocaleDateString();
+        const newKey = `${newDateLocale} ${fmtTime(newStart)}`;
+        const isDuplicate = newHistory.some(([k]) => parseWorkoutKey(k).toDateString() === newStart.toDateString());
+        if (isDuplicate){
             alert("A workout already exists on selected date. Please select another date to proceed");
+            await window.LoggerDB.saveWorkoutLog(stashedLog);
             return;
         }
+        thisWorkout[0][0] = newKey;
+        thisWorkout[0][1]["workoutStartTime"] = fmtTime(newStart);
+        thisWorkout[0][1]["workoutEndTime"] = fmtTime(newEnd);
+        thisWorkout[0][1]["workoutDate"] = newDateLocale;
+        thisWorkout[0][1]["workoutName"] = program.value;
+        const newlog = newHistory.concat(thisWorkout);
+        await window.LoggerDB.saveWorkoutLog(newlog);
         modalEl.close();
         document.location = "./history.html";
     })
