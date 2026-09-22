@@ -1067,22 +1067,27 @@ function ensureWeightSettings(){
 // OpenAI/Gemini/Perplexity's APIs reject requests straight from browser
 // JS (no Access-Control-Allow-Origin for arbitrary origins, by design --
 // this app has no backend of its own to route through). The fix is a tiny
-// external relay (see logger-one-ai-relay/api/relay.js, deployed
-// separately, e.g. to Vercel) that does the same fetch server-side --
-// server-to-server calls aren't subject to CORS at all -- and hands the
-// response back. Every provider's request goes through that one relay
-// URL uniformly; only Claude would have worked without it (Anthropic
-// added explicit opt-in browser CORS support), so the relay is what makes
-// "any provider the user pastes" actually true rather than Claude-only.
+// external relay (see ai-relay/api/relay.js, deployed separately to
+// Vercel) that does the same fetch server-side -- server-to-server calls
+// aren't subject to CORS at all -- and hands the response back. Every
+// provider's request goes through that one relay URL uniformly; only
+// Claude would have worked without it (Anthropic added explicit opt-in
+// browser CORS support), so the relay is what makes "any provider the
+// user pastes" actually true rather than Claude-only.
 //
-// Same {relayUrl, label, endpoint, model, apiKey} shape persists to
+// The relay's own URL is fixed once deployed (unlike provider/model/key,
+// it isn't really "the user's choice" per generation), so it's a constant
+// here rather than a field in the config popup below -- update this if
+// the relay is ever redeployed to a different URL.
+const AI_RELAY_URL = "https://logger-one-nu.vercel.app/api/relay";
+
+// Same {label, endpoint, model, apiKey} shape persists to
 // localStorage.aiConfig -- a single active provider, matching the user's
 // own choice: paste any endpoint/model/key rather than picking from a
 // fixed dropdown of named providers.
 function getMissingAIConfigFields(){
     const c = JSON.parse(localStorage.aiConfig || "{}");
     const missing = [];
-    if (!c.relayUrl) missing.push("relayUrl");
     if (!c.label) missing.push("label");
     if (!c.endpoint) missing.push("endpoint");
     if (!c.model) missing.push("model");
@@ -1103,7 +1108,6 @@ function ensureAIConfig(){
         label.textContent = "Set up an AI to generate new exercises";
         dialog.append(label);
         const fields = {
-            relayUrl: "Relay URL (from your Vercel deploy)",
             label: "AI Name (just a label, e.g. \"Claude\")",
             endpoint: "API Endpoint",
             model: "Model",
@@ -1227,13 +1231,13 @@ async function generateExerciseWithAI(exerciseName, hint){
 
     let relayResponse;
     try {
-        relayResponse = await fetch(config.relayUrl, {
+        relayResponse = await fetch(AI_RELAY_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ endpoint: config.endpoint, headers, body }),
         });
     } catch (e) {
-        throw new Error(`Couldn't reach the relay at ${config.relayUrl} -- check the URL and that it's deployed.`);
+        throw new Error(`Couldn't reach the relay at ${AI_RELAY_URL} -- check that it's still deployed.`);
     }
 
     const responseData = await relayResponse.json().catch(() => null);
