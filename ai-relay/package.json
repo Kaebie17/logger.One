@@ -1,0 +1,6 @@
+{
+  "name": "logger-one-ai-relay",
+  "version": "1.0.0",
+  "private": true,
+  "description": "One-file CORS relay so Logger.One's browser code can call OpenAI/Gemini/Claude/Perplexity directly. No dependencies -- uses Node's built-in fetch."
+}
