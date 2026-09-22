@@ -100,6 +100,7 @@ const saveExercises = document.getElementById("saveexercises") ;
 const selectionListDisplay = document.getElementById("selectionlistdisplay") ;
 const selectExercise = document.getElementById("exercises");
 const searchExercise = document.getElementById("searchexercise");
+const generateExercise = document.getElementById("generateexercise");
 const redirectHome = document.querySelector("#header > h1");
 const existingTemplates = sessionStorage?.templates?.length>2 ? JSON.parse(sessionStorage.templates) : (window.templatesData || {});
 // Was a blocking alert() here if savedSettings was missing entirely, with
@@ -136,6 +137,8 @@ selectionListDisplay.addEventListener("focusin", (e) => {
     e.target.scrollIntoView({block: "center", behavior: "instant"});
   }));
 });
+
+generateExercise.addEventListener("click", handleGenerateExercise);
 
 // const showExerciseList
 
@@ -863,11 +866,124 @@ function repopulateValues(arr,elem,refElem){
 
 function handleSearch(e){
   if (!/[\w]/.test(e.key) && !e.value) return;
-  if(e.target.value){  
+  if(e.target.value){
     const _exerciseData = Object.values(exerciseDB());
     let filteredData = filterer(e.target.value,_exerciseData)
     selectExercise.replaceChildren();
     loadOptions(filteredData,"custom-option-element",selectExercise,{value: "name", id:"name", src: ["media","imagelinks",0,""], alt: "name"});
   }
+}
+
+// --- AI-generated exercises ----------------------------------------------
+// ensureAIConfig/generateExerciseWithAI (functions.js) do the actual
+// config-collection and network call; this file just drives the two-step
+// UI (name+hint -> preview) and merges the confirmed result into
+// customExercisesData once the user hits Save, never before.
+async function handleGenerateExercise(){
+  await ensureAIConfig();
+  showGenerateExerciseDialog();
+}
+
+function showGenerateExerciseDialog(){
+  if (document.getElementById("generateexerciseprompt")) return;
+  const dialog = document.createElement("dialog");
+  dialog.id = "generateexerciseprompt";
+  const closeBtn = document.createElement("span");
+  closeBtn.className = "modal-close";
+  closeBtn.textContent = "❌";
+  const title = document.createElement("p");
+  title.textContent = "Generate a new exercise";
+
+  const nameLabel = document.createElement("label");
+  nameLabel.textContent = "Exercise name";
+  const nameInput = document.createElement("input");
+  nameInput.type = "text";
+  nameInput.placeholder = "e.g. Cable Y-Raise";
+  nameLabel.append(nameInput);
+
+  const hintLabel = document.createElement("label");
+  hintLabel.textContent = "Hint (optional)";
+  const hintInput = document.createElement("input");
+  hintInput.type = "text";
+  hintInput.placeholder = "e.g. shoulder isolation, cable machine";
+  hintLabel.append(hintInput);
+
+  const statusEl = document.createElement("p");
+  statusEl.className = "ai-status";
+  const generateBtn = document.createElement("button");
+  generateBtn.textContent = "Generate";
+
+  dialog.append(closeBtn, title, nameLabel, hintLabel, statusEl, generateBtn);
+
+  closeBtn.addEventListener("click", () => { dialog.close(); dialog.remove(); });
+  generateBtn.addEventListener("click", async () => {
+    if (!nameInput.value.trim()) { statusEl.textContent = "Enter an exercise name first."; return; }
+    generateBtn.disabled = true;
+    statusEl.textContent = "Generating...";
+    try {
+      const { key, exercise } = await generateExerciseWithAI(nameInput.value.trim(), hintInput.value.trim());
+      dialog.close();
+      dialog.remove();
+      showExercisePreviewDialog(key, exercise);
+    } catch (e) {
+      statusEl.textContent = e.message;
+      generateBtn.disabled = false;
+    }
+  });
+
+  document.body.append(dialog);
+  dialog.showModal();
+}
+
+function showExercisePreviewDialog(key, exercise){
+  const dialog = document.createElement("dialog");
+  dialog.id = "exercisepreviewprompt";
+  const closeBtn = document.createElement("span");
+  closeBtn.className = "modal-close";
+  closeBtn.textContent = "❌";
+  const title = document.createElement("p");
+  title.textContent = exercise.name;
+
+  const details = document.createElement("div");
+  details.className = "ai-preview-details";
+  [
+    ["Bodypart", exercise.bodypart],
+    ["Movers", exercise.movers.join(", ")],
+    ["Type", exercise.type],
+    ["Equipment", exercise.equipment.join(", ")],
+    ["Description", exercise.description],
+  ].forEach(([label, val]) => {
+    const row = document.createElement("p");
+    row.innerHTML = `<b>${label}:</b> ${val}`;
+    details.append(row);
+  });
+
+  const btnRow = document.createElement("div");
+  btnRow.className = "ai-preview-buttons";
+  const discardBtn = document.createElement("button");
+  discardBtn.textContent = "Discard";
+  const saveBtn = document.createElement("button");
+  saveBtn.textContent = "Save";
+  btnRow.append(discardBtn, saveBtn);
+
+  dialog.append(closeBtn, title, details, btnRow);
+
+  const cleanup = () => { dialog.close(); dialog.remove(); };
+  closeBtn.addEventListener("click", cleanup);
+  discardBtn.addEventListener("click", cleanup);
+  saveBtn.addEventListener("click", async () => {
+    const merged = { ...(window.customExercisesData||{}), [key]: exercise };
+    await window.LoggerDB.saveCustomExercises(merged);
+    cleanup();
+    if (searchExercise.value){
+      const filteredData = filterer(searchExercise.value, Object.values(exerciseDB()));
+      selectExercise.replaceChildren();
+      loadOptions(filteredData,"custom-option-element",selectExercise,{value: "name", id:"name", src: ["media","imagelinks",0,""], alt: "name"});
+    }
+    alert(`"${exercise.name}" added -- search for it to select it.`);
+  });
+
+  document.body.append(dialog);
+  dialog.showModal();
 }
 // return to the logworkout page using history mgmt and params

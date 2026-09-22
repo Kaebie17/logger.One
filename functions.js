@@ -685,7 +685,7 @@ async function applyWorkoutToMuscleSoreness(workoutExercises){
 // below) and writes through window.LoggerDB.saveWorkoutLog/saveTemplates,
 // never touching indexedDB or localStorage for this data directly.
 const DB_NAME = "loggerOneDB";
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 let dbInstance = null;
 let dbAvailable = true;
 
@@ -697,6 +697,10 @@ function openDB(){
             if (!db.objectStoreNames.contains("workouts")) db.createObjectStore("workouts", {keyPath: "key"});
             if (!db.objectStoreNames.contains("templates")) db.createObjectStore("templates", {keyPath: "name"});
             if (!db.objectStoreNames.contains("muscleSoreness")) db.createObjectStore("muscleSoreness", {keyPath: "muscle"});
+            // AI-generated exercises (see generateExerciseWithAI) -- exercisesDB.js
+            // is a static file a browser page can't rewrite, so these live here
+            // instead and get merged into exerciseDB()'s return value at read time.
+            if (!db.objectStoreNames.contains("customExercises")) db.createObjectStore("customExercises", {keyPath: "key"});
         };
         req.onsuccess = () => resolve(req.result);
         req.onerror = () => reject(req.error);
@@ -771,6 +775,19 @@ async function saveTemplates(db, obj){
 async function saveMuscleSoreness(db, obj){
     await idbReplaceAll(db, "muscleSoreness", Object.entries(obj).map(([muscle, {tier, lastUpdated}]) => ({muscle, tier, lastUpdated})));
     window.muscleSorenessData = obj;
+}
+
+// {exerciseKey: {name, bodypart, categories, movers, equipment, description,
+// type, effectiveness, technicality, fatigue, media}} -- same shape as a
+// literal entry in exerciseDB()'s own object, just stored separately.
+async function loadCustomExercises(db){
+    const rows = await idbGetAll(db, "customExercises");
+    return Object.fromEntries(rows.map(({key, ...value}) => [key, value]));
+}
+
+async function saveCustomExercises(db, obj){
+    await idbReplaceAll(db, "customExercises", Object.entries(obj).map(([key, value]) => ({key, ...value})));
+    window.customExercisesData = obj;
 }
 
 // One-time move of whatever's already in localStorage into IndexedDB.
@@ -862,6 +879,14 @@ window.LoggerDB = {
         }
         window.muscleSorenessData = obj;
         localStorage.muscleSoreness = JSON.stringify(obj);
+    },
+    saveCustomExercises: async (obj) => {
+        if (dbAvailable && dbInstance){
+            try { await saveCustomExercises(dbInstance, obj); return; }
+            catch(e){ console.warn("IndexedDB write failed, falling back to localStorage", e); }
+        }
+        window.customExercisesData = obj;
+        localStorage.customExercises = JSON.stringify(obj);
     },
 };
 
@@ -1038,6 +1063,206 @@ function ensureWeightSettings(){
     });
 }
 
+// --- AI-generated exercises ----------------------------------------------
+// OpenAI/Gemini/Perplexity's APIs reject requests straight from browser
+// JS (no Access-Control-Allow-Origin for arbitrary origins, by design --
+// this app has no backend of its own to route through). The fix is a tiny
+// external relay (see logger-one-ai-relay/api/relay.js, deployed
+// separately, e.g. to Vercel) that does the same fetch server-side --
+// server-to-server calls aren't subject to CORS at all -- and hands the
+// response back. Every provider's request goes through that one relay
+// URL uniformly; only Claude would have worked without it (Anthropic
+// added explicit opt-in browser CORS support), so the relay is what makes
+// "any provider the user pastes" actually true rather than Claude-only.
+//
+// Same {relayUrl, label, endpoint, model, apiKey} shape persists to
+// localStorage.aiConfig -- a single active provider, matching the user's
+// own choice: paste any endpoint/model/key rather than picking from a
+// fixed dropdown of named providers.
+function getMissingAIConfigFields(){
+    const c = JSON.parse(localStorage.aiConfig || "{}");
+    const missing = [];
+    if (!c.relayUrl) missing.push("relayUrl");
+    if (!c.label) missing.push("label");
+    if (!c.endpoint) missing.push("endpoint");
+    if (!c.model) missing.push("model");
+    if (!c.apiKey) missing.push("apiKey");
+    return missing;
+}
+
+// Same dynamically-created <dialog> pattern as ensureWeightSettings above.
+function ensureAIConfig(){
+    const missing = getMissingAIConfigFields();
+    if (!missing.length) return Promise.resolve();
+    return new Promise((resolve) => {
+        if (document.getElementById("aiconfigprompt")) { resolve(); return; }
+        const existing = JSON.parse(localStorage.aiConfig || "{}");
+        const dialog = document.createElement("dialog");
+        dialog.id = "aiconfigprompt";
+        const label = document.createElement("p");
+        label.textContent = "Set up an AI to generate new exercises";
+        dialog.append(label);
+        const fields = {
+            relayUrl: "Relay URL (from your Vercel deploy)",
+            label: "AI Name (just a label, e.g. \"Claude\")",
+            endpoint: "API Endpoint",
+            model: "Model",
+            apiKey: "API Key",
+        };
+        const inputs = {};
+        Object.entries(fields).forEach(([key, text]) => {
+            const row = document.createElement("label");
+            row.textContent = text;
+            const input = document.createElement("input");
+            input.type = key === "apiKey" ? "password" : "text";
+            input.value = existing[key] || "";
+            inputs[key] = input;
+            row.append(input);
+            dialog.append(row);
+        });
+        const saveBtn = document.createElement("button");
+        saveBtn.textContent = "Save";
+        saveBtn.addEventListener("click", () => {
+            const merged = { ...existing };
+            let allFilled = true;
+            Object.entries(inputs).forEach(([key, input]) => {
+                if (input.value.trim()) merged[key] = input.value.trim();
+                else allFilled = false;
+            });
+            if (!allFilled) return; // stay open until every field has a value
+            localStorage.aiConfig = JSON.stringify(merged);
+            dialog.close();
+            dialog.remove();
+            resolve();
+        });
+        dialog.append(saveBtn);
+        document.body.append(dialog);
+        dialog.showModal();
+    });
+}
+
+// The 23 muscle names computeWorkoutMuscleVolumePercents/fillShapeColor
+// actually match against `svg [data-name='<name>']` -- anything outside
+// this list would silently never show up on the muscle map, so the AI is
+// constrained to only these rather than free-texting a mover name.
+const VALID_MOVER_NAMES = ["abs","adductors","biceps","brachioradialis","calves","erectorspinae","forearmextensors","forearms","frontdelt","glute","glutes","hamstrings","lats","lowerchest","neck","oblique","quad","reardelt","rotatorcuffs","sidedelt","traps","triceps","upperchest"];
+
+function buildExercisePrompt(exerciseName, hint){
+    return `You are generating one new strength-training exercise entry for a fitness-tracking app's exercise database.
+
+Return ONLY a single valid JSON object -- no markdown code fences, no commentary before or after -- with exactly these fields:
+{
+  "name": string, Title Case display name,
+  "bodypart": string, lowercase, the primary body part trained (e.g. "chest", "back", "legs", "shoulders", "biceps", "triceps", "core", "glutes"),
+  "categories": array of lowercase strings, e.g. "compound", "isolation", "weightlifting", "calisthenics", "functional", "isometric", "grip strength",
+  "movers": array of 1-5 strings ORDERED from primary to least-involved muscle, using ONLY these exact values, nothing else: ${JSON.stringify(VALID_MOVER_NAMES)},
+  "equipment": array of lowercase strings, e.g. "barbell", "dumbbells", "bodyweight", "cable machine",
+  "description": one or two plain instructional sentences describing the movement, e.g. "Lie flat on a bench while gripping the barbell with hands shoulder-width apart. Lower the barbell under control to the mid-chest, then press it back up until arms are fully extended.",
+  "type": one of "bilateral" | "unilateral" | "isometric" -- classify using ONLY the primary and secondary movers (the first two entries in your own "movers" array): if the movement carries them through BOTH a concentric and an eccentric phase each rep (a real up/down or push/pull cycle), it's "bilateral" (both limbs/sides work together) or "unilateral" (one side at a time). If instead it holds those same primary/secondary movers fixed in ONE phase -- usually contracted -- for the whole set, with no phase cycling, it's "isometric", regardless of whether some other part of the body is moving (e.g. walking while holding a static grip/brace is still isometric for the graded muscles),
+  "effectiveness": integer 1-10,
+  "technicality": integer 1-10,
+  "fatigue": integer 1-10,
+  "media": {"imagelinks": "", "videolinks": ""}
+}
+
+Exercise to generate: "${exerciseName}"
+${hint ? `Additional context from the user: ${hint}` : ""}
+
+Return ONLY the JSON object, nothing else.`;
+}
+
+function stripCodeFences(text){
+    return text.trim().replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "").trim();
+}
+
+// Branches the actual request/response SHAPE on the provider (Anthropic's
+// Messages API vs the OpenAI-compatible chat-completions shape most other
+// providers -- including Gemini and Perplexity -- use) -- unrelated to the
+// CORS problem the relay above solves; these two formats differ regardless
+// of who's making the call.
+function buildProviderRequest(config, prompt){
+    const isAnthropic = new URL(config.endpoint).hostname === "api.anthropic.com";
+    if (isAnthropic){
+        return {
+            headers: {
+                "x-api-key": config.apiKey,
+                "anthropic-version": "2023-06-01",
+            },
+            body: {
+                model: config.model,
+                max_tokens: 1024,
+                messages: [{ role: "user", content: prompt }],
+            },
+        };
+    }
+    return {
+        headers: { "Authorization": `Bearer ${config.apiKey}` },
+        body: {
+            model: config.model,
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.7,
+        },
+    };
+}
+
+function extractGeneratedText(config, responseData){
+    const isAnthropic = new URL(config.endpoint).hostname === "api.anthropic.com";
+    if (isAnthropic) return responseData?.content?.[0]?.text;
+    return responseData?.choices?.[0]?.message?.content;
+}
+
+// Calls the configured AI (through the relay) to generate one new
+// exercise, validates the result against this DB's own conventions, and
+// returns {key, exercise} ready to merge into customExercisesData --
+// never writes anything itself, so a bad/invalid response can't corrupt
+// storage. Throws with a message meant to be shown directly to the user
+// (network/CORS/relay failure, malformed JSON, or a validation failure)
+// rather than a generic error.
+async function generateExerciseWithAI(exerciseName, hint){
+    const config = JSON.parse(localStorage.aiConfig || "{}");
+    if (getMissingAIConfigFields().length) throw new Error("AI isn't configured yet.");
+
+    const prompt = buildExercisePrompt(exerciseName, hint);
+    const { headers, body } = buildProviderRequest(config, prompt);
+
+    let relayResponse;
+    try {
+        relayResponse = await fetch(config.relayUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ endpoint: config.endpoint, headers, body }),
+        });
+    } catch (e) {
+        throw new Error(`Couldn't reach the relay at ${config.relayUrl} -- check the URL and that it's deployed.`);
+    }
+
+    const responseData = await relayResponse.json().catch(() => null);
+    if (!relayResponse.ok){
+        const detail = responseData?.error || responseData?.detail || relayResponse.statusText;
+        throw new Error(`${config.label} request failed: ${detail}`);
+    }
+
+    const text = extractGeneratedText(config, responseData);
+    if (!text) throw new Error(`${config.label} returned no usable response.`);
+
+    let exercise;
+    try { exercise = JSON.parse(stripCodeFences(text)); }
+    catch (e) { throw new Error(`${config.label}'s response wasn't valid JSON: ${text.slice(0, 200)}`); }
+
+    const requiredKeys = ["name","bodypart","categories","movers","equipment","description","type","effectiveness","technicality","fatigue"];
+    const missingKeys = requiredKeys.filter(k => exercise[k] === undefined);
+    if (missingKeys.length) throw new Error(`Generated exercise is missing: ${missingKeys.join(", ")}`);
+    if (!Array.isArray(exercise.movers) || !exercise.movers.length || exercise.movers.some(m => !VALID_MOVER_NAMES.includes(m))){
+        throw new Error(`Generated exercise has an invalid "movers" list: ${JSON.stringify(exercise.movers)}`);
+    }
+    if (!["bilateral","unilateral","isometric"].includes(exercise.type)){
+        throw new Error(`Generated exercise has an invalid "type": ${exercise.type}`);
+    }
+    if (!exercise.media) exercise.media = { imagelinks: "", videolinks: "" };
+
+    return { key: nameToId(exercise.name), exercise };
+}
+
 // Maps each page's own <body id> (already used throughout for CSS scoping)
 // to the script it should run -- but only once the workout/template data
 // it depends on has actually loaded. Pages not listed here (exercisedetails.html,
@@ -1063,6 +1288,7 @@ async function initApp(){
         window.workoutLogData = await migrateSorenessField(dbInstance, await loadWorkoutLog(dbInstance));
         window.templatesData = await loadTemplates(dbInstance);
         window.muscleSorenessData = await migrateMuscleSorenessTimestamps(dbInstance, await loadMuscleSoreness(dbInstance));
+        window.customExercisesData = await loadCustomExercises(dbInstance);
     } catch(e){
         // IndexedDB unavailable this session (private browsing, storage
         // disabled, etc.) -- fall back to reading localStorage directly so
@@ -1076,6 +1302,7 @@ async function initApp(){
         // normalization applied here directly instead.
         const rawSoreness = localStorage?.muscleSoreness ? JSON.parse(localStorage.muscleSoreness) : {};
         window.muscleSorenessData = Object.fromEntries(Object.entries(rawSoreness).map(([muscle, rec]) => [muscle, normalizeMuscleSorenessRecord(rec)]));
+        window.customExercisesData = localStorage?.customExercises ? JSON.parse(localStorage.customExercises) : {};
     }
     checkLastWorkoutSystemicFatigue();
     const file = PAGE_SCRIPTS[document.body.id];
