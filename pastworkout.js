@@ -500,20 +500,22 @@ async function handleDateChange(){
     modalEl.append(closeBtn, nameLabel, dateLabel, timeLabel, durationLabel, submit);
     modalEl.className = "changesmodal";
 
-    let newHistory = pastWorkoutsObject.filter(([k,v])=>k!==key);
-    // Same-session-only undo stash -- never needs to survive a reload, so
-    // this is just a plain variable now instead of a localStorage.templog
-    // round-trip. Closing via the X instead of submitting restores it, or
-    // the workout would just be gone with no way to complete or cancel.
-    const stashedLog = pastWorkoutsObject;
-    await window.LoggerDB.saveWorkoutLog(newHistory);
-    closeBtn.addEventListener("click", async () => {
-        await window.LoggerDB.saveWorkoutLog(stashedLog);
+    // Storage is never touched until Done is clicked AND validated below --
+    // no more stash-then-delete-then-conditionally-restore. That earlier
+    // pattern deleted the workout from IndexedDB the instant this dialog
+    // opened, betting on the close button (or Done) always being reachable
+    // to restore/complete it -- but this dialog uses showModal() (below),
+    // and had been accidentally calling the non-modal show() instead, which
+    // doesn't get the browser's automatic centering .showModal() provides.
+    // An unreachable dialog with an already-executed delete and no
+    // fallback is exactly how a workout gets permanently lost. Closing,
+    // navigating away, or killing the app now can never lose data, because
+    // nothing is written until the very last line of the Done handler.
+    closeBtn.addEventListener("click", () => {
         modalEl.close();
         modalEl.remove();
     });
     submit.addEventListener("click", async () => {
-        let thisWorkout = pastWorkoutsObject.filter(([k,v])=>k===key);
         // "YYYY-MM-DD" + "T" + "HH:MM" is a plain ISO-8601 local datetime
         // string -- one of the few forms `new Date(str)` is spec-guaranteed
         // to parse the same way regardless of runtime locale, unlike the
@@ -528,24 +530,24 @@ async function handleDateChange(){
         };
         const newDateLocale = newStart.toLocaleDateString();
         const newKey = `${newDateLocale} ${fmtTime(newStart)}`;
-        const isDuplicate = newHistory.some(([k]) => parseWorkoutKey(k).toDateString() === newStart.toDateString());
+        const isDuplicate = pastWorkoutsObject.some(([k]) => k!==key && parseWorkoutKey(k).toDateString() === newStart.toDateString());
         if (isDuplicate){
             alert("A workout already exists on selected date. Please select another date to proceed");
-            await window.LoggerDB.saveWorkoutLog(stashedLog);
             return;
         }
+        const thisWorkout = pastWorkoutsObject.filter(([k,v])=>k===key);
         thisWorkout[0][0] = newKey;
         thisWorkout[0][1]["workoutStartTime"] = fmtTime(newStart);
         thisWorkout[0][1]["workoutEndTime"] = fmtTime(newEnd);
         thisWorkout[0][1]["workoutDate"] = newDateLocale;
         thisWorkout[0][1]["workoutName"] = program.value;
-        const newlog = newHistory.concat(thisWorkout);
+        const newlog = pastWorkoutsObject.filter(([k,v])=>k!==key).concat(thisWorkout);
         await window.LoggerDB.saveWorkoutLog(newlog);
         modalEl.close();
         document.location = "./history.html";
     })
     document.body.append(modalEl);
-    modalEl.show();
+    modalEl.showModal();
 }
 
 function handleSystemicFatigueEdit(){
