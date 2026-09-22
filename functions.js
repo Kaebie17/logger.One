@@ -1145,21 +1145,47 @@ function ensureAIConfig(){
     });
 }
 
-// The 23 muscle names computeWorkoutMuscleVolumePercents/fillShapeColor
-// actually match against `svg [data-name='<name>']` -- anything outside
-// this list would silently never show up on the muscle map, so the AI is
-// constrained to only these rather than free-texting a mover name.
-const VALID_MOVER_NAMES = ["abs","adductors","biceps","brachioradialis","calves","erectorspinae","forearmextensors","forearms","frontdelt","glute","glutes","hamstrings","lats","lowerchest","neck","oblique","quad","reardelt","rotatorcuffs","sidedelt","traps","triceps","upperchest"];
+// bodypart/categories/movers are constrained to whatever values ALREADY
+// exist in exerciseDB() -- computed live off the real DB (including any
+// customExercises already merged in, since exerciseDB() itself does that
+// merge) rather than a hardcoded snapshot, so this self-updates as the DB
+// grows instead of drifting stale. movers is the one with a hard technical
+// reason: computeWorkoutMuscleVolumePercents/fillShapeColor match mover
+// names against `svg [data-name='<name>']` literally, so anything outside
+// the existing set would silently never show up on the muscle map.
+// bodypart/categories get the same "reuse an existing value" treatment on
+// the user's explicit instruction (same rule "type" already gets), not a
+// technical requirement the way movers is.
+function getExistingDBVocab(){
+    const db = exerciseDB();
+    const bodyparts = new Set(), categories = new Set(), movers = new Set();
+    Object.values(db).forEach(e => {
+        if (e.bodypart) bodyparts.add(e.bodypart);
+        (e.categories||[]).forEach(c => categories.add(c));
+        (e.movers||[]).forEach(m => movers.add(m));
+    });
+    return {
+        bodyparts: [...bodyparts].sort(),
+        categories: [...categories].sort(),
+        movers: [...movers].sort(),
+    };
+}
 
-function buildExercisePrompt(exerciseName, hint){
-    return `You are generating one new strength-training exercise entry for a fitness-tracking app's exercise database.
+// One call generates `exerciseNames.length` exercises at once (a JSON
+// array response instead of one object) -- cuts the API-call count for
+// batch additions from N calls to 1, at the request of whoever's paying
+// for these calls out of their own key.
+function buildExercisePrompt(exerciseNames, hint){
+    const { bodyparts, categories, movers } = getExistingDBVocab();
+    const n = exerciseNames.length;
+    return `You are generating ${n} new strength-training exercise ${n===1?"entry":"entries"} for a fitness-tracking app's exercise database, one for each name listed at the bottom, in the same order.
 
-Return ONLY a single valid JSON object -- no markdown code fences, no commentary before or after -- with exactly these fields:
+Return ONLY a single valid JSON array of ${n} object${n===1?"":"s"} -- no markdown code fences, no commentary before or after. Each object needs exactly these fields:
 {
   "name": string, Title Case display name,
-  "bodypart": string, lowercase, the primary body part trained (e.g. "chest", "back", "legs", "shoulders", "biceps", "triceps", "core", "glutes"),
-  "categories": array of lowercase strings, e.g. "compound", "isolation", "weightlifting", "calisthenics", "functional", "isometric", "grip strength",
-  "movers": array of 1-5 strings ORDERED from primary to least-involved muscle, using ONLY these exact values, nothing else: ${JSON.stringify(VALID_MOVER_NAMES)},
+  "bodypart": string, lowercase -- reuse the closest match from this exact existing list, do not invent a new value unless truly none of these fit: ${JSON.stringify(bodyparts)},
+  "categories": array of lowercase strings -- reuse values from this exact existing list, do not invent new ones unless truly none fit: ${JSON.stringify(categories)},
+  "movers": array of 1-5 strings ORDERED from primary to least-involved muscle, using ONLY these exact values, nothing else (this drives which muscles actually get colored on the app's muscle-map SVG -- an unrecognized name would silently never show up there): ${JSON.stringify(movers)},
   "equipment": array of lowercase strings, e.g. "barbell", "dumbbells", "bodyweight", "cable machine",
   "description": one or two plain instructional sentences describing the movement, e.g. "Lie flat on a bench while gripping the barbell with hands shoulder-width apart. Lower the barbell under control to the mid-chest, then press it back up until arms are fully extended.",
   "type": one of "bilateral" | "unilateral" | "isometric" -- classify using ONLY the primary and secondary movers (the first two entries in your own "movers" array): if the movement carries them through BOTH a concentric and an eccentric phase each rep (a real up/down or push/pull cycle), it's "bilateral" (both limbs/sides work together) or "unilateral" (one side at a time). If instead it holds those same primary/secondary movers fixed in ONE phase -- usually contracted -- for the whole set, with no phase cycling, it's "isometric", regardless of whether some other part of the body is moving (e.g. walking while holding a static grip/brace is still isometric for the graded muscles),
@@ -1169,10 +1195,10 @@ Return ONLY a single valid JSON object -- no markdown code fences, no commentary
   "media": {"imagelinks": "", "videolinks": ""}
 }
 
-Exercise to generate: "${exerciseName}"
-${hint ? `Additional context from the user: ${hint}` : ""}
+Exercises to generate, in order: ${JSON.stringify(exerciseNames)}
+${hint ? `Additional context that applies to all of them: ${hint}` : ""}
 
-Return ONLY the JSON object, nothing else.`;
+Return ONLY the JSON array, nothing else.`;
 }
 
 function stripCodeFences(text){
@@ -1215,18 +1241,20 @@ function extractGeneratedText(config, responseData){
     return responseData?.choices?.[0]?.message?.content;
 }
 
-// Calls the configured AI (through the relay) to generate one new
-// exercise, validates the result against this DB's own conventions, and
-// returns {key, exercise} ready to merge into customExercisesData --
-// never writes anything itself, so a bad/invalid response can't corrupt
-// storage. Throws with a message meant to be shown directly to the user
-// (network/CORS/relay failure, malformed JSON, or a validation failure)
-// rather than a generic error.
-async function generateExerciseWithAI(exerciseName, hint){
+// Calls the configured AI (through the relay) ONCE to generate every name
+// in exerciseNames, validates each result against this DB's own live
+// vocabulary, and returns an array of {key, exercise} ready to merge into
+// customExercisesData -- never writes anything itself, so a bad/invalid
+// response can't corrupt storage. Throws with a message meant to be shown
+// directly to the user (network/CORS/relay failure, malformed JSON, wrong
+// array length, or a validation failure on any single entry) rather than
+// a generic error -- a partial/malformed batch is rejected as a whole
+// rather than silently saving only the entries that happened to validate.
+async function generateExercisesWithAI(exerciseNames, hint){
     const config = JSON.parse(localStorage.aiConfig || "{}");
     if (getMissingAIConfigFields().length) throw new Error("AI isn't configured yet.");
 
-    const prompt = buildExercisePrompt(exerciseName, hint);
+    const prompt = buildExercisePrompt(exerciseNames, hint);
     const { headers, body } = buildProviderRequest(config, prompt);
 
     let relayResponse;
@@ -1249,22 +1277,37 @@ async function generateExerciseWithAI(exerciseName, hint){
     const text = extractGeneratedText(config, responseData);
     if (!text) throw new Error(`${config.label} returned no usable response.`);
 
-    let exercise;
-    try { exercise = JSON.parse(stripCodeFences(text)); }
+    let exercises;
+    try { exercises = JSON.parse(stripCodeFences(text)); }
     catch (e) { throw new Error(`${config.label}'s response wasn't valid JSON: ${text.slice(0, 200)}`); }
 
-    const requiredKeys = ["name","bodypart","categories","movers","equipment","description","type","effectiveness","technicality","fatigue"];
-    const missingKeys = requiredKeys.filter(k => exercise[k] === undefined);
-    if (missingKeys.length) throw new Error(`Generated exercise is missing: ${missingKeys.join(", ")}`);
-    if (!Array.isArray(exercise.movers) || !exercise.movers.length || exercise.movers.some(m => !VALID_MOVER_NAMES.includes(m))){
-        throw new Error(`Generated exercise has an invalid "movers" list: ${JSON.stringify(exercise.movers)}`);
+    if (!Array.isArray(exercises)) throw new Error(`${config.label} didn't return a JSON array: ${text.slice(0, 200)}`);
+    if (exercises.length !== exerciseNames.length){
+        throw new Error(`Asked for ${exerciseNames.length} exercises, got ${exercises.length} back.`);
     }
-    if (!["bilateral","unilateral","isometric"].includes(exercise.type)){
-        throw new Error(`Generated exercise has an invalid "type": ${exercise.type}`);
-    }
-    if (!exercise.media) exercise.media = { imagelinks: "", videolinks: "" };
 
-    return { key: nameToId(exercise.name), exercise };
+    const { bodyparts: validBodyparts, categories: validCategories, movers: validMovers } = getExistingDBVocab();
+    const requiredKeys = ["name","bodypart","categories","movers","equipment","description","type","effectiveness","technicality","fatigue"];
+
+    return exercises.map((exercise, i) => {
+        const label = exerciseNames[i] || `#${i+1}`;
+        const missingKeys = requiredKeys.filter(k => exercise[k] === undefined);
+        if (missingKeys.length) throw new Error(`"${label}" is missing: ${missingKeys.join(", ")}`);
+        if (!validBodyparts.includes(exercise.bodypart)){
+            throw new Error(`"${label}" has a "bodypart" not already in the DB: ${exercise.bodypart}`);
+        }
+        if (!Array.isArray(exercise.categories) || !exercise.categories.length || exercise.categories.some(c => !validCategories.includes(c))){
+            throw new Error(`"${label}" has a "categories" value not already in the DB: ${JSON.stringify(exercise.categories)}`);
+        }
+        if (!Array.isArray(exercise.movers) || !exercise.movers.length || exercise.movers.some(m => !validMovers.includes(m))){
+            throw new Error(`"${label}" has an invalid "movers" list: ${JSON.stringify(exercise.movers)}`);
+        }
+        if (!["bilateral","unilateral","isometric"].includes(exercise.type)){
+            throw new Error(`"${label}" has an invalid "type": ${exercise.type}`);
+        }
+        if (!exercise.media) exercise.media = { imagelinks: "", videolinks: "" };
+        return { key: nameToId(exercise.name), exercise };
+    });
 }
 
 // Maps each page's own <body id> (already used throughout for CSS scoping)

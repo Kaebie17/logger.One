@@ -1332,13 +1332,18 @@ svg > path:nth-child(23) {
     font-size: 0.85rem;
    }
    #aiconfigprompt > label > input,
-   #generateexerciseprompt > label > input{
+   #generateexerciseprompt > label > input,
+   #generateexerciseprompt > label > textarea{
     border: 0;
     border-radius: 0.5vh;
     padding: 1.2vh 3vw;
     font-size: 1rem;
     width: 100%;
     box-sizing: border-box;
+   }
+   #generateexerciseprompt > label > textarea{
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    resize: vertical;
    }
    #aiconfigprompt > button,
    #generateexerciseprompt > button{
@@ -1379,6 +1384,32 @@ svg > path:nth-child(23) {
     font-size: 1.2rem;
     font-weight: 900;
     margin: 0;
+   }
+   /* One card per generated exercise -- always this structure now, even
+      for a single result, so there's one layout regardless of batch size. */
+   #exercisepreviewprompt .ai-preview-list{
+    display: flex;
+    flex-direction: column;
+    gap: 1.2vh;
+    overflow-y: auto;
+   }
+   #exercisepreviewprompt .ai-preview-card{
+    background-color: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 0.6vh;
+    padding: 1.4vh 3vw;
+   }
+   #exercisepreviewprompt .ai-preview-card-header{
+    display: flex;
+    align-items: center;
+    gap: 2vw;
+    font-size: 1rem;
+    margin-bottom: 0.6vh;
+   }
+   #exercisepreviewprompt .ai-preview-card-header > input[type="checkbox"]{
+    width: 1.1rem;
+    height: 1.1rem;
+    flex-shrink: 0;
    }
    #exercisepreviewprompt .ai-preview-details > p{
     font-size: 0.85rem;
