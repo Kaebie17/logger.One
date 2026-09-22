@@ -100,7 +100,6 @@ const saveExercises = document.getElementById("saveexercises") ;
 const selectionListDisplay = document.getElementById("selectionlistdisplay") ;
 const selectExercise = document.getElementById("exercises");
 const searchExercise = document.getElementById("searchexercise");
-const generateExercise = document.getElementById("generateexercise");
 const redirectHome = document.querySelector("#header > h1");
 const existingTemplates = sessionStorage?.templates?.length>2 ? JSON.parse(sessionStorage.templates) : (window.templatesData || {});
 // Was a blocking alert() here if savedSettings was missing entirely, with
@@ -137,13 +136,6 @@ selectionListDisplay.addEventListener("focusin", (e) => {
     e.target.scrollIntoView({block: "center", behavior: "instant"});
   }));
 });
-
-// Guarded (unlike every other listener in this file) because this button
-// only exists once a cache/service-worker update has actually landed --
-// an install mid-way between an old exercises.html (no button yet) and a
-// new exercises.js would otherwise throw here on the null element and
-// silently kill every listener wired after this line.
-if (generateExercise) generateExercise.addEventListener("click", handleGenerateExercise);
 
 // const showExerciseList
 
@@ -879,145 +871,4 @@ function handleSearch(e){
   }
 }
 
-// --- AI-generated exercises ----------------------------------------------
-// ensureAIConfig/generateExercisesWithAI (functions.js) do the actual
-// config-collection and network call; this file just drives the two-step
-// UI (names+hint -> preview list) and merges whichever confirmed results
-// the user checks once they hit Save, never before. One call generates
-// every name typed in at once -- entered one per line -- rather than one
-// API call per exercise.
-async function handleGenerateExercise(){
-  await ensureAIConfig();
-  showGenerateExerciseDialog();
-}
-
-function showGenerateExerciseDialog(){
-  if (document.getElementById("generateexerciseprompt")) return;
-  const dialog = document.createElement("dialog");
-  dialog.id = "generateexerciseprompt";
-  const closeBtn = document.createElement("span");
-  closeBtn.className = "modal-close";
-  closeBtn.textContent = "❌";
-  const title = document.createElement("p");
-  title.textContent = "Generate new exercises";
-
-  const nameLabel = document.createElement("label");
-  nameLabel.textContent = "Exercise names (one per line)";
-  const nameInput = document.createElement("textarea");
-  nameInput.rows = 4;
-  nameInput.placeholder = "Cable Y-Raise\nReverse Nordic Curl\nLandmine Meadows Row";
-  nameLabel.append(nameInput);
-
-  const hintLabel = document.createElement("label");
-  hintLabel.textContent = "Hint (optional, applies to all of them)";
-  const hintInput = document.createElement("input");
-  hintInput.type = "text";
-  hintInput.placeholder = "e.g. shoulder isolation, cable machine";
-  hintLabel.append(hintInput);
-
-  const statusEl = document.createElement("p");
-  statusEl.className = "ai-status";
-  const generateBtn = document.createElement("button");
-  generateBtn.textContent = "Generate";
-
-  dialog.append(closeBtn, title, nameLabel, hintLabel, statusEl, generateBtn);
-
-  closeBtn.addEventListener("click", () => { dialog.close(); dialog.remove(); });
-  generateBtn.addEventListener("click", async () => {
-    const names = nameInput.value.split("\n").map(n => n.trim()).filter(Boolean);
-    if (!names.length) { statusEl.textContent = "Enter at least one exercise name first."; return; }
-    generateBtn.disabled = true;
-    statusEl.textContent = names.length > 1 ? `Generating ${names.length} exercises...` : "Generating...";
-    try {
-      const results = await generateExercisesWithAI(names, hintInput.value.trim());
-      dialog.close();
-      dialog.remove();
-      showExercisePreviewDialog(results);
-    } catch (e) {
-      statusEl.textContent = e.message;
-      generateBtn.disabled = false;
-    }
-  });
-
-  document.body.append(dialog);
-  dialog.showModal();
-}
-
-// `results` is an array of {key, exercise} (see generateExercisesWithAI) --
-// always plural now, even for a single generated exercise, so there's one
-// preview/save path regardless of how many were requested. Each gets its
-// own checkbox (checked by default) so a batch with one bad entry doesn't
-// force discarding the rest.
-function showExercisePreviewDialog(results){
-  const dialog = document.createElement("dialog");
-  dialog.id = "exercisepreviewprompt";
-  const closeBtn = document.createElement("span");
-  closeBtn.className = "modal-close";
-  closeBtn.textContent = "❌";
-  const title = document.createElement("p");
-  title.textContent = results.length > 1 ? `${results.length} exercises generated` : results[0].exercise.name;
-
-  const list = document.createElement("div");
-  list.className = "ai-preview-list";
-  const checkboxes = results.map(({ key, exercise }) => {
-    const card = document.createElement("div");
-    card.className = "ai-preview-card";
-    const header = document.createElement("label");
-    header.className = "ai-preview-card-header";
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.checked = true;
-    const name = document.createElement("b");
-    name.textContent = exercise.name;
-    header.append(checkbox, name);
-    const details = document.createElement("div");
-    details.className = "ai-preview-details";
-    [
-      ["Bodypart", exercise.bodypart],
-      ["Movers", exercise.movers.join(", ")],
-      ["Type", exercise.type],
-      ["Equipment", exercise.equipment.join(", ")],
-      ["Description", exercise.description],
-    ].forEach(([label, val]) => {
-      const row = document.createElement("p");
-      row.innerHTML = `<b>${label}:</b> ${val}`;
-      details.append(row);
-    });
-    card.append(header, details);
-    list.append(card);
-    return { key, exercise, checkbox };
-  });
-
-  const btnRow = document.createElement("div");
-  btnRow.className = "ai-preview-buttons";
-  const discardBtn = document.createElement("button");
-  discardBtn.textContent = "Discard";
-  const saveBtn = document.createElement("button");
-  saveBtn.textContent = results.length > 1 ? "Save Selected" : "Save";
-  btnRow.append(discardBtn, saveBtn);
-
-  dialog.append(closeBtn, title, list, btnRow);
-
-  const cleanup = () => { dialog.close(); dialog.remove(); };
-  closeBtn.addEventListener("click", cleanup);
-  discardBtn.addEventListener("click", cleanup);
-  saveBtn.addEventListener("click", async () => {
-    const selected = checkboxes.filter(c => c.checkbox.checked);
-    if (!selected.length) { cleanup(); return; }
-    const merged = { ...(window.customExercisesData||{}) };
-    selected.forEach(({ key, exercise }) => { merged[key] = exercise; });
-    await window.LoggerDB.saveCustomExercises(merged);
-    cleanup();
-    if (searchExercise.value){
-      const filteredData = filterer(searchExercise.value, Object.values(exerciseDB()));
-      selectExercise.replaceChildren();
-      loadOptions(filteredData,"custom-option-element",selectExercise,{value: "name", id:"name", src: ["media","imagelinks",0,""], alt: "name"});
-    }
-    const names = selected.map(s => `"${s.exercise.name}"`).join(", ");
-    alert(`${names} added -- search for ${selected.length > 1 ? "them" : "it"} to select.`);
-  });
-
-  document.body.append(dialog);
-  dialog.showModal();
-}
 // return to the logworkout page using history mgmt and params
