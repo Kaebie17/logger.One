@@ -68,14 +68,6 @@
     box-sizing: border-box;
 }
 html{
-    height: 100vh;
-        height: 100dvh;
-        /* Real fallback for dvh being unreliable in standalone-PWA mode on
-           some iOS versions -- see setRealViewportHeight in functions.js.
-           A no-op wherever --vh was never set (falls back to 1vh, same as
-           the line above) or dvh already worked correctly (this line just
-           happens to compute the same value). */
-        height: calc(var(--vh, 1vh) * 100);
     /* Was a fixed 12px, so every rem-sized element in this file (nearly all
        of them) never actually scaled with the phone's screen size -- only
        the vw/vh-sized containers did, throwing text out of proportion with
@@ -989,11 +981,13 @@ svg > path:nth-child(23) {
     #createworkoutform{
         overflow-y: scroll;
         margin-top: 2%;
-        /* Plain vh doesn't shrink when the keyboard opens; --vh does (see
-           the outer page container above) -- keeps this inner scroll area
-           in sync with it instead of the stale, keyboard-unaware value. */
-        height: 87vh;
-        height: calc(var(--vh, 1vh) * 87);
+        /* flex:1, not a fixed vh -- matches #container/#settingscontainer,
+           the only content containers that never showed the background-
+           extends-past-footer bug. Was height:87vh (via --vh), which can
+           drift out of sync with body's own live height once body itself
+           is resized directly from JS on every viewport event. */
+        flex: 1;
+        min-height: 0;
         display: flex;
         flex-wrap: wrap;
     }
@@ -1753,8 +1747,8 @@ svg > path:nth-child(23) {
         overflow-y: scroll;
         margin-top: 2%;
         /* Same fix as #createworkoutform -- see its comment. */
-        height: 87vh;
-        height: calc(var(--vh, 1vh) * 87);
+        flex: 1;
+        min-height: 0;
         display: flex;
         flex-wrap: wrap;
     }
@@ -1866,8 +1860,8 @@ svg > path:nth-child(23) {
     }
     #historypage #history{
         /* Same fix as #createworkoutform above -- see its comment. */
-        height: 87.5vh;
-        height: calc(var(--vh, 1vh) * 87.5);
+        flex: 1;
+        min-height: 0;
         width: 95vw;
         margin: 1vw;
         padding: 1vw;
@@ -1925,9 +1919,13 @@ svg > path:nth-child(23) {
         width: 100vw;
     }
     #pastworkout #container{
-        /* Same fix as #createworkoutform above -- see its comment. */
-        height: 87.5vh;
-        height: calc(var(--vh, 1vh) * 87.5);
+        /* Was also setting height:87.5vh here -- redundant with (and
+           conflicting against) the flex:1 already inherited from the
+           generic body #container rule above. Two different rules
+           fighting over the same element's sizing is exactly the kind of
+           thing that can render inconsistently once body itself is
+           resized live from JS; #container/#settingscontainer elsewhere
+           (flex:1, nothing else) never showed this bug. */
         padding: 0.5vh;
         overflow-y: scroll;
     }
@@ -2277,9 +2275,7 @@ svg > path:nth-child(23) {
         width: 100vw;
      }
      #trendspage #container{
-        /* Same fix as #createworkoutform above -- see its comment. */
-        height: 87vh;
-        height: calc(var(--vh, 1vh) * 87);
+        /* Was also setting height:87vh here -- see #pastworkout #container's comment. */
         padding: 0.5vw;
      }
      #trendspage #container #mainfilters{
@@ -2739,9 +2735,7 @@ svg > path:nth-child(23) {
        of a separate button row, so #container gets that budget back. */
     #profilepage #container{
         display: grid;
-        /* Same fix as #createworkoutform above -- see its comment. */
-        height: 87.5vh;
-        height: calc(var(--vh, 1vh) * 87.5);
+        /* Was also setting height:87.5vh here -- see #pastworkout #container's comment. */
         padding: 0.5vh;
     }
     /* Same overflow:visible / .modal-close pattern as #pastworkout's
@@ -2971,9 +2965,7 @@ svg > path:nth-child(23) {
         overflow: hidden;
     }
     #statspage #container{
-        /* Same fix as #createworkoutform above -- see its comment. */
-        height: 87.5vh;
-        height: calc(var(--vh, 1vh) * 87.5);
+        /* Was also setting height:87.5vh here -- see #pastworkout #container's comment. */
         padding: 0.5vh;
     }
     #statspage h2{
