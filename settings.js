@@ -90,24 +90,43 @@ const retrieveSettings = () => {
     if(!Object.keys(settingsObject).length) return;
     let personalDataElms = Array.from(personalInfoContainer.children);
     let preferencesElms = Array.from(preferenceContainer.children)
-    personalDataElms[0].lastElementChild.value = settingsObject["name"];
-    personalDataElms[1].lastElementChild.value = settingsObject["email"];
-    personalDataElms[2].lastElementChild.value = settingsObject["gender"];
-    personalDataElms[3].lastElementChild.value = settingsObject["age"];
-    personalDataElms[4].lastElementChild.children[0].value  = settingsObject["weight"].split(" ")[0];
-    personalDataElms[4].lastElementChild.children[1].textContent = settingsObject["weight"].split(" ")[1];
-    settingsObject["unit"] === "metric" ? personalDataElms[5].lastElementChild.children[0].value = settingsObject["height"].split(" ")[0] :
-        (personalDataElms[5].lastElementChild.children[0].value = settingsObject["height"].split(",")[0], personalDataElms[5].lastElementChild.children[2].value = settingsObject["height"].split(",")[2]); 
-    personalDataElms[5].lastElementChild.children[3].textContent = settingsObject["unit"] === "metric" ? settingsObject["height"].split(" ")[1] : settingsObject["height"].split(",")[3];
-    // store pereferences
-    let heightValue = settingsObject["unit"] === "metric" ? settingsObject["height"].split("")[1]+ " " + personalDataElms[5].lastElementChild.children[3].textContent : [...personalInfoContainer.children[5].lastElementChild.children].map((e,i) => i===0? e.value : e.textContent).join();
-    preferencesElms[0].lastElementChild.value = settingsObject["unit"];
-    preferencesElms[1].lastElementChild.children[0].value = settingsObject["bweight"].split(" ")[0];
-    preferencesElms[1].lastElementChild.children[1].textContent = settingsObject["bweight"].split(" ")[1];
-    preferencesElms[2].lastElementChild.children[0].value = settingsObject["dweight"].split(" ")[0];
-    preferencesElms[2].lastElementChild.children[1].textContent = settingsObject["dweight"].split(" ")[1];
-    preferencesElms[3].lastElementChild.children[0].value = settingsObject["bodywt"].split(" ")[0];
-    preferencesElms[3].lastElementChild.children[1].textContent = settingsObject["bodywt"].split(" ")[1];
+    // Any of these fields can be legitimately absent -- ensureWeightSettings()
+    // (functions.js, the "complete your weight settings" popup) only ever
+    // writes weight/bweight/dweight/unit, never name/email/gender/age/
+    // height/bodywt at all, so a user who's only ever gone through that
+    // popup (never the full form here) has a genuinely partial
+    // settingsObject. The old code called .split(" ") unconditionally on
+    // whichever field came first -- height, for exactly that user -- and
+    // crashed there, silently skipping every line after it in this
+    // function (bweight/dweight never got populated either, despite
+    // existing) and, since retrieveSettings() runs before a single
+    // .addEventListener() call below, every listener on the page too.
+    if (settingsObject["name"] !== undefined) personalDataElms[0].lastElementChild.value = settingsObject["name"];
+    if (settingsObject["email"] !== undefined) personalDataElms[1].lastElementChild.value = settingsObject["email"];
+    if (settingsObject["gender"] !== undefined) personalDataElms[2].lastElementChild.value = settingsObject["gender"];
+    if (settingsObject["age"] !== undefined) personalDataElms[3].lastElementChild.value = settingsObject["age"];
+    if (settingsObject["weight"] !== undefined){
+        personalDataElms[4].lastElementChild.children[0].value = settingsObject["weight"].split(" ")[0];
+        personalDataElms[4].lastElementChild.children[1].textContent = settingsObject["weight"].split(" ")[1];
+    }
+    if (settingsObject["height"] !== undefined){
+        settingsObject["unit"] === "metric" ? personalDataElms[5].lastElementChild.children[0].value = settingsObject["height"].split(" ")[0] :
+            (personalDataElms[5].lastElementChild.children[0].value = settingsObject["height"].split(",")[0], personalDataElms[5].lastElementChild.children[2].value = settingsObject["height"].split(",")[2]);
+        personalDataElms[5].lastElementChild.children[3].textContent = settingsObject["unit"] === "metric" ? settingsObject["height"].split(" ")[1] : settingsObject["height"].split(",")[3];
+    }
+    if (settingsObject["unit"] !== undefined) preferencesElms[0].lastElementChild.value = settingsObject["unit"];
+    if (settingsObject["bweight"] !== undefined){
+        preferencesElms[1].lastElementChild.children[0].value = settingsObject["bweight"].split(" ")[0];
+        preferencesElms[1].lastElementChild.children[1].textContent = settingsObject["bweight"].split(" ")[1];
+    }
+    if (settingsObject["dweight"] !== undefined){
+        preferencesElms[2].lastElementChild.children[0].value = settingsObject["dweight"].split(" ")[0];
+        preferencesElms[2].lastElementChild.children[1].textContent = settingsObject["dweight"].split(" ")[1];
+    }
+    if (settingsObject["bodywt"] !== undefined){
+        preferencesElms[3].lastElementChild.children[0].value = settingsObject["bodywt"].split(" ")[0];
+        preferencesElms[3].lastElementChild.children[1].textContent = settingsObject["bodywt"].split(" ")[1];
+    }
     setUnits();
     applyWtFactor();
 }
@@ -122,22 +141,29 @@ const applyWtFactor = () => {
 const recalibrate = (e) => {
     let unit = e.target.value;
     if(!Object.keys(settingsObject).length) return;
+    // Same reasoning as retrieveSettings above -- weight/bweight/dweight/
+    // height can each be legitimately absent, so convert whichever ARE
+    // present instead of crashing on the first missing one.
     if (unit === "imperial" && settingsObject.unit !== unit){
         settingsObject["unit"] = unit;
-        settingsObject["weight"] = (settingsObject["weight"].split(" ")[0]*2.2).toFixed(1) + " " + "lbs";
-        settingsObject["bweight"] = (settingsObject["bweight"].split(" ")[0]*2.2).toFixed(1) + " " + "lbs";
-        settingsObject["dweight"] = (settingsObject["dweight"].split(" ")[0]*2.2).toFixed(1) + " " + "lbs";
-        let ht = settingsObject["height"].split(" ")[0]*3.28084;
-        let inches = ht - Math.floor(ht);
-        settingsObject["height"] =  Math.floor(ht)+","+"'"+","+(inches*12).toFixed(1)+","+"''";
+        if (settingsObject["weight"] !== undefined) settingsObject["weight"] = (settingsObject["weight"].split(" ")[0]*2.2).toFixed(1) + " " + "lbs";
+        if (settingsObject["bweight"] !== undefined) settingsObject["bweight"] = (settingsObject["bweight"].split(" ")[0]*2.2).toFixed(1) + " " + "lbs";
+        if (settingsObject["dweight"] !== undefined) settingsObject["dweight"] = (settingsObject["dweight"].split(" ")[0]*2.2).toFixed(1) + " " + "lbs";
+        if (settingsObject["height"] !== undefined){
+            let ht = settingsObject["height"].split(" ")[0]*3.28084;
+            let inches = ht - Math.floor(ht);
+            settingsObject["height"] =  Math.floor(ht)+","+"'"+","+(inches*12).toFixed(1)+","+"''";
+        }
     }
     else if (unit === "metric" && settingsObject.unit !== unit){
         settingsObject["unit"] = unit;
-        settingsObject["weight"] = (settingsObject["weight"].split(" ")[0]/2.2).toFixed(1) + " " + "kgs";
-        settingsObject["bweight"] = (settingsObject["bweight"].split(" ")[0]/2.2).toFixed(1) + " " + "kgs";
-        settingsObject["dweight"] = (settingsObject["dweight"].split(" ")[0]/2.2).toFixed(1) + " " + "kgs";
-        let ht = ((parseFloat(settingsObject["height"].split(",")[0])+parseFloat(settingsObject["height"].split(",")[2]/12))/3.28084).toFixed(2);
-        settingsObject["height"] =  ht+' '+"mts";
+        if (settingsObject["weight"] !== undefined) settingsObject["weight"] = (settingsObject["weight"].split(" ")[0]/2.2).toFixed(1) + " " + "kgs";
+        if (settingsObject["bweight"] !== undefined) settingsObject["bweight"] = (settingsObject["bweight"].split(" ")[0]/2.2).toFixed(1) + " " + "kgs";
+        if (settingsObject["dweight"] !== undefined) settingsObject["dweight"] = (settingsObject["dweight"].split(" ")[0]/2.2).toFixed(1) + " " + "kgs";
+        if (settingsObject["height"] !== undefined){
+            let ht = ((parseFloat(settingsObject["height"].split(",")[0])+parseFloat(settingsObject["height"].split(",")[2]/12))/3.28084).toFixed(2);
+            settingsObject["height"] =  ht+' '+"mts";
+        }
     }
     else {return}
     localStorage.savedSettings = JSON.stringify(settingsObject);
