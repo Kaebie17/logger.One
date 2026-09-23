@@ -216,8 +216,8 @@ function showVersionTag(version) {
   const tag = document.createElement("p");
   tag.id = "app-version-tag";
   tag.textContent = version;
-  tag.style.cssText = "position:fixed; bottom:2px; right:4px; font-size:9px; color:rgb(250, 250, 250); z-index:999998; pointer-events:none; font-family:monospace;";
-  document.body.children['footer'].appendChild(tag);
+  tag.style.cssText = "position:fixed; right:4px; font-size:9px; color:rgb(250, 250, 250); z-index:999998; pointer-events:none; font-family:monospace;";
+  document.body.children['header'].appendChild(tag);
 }
 function requestVersionTag() {
   if (!navigator.serviceWorker.controller) return;
