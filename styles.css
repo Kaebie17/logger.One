@@ -2189,7 +2189,6 @@ svg > path:nth-child(23) {
         correctly without either dialog needing its own position rule. */
      #pastworkout .modal-close{
         position: absolute;
-        padding-top: 0;
         top: -0.7rem;
         right: -0.7rem;
         width: 1.6rem;
@@ -2492,6 +2491,7 @@ svg > path:nth-child(23) {
     }
     #settingspage .modal-close{
         position: absolute;
+        padding-top: 0;
         top: -0.7rem;
         right: -0.7rem;
         width: 1.6rem;
