@@ -68,6 +68,14 @@
     box-sizing: border-box;
 }
 html{
+    height: 100vh;
+        height: 100dvh;
+        /* Real fallback for dvh being unreliable in standalone-PWA mode on
+           some iOS versions -- see setRealViewportHeight in functions.js.
+           A no-op wherever --vh was never set (falls back to 1vh, same as
+           the line above) or dvh already worked correctly (this line just
+           happens to compute the same value). */
+        height: calc(var(--vh, 1vh) * 100);
     /* Was a fixed 12px, so every rem-sized element in this file (nearly all
        of them) never actually scaled with the phone's screen size -- only
        the vw/vh-sized containers did, throwing text out of proportion with
