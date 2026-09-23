@@ -140,6 +140,15 @@ function showUpdateBanner(worker) {
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("sw.js").then((reg) => {
+      // GitHub Pages serves sw.js itself with Cache-Control: max-age=600 --
+      // the spec requires browsers to bypass HTTP cache for the update
+      // check register() does internally, but that's not reliably honored
+      // on every WebKit version, especially in an installed PWA. An
+      // explicit update() call is the same spec-mandated bypass, called
+      // again here in case register()'s own implicit check was the one
+      // that got a stale response.
+      reg.update().catch(() => {});
+
       // A newer worker already finished installing before this page even
       // opened (e.g. it updated in a tab that was open in the background).
       if (reg.waiting) showUpdateBanner(reg.waiting);
