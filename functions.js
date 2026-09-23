@@ -75,25 +75,16 @@ window.addEventListener("orientationchange", setRealViewportHeight);
 // pinToVisualViewport (below) already keeps a dialog aligned to it. This
 // applies that identical technique to <body> itself instead of a dialog,
 // so nothing inside it needs its own special positioning any more.
-// Runs on every page, including #createexercisespage -- its header/
-// content/footer already use the same plain flex-column layout as
-// everywhere else (#exerciselist is flex:1, same pattern as #container),
-// and this is in fact where the underlying bug was first reported
-// tonight (footer landing up near the header on the second exercise
-// onward); exercises.js's own focusin/scrollIntoView handling is a
-// separate, narrower fix for its inner #selectionlistdisplay scroll
-// timing and doesn't conflict with this.
-// Every other page's content container between #header and #footer.
-// exercises.html doesn't need an entry -- it isn't broken in the first
-// place (see below).
-function findContentContainer(){
-    const ids = ["settingscontainer","createworkoutform","createtemplateform","history","container"];
-    for (const id of ids){
-        const el = document.getElementById(id);
-        if (el) return el;
-    }
-    return null;
-}
+//
+// Three separate attempts at forcing <body> (or its content container) to
+// repaint its own background-image after this runs all made no visible
+// difference (opacity nudge, display:none/restore on body, display:none/
+// restore on the content container) -- ruling out "needs a nudge" as the
+// mechanism. Rather than guess at a fourth repaint trick, this routes the
+// background around the problem entirely: copies the page's own gradient
+// onto <html> once, since <html> is never itself resized/repositioned
+// from JS (only <body> is, every viewport event) and so isn't subject to
+// whatever is actually going wrong on the element that is.
 function pinPageToVisualViewport(){
     const vv = window.visualViewport;
     const page = document.body;
@@ -104,36 +95,18 @@ function pinPageToVisualViewport(){
     page.style.top = `${vv.offsetTop}px`;
     page.style.width = `${vv.width}px`;
     page.style.height = `${vv.height}px`;
-    // Confirmed root cause (not a guess this time): every page but
-    // exercises.html shows a plain white body background here, from the
-    // very first paint, on every load. exercises.js is the one page script
-    // that writes an inline display style onto its own content sections
-    // right after load (switchListsDisp(), called from
-    // exercisesDBpage.onload) -- no other page's JS touches its content
-    // container's display at all. That's the one real difference between
-    // the page that works and the ones that don't. Toggling the content
-    // container's own display here reproduces that same trigger generally,
-    // instead of the two things already tried and confirmed to do nothing
-    // (toggling opacity/display on <body> itself, removed). Skipped while
-    // an input is focused -- toggling display on an ancestor of the
-    // focused input would blur it and close the keyboard, which is exactly
-    // when this function also runs (visualViewport resize/scroll firing
-    // for the keyboard opening).
-    const focused = document.activeElement;
-    const isEditing = focused && ["INPUT","TEXTAREA","SELECT"].includes(focused.tagName);
-    const content = findContentContainer();
-    if (content && !isEditing){
-        const prevDisplay = content.style.display;
-        content.style.display = "none";
-        void content.offsetHeight;
-        content.style.display = prevDisplay;
-    }
+}
+function pinBackgroundToHtml(){
+    const bodyCs = getComputedStyle(document.body);
+    document.documentElement.style.backgroundImage = bodyCs.backgroundImage;
+    document.documentElement.style.backgroundColor = bodyCs.backgroundColor;
 }
 window.visualViewport?.addEventListener("resize", pinPageToVisualViewport);
 window.visualViewport?.addEventListener("scroll", pinPageToVisualViewport);
 window.addEventListener("load", pinPageToVisualViewport);
 window.addEventListener("orientationchange", pinPageToVisualViewport);
 pinPageToVisualViewport();
+pinBackgroundToHtml();
 
 // The actual mechanism behind the keyboard/footer bug and the debug
 // overlay/dialogs rendering off-screen: position:fixed anchors to the
