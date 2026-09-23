@@ -64,27 +64,10 @@ window.addEventListener("resize", setRealViewportHeight);
 window.visualViewport?.addEventListener("resize", setRealViewportHeight);
 window.addEventListener("orientationchange", setRealViewportHeight);
 
-// Making #header/#footer position:fixed (tried tonight) anchors them to
-// the LAYOUT viewport, which never shrinks when the keyboard opens -- only
-// the VISUAL viewport does. So bottom:0 kept meaning "the real screen
-// edge," now hidden behind the keyboard, while the content in between,
-// still sized against the (unshrunk) layout viewport, either overlapped
-// or left a gap. What's actually wanted: the whole page -- header, content,
-// footer, same internal flex layout as always -- shrinks and repositions
-// as ONE unit to exactly the visible area above the keyboard, the same way
-// pinToVisualViewport (below) already keeps a dialog aligned to it. This
-// applies that identical technique to <body> itself instead of a dialog,
-// so nothing inside it needs its own special positioning any more.
-//
-// Three separate attempts at forcing <body> (or its content container) to
-// repaint its own background-image after this runs all made no visible
-// difference (opacity nudge, display:none/restore on body, display:none/
-// restore on the content container) -- ruling out "needs a nudge" as the
-// mechanism. Rather than guess at a fourth repaint trick, this routes the
-// background around the problem entirely: copies the page's own gradient
-// onto <html> once, since <html> is never itself resized/repositioned
-// from JS (only <body> is, every viewport event) and so isn't subject to
-// whatever is actually going wrong on the element that is.
+// Keeps <body> (header/content/footer, same internal layout as always)
+// pinned to the live visual viewport, same technique as pinToVisualViewport
+// below but for the whole page instead of one dialog. Background lives on
+// <html> now (styles.css), not here -- body doesn't reliably repaint it.
 function pinPageToVisualViewport(){
     const vv = window.visualViewport;
     const page = document.body;
@@ -96,17 +79,11 @@ function pinPageToVisualViewport(){
     page.style.width = `${vv.width}px`;
     page.style.height = `${vv.height}px`;
 }
-function pinBackgroundToHtml(){
-    const bodyCs = getComputedStyle(document.body);
-    document.documentElement.style.backgroundImage = bodyCs.backgroundImage;
-    document.documentElement.style.backgroundColor = bodyCs.backgroundColor;
-}
 window.visualViewport?.addEventListener("resize", pinPageToVisualViewport);
 window.visualViewport?.addEventListener("scroll", pinPageToVisualViewport);
 window.addEventListener("load", pinPageToVisualViewport);
 window.addEventListener("orientationchange", pinPageToVisualViewport);
 pinPageToVisualViewport();
-pinBackgroundToHtml();
 
 // The actual mechanism behind the keyboard/footer bug and the debug
 // overlay/dialogs rendering off-screen: position:fixed anchors to the
