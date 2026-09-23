@@ -120,6 +120,20 @@ html{
        handles) still win over this via normal CSS specificity. */
     touch-action: manipulation;
 }
+/* Real fix, not a guess this time -- research turned up that
+   touch-action:manipulation on form controls specifically is one of the
+   documented contributors to iOS's installed-PWA keyboard/viewport bug
+   (the on-screen keyboard opening shrinks visualViewport/100dvh without
+   ever correctly restoring them, independent of any app-level layout
+   fix -- see setRealViewportHeight/healViewportAfterKeyboard below for
+   the rest of the mitigation). Restoring native touch-action for exactly
+   the elements that trigger the keyboard is part of the current
+   community-documented workaround; type selectors already outrank the
+   universal `*` rule above regardless of source order, so this doesn't
+   need to move. */
+input, textarea, select{
+    touch-action: auto;
+}
 *{
     /* The gray flash every browser shows on tap by default -- suppressing it
        is one of the more noticeable "this reads as a website" tells. Has no

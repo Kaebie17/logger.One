@@ -33,6 +33,52 @@ window.addEventListener("resize", setRealViewportHeight);
 window.visualViewport?.addEventListener("resize", setRealViewportHeight);
 window.addEventListener("orientationchange", setRealViewportHeight);
 
+// The keyboard-open layout glitch this is meant to fix (footer landing up
+// near the header, a gap of bare background below it -- reported across
+// exercises.html, settings.html, and template.html's workout-name field)
+// is a documented, currently unresolved WebKit bug, not something app-side
+// CSS alone can fully prevent: on iOS, opening the on-screen keyboard in
+// an INSTALLED/standalone PWA specifically shrinks visualViewport/100dvh,
+// but the two can desync from what's actually on screen -- the OS's own
+// keyboard-avoidance scroll operates on a compositor-level "visual
+// viewport" layer that sits above normal document scroll, which
+// html{position:fixed} (styles.css) cannot fully override since that's a
+// DOM/CSS-level mechanism, not a compositor one. setRealViewportHeight
+// above reads whatever visualViewport.height currently reports -- but in
+// standalone mode that value itself can go stale/stuck once the keyboard
+// interaction starts, so correct JS logic reading a wrong number still
+// produces a wrong layout.
+//
+// The documented workaround isn't a better read -- it's forcing WebKit to
+// actually RE-MEASURE by toggling display on a full-viewport element
+// (display:none, force a synchronous reflow, restore), which prompts it
+// to recompute visualViewport/dvh correctly again. Run after the keyboard
+// closes (blur), not while it's open (focus), since toggling display on
+// an ancestor of the focused input would itself steal focus and close the
+// keyboard mid-typing -- so this fixes the viewport staying wrong AFTER
+// an input is done being edited, not the live-while-typing render (no
+// app-side fix for that half currently exists; it's the open, unresolved
+// half of this WebKit bug as of iOS 26).
+// Every page's actual scroll container differs in structure (varies by
+// page -- #exerciselist, #selectionlistdisplay, etc.), with no single
+// reliable selector for "the current one" across all of them, and
+// guessing wrong would restore scroll position onto the wrong element --
+// a worse, more confusing jump than just leaving scroll position alone
+// while the reflow runs.
+let maxViewportHeight = window.innerHeight;
+window.addEventListener("resize", () => { maxViewportHeight = Math.max(maxViewportHeight, window.innerHeight); });
+function healViewportAfterKeyboard(){
+    if (maxViewportHeight - window.innerHeight <= 4) return; // not actually stuck
+    document.body.style.display = "none";
+    void document.body.offsetHeight; // synchronous reflow -- forces the re-measure
+    document.body.style.display = "";
+    setRealViewportHeight();
+}
+document.addEventListener("focusout", (e) => {
+    if (!["INPUT","TEXTAREA","SELECT"].includes(e.target.tagName)) return;
+    setTimeout(healViewportAfterKeyboard, 150);
+}, true);
+
 // Disables pinch-zoom app-wide. CSS's touch-action:manipulation (styles.css)
 // already covers double-tap-zoom and pinch-zoom in every standards-following
 // browser, and the viewport meta tag's user-scalable=no covers the rest --
