@@ -96,14 +96,26 @@ function pinPageToVisualViewport(){
     // iOS Safari can fail to repaint a gradient background-image on a
     // position:fixed element after its size/position is rewritten from JS
     // (rather than CSS/layout alone) -- it stays visually blank (white)
-    // even though the element's own geometry is correct. A brief, reverted
-    // opacity nudge forces a repaint without side effects: unlike
-    // transform/will-change/filter, opacity doesn't make this element a
-    // new containing block for its position:fixed descendants (the dialogs
-    // pinToVisualViewport tracks), so they keep resolving top/left against
-    // the true viewport instead of suddenly resolving against <body>.
-    page.style.opacity = "0.999";
-    requestAnimationFrame(() => { page.style.opacity = ""; });
+    // even though the element's own geometry is correct. An opacity nudge
+    // alone wasn't reliable enough. display:none/restore is the same
+    // proven trick healViewportAfterKeyboard already uses for this exact
+    // class of WebKit bug -- a full teardown/rebuild that reliably forces
+    // a repaint, stronger than an opacity toggle. Only safe to run when no
+    // input is focused, though: toggling display on an ancestor of the
+    // focused input would blur it and close the keyboard, which is exactly
+    // when this function also runs (visualViewport resize/scroll firing
+    // for the keyboard opening). Falls back to the milder opacity nudge in
+    // that case -- not as reliable, but doesn't fight the keyboard.
+    const focused = document.activeElement;
+    const isEditing = focused && ["INPUT","TEXTAREA","SELECT"].includes(focused.tagName);
+    if (isEditing){
+        page.style.opacity = "0.999";
+        requestAnimationFrame(() => { page.style.opacity = ""; });
+    } else {
+        page.style.display = "none";
+        void page.offsetHeight;
+        page.style.display = "";
+    }
 }
 window.visualViewport?.addEventListener("resize", pinPageToVisualViewport);
 window.visualViewport?.addEventListener("scroll", pinPageToVisualViewport);
