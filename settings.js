@@ -16,7 +16,17 @@ const fullBackupBtn = document.getElementById("fullbackupdata");
 const fullRestoreBtn = document.getElementById("fullrestoredata");
 const redirectHome = document.querySelector("#header > h1");
 const savedSettings = {};
-const settingsObject = localStorage?.savedSettings ? JSON.parse(localStorage.savedSettings) : "";
+// Unguarded before this: if localStorage.savedSettings existed but was
+// corrupted (a partial/interrupted write, of exactly the kind everything
+// tonight risked), JSON.parse threw here -- at the very TOP of the file,
+// before a single listener anywhere below (redirectHome, doneBtn,
+// importBtn, everything) ever got attached. That's a plausible explanation
+// for "nothing on this page works, not even the logo" as one single root
+// cause instead of many unrelated ones. Falls back to {} instead of
+// crashing the whole script.
+let settingsObject = {};
+try { settingsObject = localStorage?.savedSettings ? JSON.parse(localStorage.savedSettings) : {}; }
+catch (e) { console.warn("localStorage.savedSettings was corrupted, ignoring it", e); }
 let importData = [];
 const exportHeaders = ["workoutDate","workoutName","workoutStartTime","workoutEndTime","workoutIntensity","workoutUnit","workoutSystemicFatigue","exercise","setnum","reps","weight","rest","tut","rir"];
 const partsName = ['neck', 'chest', 'shoulders', 'arms', 'forearms', 'abdomen', 'thighs', 'calves','glutes'];
