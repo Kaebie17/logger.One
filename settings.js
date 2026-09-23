@@ -12,6 +12,8 @@ const measurementsDialog = document.getElementById("addmeasurements");
 const doneBtn =  document.getElementById("donebtn");
 const importBtn = document.getElementById("importdata");
 const exportBtn = document.getElementById("exportdata");
+const fullBackupBtn = document.getElementById("fullbackupdata");
+const fullRestoreBtn = document.getElementById("fullrestoredata");
 const redirectHome = document.querySelector("#header > h1");
 const savedSettings = {};
 const settingsObject = localStorage?.savedSettings ? JSON.parse(localStorage.savedSettings) : "";
@@ -195,6 +197,58 @@ const handleExport = (e) => {
     link.click();
 }
 
+// The CSV export above only ever covered workout logs -- everything else
+// (templates, muscle soreness, custom AI-generated exercises, and the
+// settings form itself) had no backup path at all. This bundles all of it
+// into one portable JSON file the user downloads and fully controls,
+// independent of this device's IndexedDB/localStorage/service-worker
+// cache -- so it survives a reinstall, a cleared cache, or a new device,
+// none of which the app's own storage does on its own.
+const handleFullBackup = (e) => {
+    e.preventDefault();
+    const backup = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        workoutLogData: window.workoutLogData || [],
+        templatesData: window.templatesData || {},
+        muscleSorenessData: window.muscleSorenessData || {},
+        customExercisesData: window.customExercisesData || {},
+        savedSettings: JSON.parse(localStorage.savedSettings || "{}"),
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `logger-one-backup-${new Date().toISOString().slice(0,10)}.json`);
+    link.click();
+}
+
+// Fully REPLACES current data with whatever's in the chosen backup file --
+// confirmed explicitly before anything is written, since this is
+// destructive to whatever's currently stored (unlike the workout-only CSV
+// import below, which merges/appends new rows instead of replacing).
+const handleFullRestore = (e) => {
+    e.preventDefault();
+    const file = document.createElement("input");
+    file.type = "file";
+    file.accept = ".json";
+    file.click();
+    file.addEventListener("change", async () => {
+        if (!file.files[0]) return;
+        let backup;
+        try { backup = JSON.parse(await file.files[0].text()); }
+        catch (err) { alert("That file isn't valid JSON -- nothing was restored."); return; }
+        if (!confirm("This replaces ALL current app data (workouts, templates, soreness, custom exercises, settings) with what's in this backup file. This cannot be undone. Continue?")) return;
+        if (backup.workoutLogData) await window.LoggerDB.saveWorkoutLog(backup.workoutLogData);
+        if (backup.templatesData) await window.LoggerDB.saveTemplates(backup.templatesData);
+        if (backup.muscleSorenessData) await window.LoggerDB.saveMuscleSoreness(backup.muscleSorenessData);
+        if (backup.customExercisesData) await window.LoggerDB.saveCustomExercises(backup.customExercisesData);
+        if (backup.savedSettings) localStorage.savedSettings = JSON.stringify(backup.savedSettings);
+        alert("Restore complete. Reloading...");
+        location.reload();
+    });
+}
+
 const openMeasurementsDialog = (e) => {
     e.preventDefault();
     measurementsDialog.show();
@@ -231,6 +285,8 @@ factoredWeight.previousElementSibling.addEventListener("keyup",applyWtFactor);
 weightElem.addEventListener("blur",applyWtFactor);
 importBtn.addEventListener("click",handleImport)
 exportBtn.addEventListener("click",handleExport)
+fullBackupBtn.addEventListener("click", handleFullBackup)
+fullRestoreBtn.addEventListener("click", handleFullRestore)
 logMeasurementsBtn.addEventListener("click", openMeasurementsDialog)
 
 function home() {
