@@ -64,22 +64,34 @@ window.addEventListener("resize", setRealViewportHeight);
 window.visualViewport?.addEventListener("resize", setRealViewportHeight);
 window.addEventListener("orientationchange", setRealViewportHeight);
 
-// #header/#footer on settings.html are now position:fixed (styles.css --
-// confirmed fix, see its comment there) instead of flex participants, so
-// they no longer automatically reserve space for themselves in the
-// layout. This measures their actual rendered height once and sets the
-// content area's top/bottom insets to match, so it fills exactly the
-// remaining space instead of rendering underneath the now-fixed
-// header/footer. Settings.html only for now -- scoped by id check,
-// rolling out to other pages once this is confirmed working.
+// #footer is position:fixed on every page now (styles.css), so it no
+// longer reserves its own space in any page's flex column -- every
+// page's content container still extends the same as before, right
+// underneath it, with nothing telling it to leave room. This measures
+// #footer's actual rendered height and reserves that much space in
+// whichever content container the current page has. Settings.html also
+// made #header fixed, so it gets the fuller treatment (container switched
+// to position:absolute with top/bottom insets, in its own CSS); every
+// other page just gets padding-bottom added to its existing container.
+function findContentContainer(){
+    const ids = ["settingscontainer","createworkoutform","createtemplateform","history","container"];
+    for (const id of ids){
+        const el = document.getElementById(id);
+        if (el) return el;
+    }
+    return null;
+}
 function pinHeaderFooterFixed(){
-    if (document.body.id !== "settingspage") return;
-    const header = document.getElementById("header");
     const footer = document.getElementById("footer");
-    const content = document.getElementById("settingscontainer");
-    if (!header || !footer || !content) return;
-    content.style.top = `${header.offsetHeight}px`;
-    content.style.bottom = `${footer.offsetHeight}px`;
+    const content = findContentContainer();
+    if (!footer || !content) return;
+    if (document.body.id === "settingspage"){
+        const header = document.getElementById("header");
+        if (header) content.style.top = `${header.offsetHeight}px`;
+        content.style.bottom = `${footer.offsetHeight}px`;
+    } else {
+        content.style.paddingBottom = `${footer.offsetHeight}px`;
+    }
 }
 window.addEventListener("load", pinHeaderFooterFixed);
 window.addEventListener("resize", pinHeaderFooterFixed);
