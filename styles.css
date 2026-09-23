@@ -1750,12 +1750,13 @@ svg > path:nth-child(23) {
         flex: 1;
         min-height: 0;
         display: flex;
-        flex-direction: column;
+        flex-wrap: wrap;
     }
     #createtemplateform > *:not(p,hr)
     {
         padding: 2%;
         margin : 2%;
+        width: 100%;
         height: fit-content;
         background-color: var(--template-color-mid);
         font-size: 1.5rem;
@@ -1779,6 +1780,7 @@ svg > path:nth-child(23) {
     padding: 0;
     border: 0;
     height: 5vh;
+    width: 100%;
     border-radius: 1vh;
    }
    #createtemplatepage #snapshotcontainer > #addexercises{
