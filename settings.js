@@ -1,12 +1,10 @@
 const metricUnits = ["kgs","mts",];
 const imperialUnits = ["lbs","''"];
 const conversionArr = [2.2,[3.28084,39]]
-const factoredWeight = document.getElementById("afterfactor");
 const unitSelection = document.getElementById("unitval");
 const settingsContainer = document.getElementById("settingscontainer");
 const personalInfoContainer = document.getElementById("personalinfo");
 const preferenceContainer = document.getElementById("preferences");
-const weightElem = personalInfoContainer.children[4].lastElementChild.children[0];
 const logMeasurementsBtn =  document.getElementById("logmeasurementsbtn");
 const measurementsDialog = document.getElementById("addmeasurements");
 const doneBtn =  document.getElementById("donebtn");
@@ -33,7 +31,7 @@ let importData = [];
 const exportHeaders = ["workoutDate","workoutName","workoutStartTime","workoutEndTime","workoutIntensity","workoutUnit","workoutSystemicFatigue","exercise","setnum","reps","weight","rest","tut","rir"];
 const partsName = ['neck', 'chest', 'shoulders', 'arms', 'forearms', 'abdomen', 'thighs', 'calves','glutes'];
 const setUnits = ()=>{
-    let targetElems = Array.from(settingsContainer.querySelectorAll("p:not([id='ftsymbol'],[id='afterfactor'])"));
+    let targetElems = Array.from(settingsContainer.querySelectorAll("p:not([id='ftsymbol'])"));
     let inchesEl = personalInfoContainer.querySelector("#inchesval");
     if(unitSelection.value==="metric"){
         targetElems.forEach(el => {
@@ -78,7 +76,6 @@ const saveSettings = () => {
         savedSettings["unit"] = preferencesElms[0].lastElementChild.value;
         savedSettings["bweight"] = preferencesElms[1].lastElementChild.children[0].value + " " + preferencesElms[1].lastElementChild.children[1].textContent;
         savedSettings["dweight"] = preferencesElms[2].lastElementChild.children[0].value + " " + preferencesElms[2].lastElementChild.children[1].textContent;
-        savedSettings["bodywt"] = preferencesElms[3].lastElementChild.children[0].value + " " + preferencesElms[3].lastElementChild.children[1].textContent;
         localStorage.savedSettings = JSON.stringify(savedSettings);
     }
     catch(e){
@@ -93,7 +90,7 @@ const retrieveSettings = () => {
     // Any of these fields can be legitimately absent -- ensureWeightSettings()
     // (functions.js, the "complete your weight settings" popup) only ever
     // writes weight/bweight/dweight/unit, never name/email/gender/age/
-    // height/bodywt at all, so a user who's only ever gone through that
+    // height at all, so a user who's only ever gone through that
     // popup (never the full form here) has a genuinely partial
     // settingsObject. The old code called .split(" ") unconditionally on
     // whichever field came first -- height, for exactly that user -- and
@@ -123,19 +120,7 @@ const retrieveSettings = () => {
         preferencesElms[2].lastElementChild.children[0].value = settingsObject["dweight"].split(" ")[0];
         preferencesElms[2].lastElementChild.children[1].textContent = settingsObject["dweight"].split(" ")[1];
     }
-    if (settingsObject["bodywt"] !== undefined){
-        preferencesElms[3].lastElementChild.children[0].value = settingsObject["bodywt"].split(" ")[0];
-        preferencesElms[3].lastElementChild.children[1].textContent = settingsObject["bodywt"].split(" ")[1];
-    }
     setUnits();
-    applyWtFactor();
-}
-const applyWtFactor = () => {
-    let actualWeight = weightElem.value;
-    if(factoredWeight.previousElementSibling.value <= 0 || !actualWeight) return;
-    let displayVal = (actualWeight*factoredWeight.previousElementSibling.value).toFixed(0);
-    factoredWeight.hidden = displayVal ? false : true;
-    factoredWeight.textContent = displayVal;
 }
 
 const recalibrate = (e) => {
@@ -311,9 +296,7 @@ retrieveSettings()
 redirectHome.addEventListener("click" , home);
 
 unitSelection.addEventListener("change",recalibrate);
-doneBtn.addEventListener("click",saveSettings); 
-factoredWeight.previousElementSibling.addEventListener("keyup",applyWtFactor);
-weightElem.addEventListener("blur",applyWtFactor);
+doneBtn.addEventListener("click",saveSettings);
 importBtn.addEventListener("click",handleImport)
 exportBtn.addEventListener("click",handleExport)
 fullBackupBtn.addEventListener("click", handleFullBackup)

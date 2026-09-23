@@ -2411,9 +2411,30 @@ svg > path:nth-child(23) {
         align-items: center;
         margin: 0 3vh;
     }
-    #settingspage #personalinfo > * > input[id="ageval"],input[id="genderval"],input[id="weightval"],input[id="heightval"],  #settingspage #preferences > * > input[id="bodywtval"]{
+    /* Bare text-entry fields (no adjoining unit label) -- name, email,
+       gender, age. Was a broken comma-list before: only the first and last
+       parts had the #settingspage #personalinfo > * prefix, so
+       genderval/weightval/heightval matched with NO scoping at all (any
+       input/select with that id anywhere on the page, not just here --
+       harmless in practice since the ids are unique, but fragile). It also
+       selected input[id="genderval"] specifically, which is a <select>,
+       not an <input> -- that part of the selector never matched anything.
+       And nameval/mailval were missing from the list entirely, so they
+       fell back to the browser's bare default input size instead of
+       matching ageval/genderval next to them -- the actual visible
+       inconsistency being fixed here. weightval/heightval moved out of
+       this rule (they have a unit label next to them, so the nested-span
+       rule below already sizes them consistently with barbell/dumbbell --
+       being in both rules at once, with two different width values, was
+       the second inconsistency). */
+    #settingspage #personalinfo > span > input[id="nameval"],
+    #settingspage #personalinfo > span > input[id="mailval"],
+    #settingspage #personalinfo > span > select[id="genderval"],
+    #settingspage #personalinfo > span > input[id="ageval"]{
         width: 12vw;
         padding: 0 1vw;
+        border: 0;
+        color: black;
     }
     #settingspage #personalinfo > span:nth-child(n+5) > span , #preferences > span:nth-child(n+1) > span{
         display: flex;

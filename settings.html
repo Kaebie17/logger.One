@@ -40,7 +40,13 @@
             <span id="unitspan"><label for="unitval">Select Unit</label><select id="unitval" required><option value="" selected></option><option value="metric">Metric</option><option value="imperial">Imperial</option></select></span>
             <span id="barbellspan"><label for="barbellval">Barbell weight</label><span><input type="number" id="barbellval" step="0.1" required><p id="barbellunit">kgs</p></span></span>
             <span id="dumbbellspan"><label for="dumbbellval">Dumbbell weight</label><span><input type="number" id="dumbbellval" step="0.1" required><p id="dumbbellunit">kgs</p></span></span>
-            <span id="bodywtspan"><label for="bodywtval">Bodyweight factor</label><span><input type="number" max="1" min="0.1" step="0.1" id="bodywtval" required><p id="afterfactor" hidden></p></span></span>
+            <!-- Was #bodywtspan (a "Bodyweight factor" multiplier, purely a
+                 self-contained display in this page, never read by any
+                 other file) -- removed as redundant now that the BW toggle
+                 (exercises.js, bodyweight()) already applies a live,
+                 per-exercise fraction (off/1/4/1/2/3/4/1x) to actual
+                 bodyweight directly where it's used. -->
+
             <legend>Preferences</legend>
         </fieldset>
         <fieldset id="personalinfo">
