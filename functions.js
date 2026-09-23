@@ -28,60 +28,6 @@ window.addEventListener("unhandledrejection", (e) => {
     showJsErrorBanner(`UNHANDLED PROMISE REJECTION: ${e.reason?.stack || e.reason}`);
 });
 
-// TEMPORARY measurement only -- deliberately NOT paired with any footer
-// positioning change in this same commit, so whatever gets fixed next is
-// based on what this actually shows, not layered on top of another guess.
-// No code anywhere in this app sets #footer's position/bottom/transform/
-// margin (confirmed by search), so if the footer visibly moves, it's
-// either the browser's own native keyboard-avoidance behavior or a
-// symptom of some OTHER element's layout changing size -- this makes that
-// distinguishable. Logs on every focus (per input, so different vertical
-// positions can be compared directly) and again ~400ms later (after the
-// keyboard's own open animation has settled), covering both the
-// "keyboard closed" and "keyboard open" states for the same field. Shown
-// directly on screen, appended (not overwritten) so a whole sequence of
-// focus events can be reviewed at once -- console.log alone needs Mac/Web
-// Inspector access this session hasn't confirmed being available.
-let footerDiagPanel, footerDiagUnpin;
-function ensureFooterDiagPanel(){
-    if (footerDiagPanel) return footerDiagPanel;
-    footerDiagPanel = document.createElement("div");
-    footerDiagPanel.id = "footer-diag-panel";
-    footerDiagPanel.style.cssText = "position:fixed; left:0; right:0; z-index:999997; max-height:38vh; overflow-y:auto; background:rgba(0,0,0,0.9); color:#0ff; font-family:monospace; font-size:9px; white-space:pre-wrap; padding:4px 6px;";
-    document.body.appendChild(footerDiagPanel);
-    footerDiagUnpin = pinToVisualViewport(footerDiagPanel, 0);
-    return footerDiagPanel;
-}
-// The page's own inner scrolling container (the one that SHOULD be the
-// only thing with a nonzero scrollTop while the keyboard is open) -- one
-// of these ids exists on whichever page is currently loaded.
-function findContentContainer(){
-    const ids = ["settingscontainer","createworkoutform","createtemplateform","history","container"];
-    for (const id of ids){
-        const el = document.getElementById(id);
-        if (el) return el;
-    }
-    return null;
-}
-function logFooterDiagnostics(label){
-    const panel = ensureFooterDiagPanel();
-    const footer = document.getElementById("footer");
-    const header = document.getElementById("header");
-    const content = findContentContainer();
-    const active = document.activeElement;
-    const vv = window.visualViewport;
-    const r = (rect) => rect ? `t${rect.top.toFixed(0)} b${rect.bottom.toFixed(0)}` : "n/a";
-    const line1 = `${label} | innerH:${window.innerHeight} clientH:${document.documentElement.clientHeight} vvH:${vv?.height?.toFixed(0)} vvTop:${vv?.offsetTop?.toFixed(1)} vvPageTop:${vv?.pageTop?.toFixed(1)} --vh:${getComputedStyle(document.documentElement).getPropertyValue("--vh")}`;
-    const line2 = `  scrollY:${window.scrollY} docEl.scrollTop:${document.documentElement.scrollTop} body.scrollTop:${document.body.scrollTop} scrollingEl.scrollTop:${document.scrollingElement?.scrollTop} content(#${content?.id}).scrollTop:${content?.scrollTop}`;
-    const line3 = `  header[${r(header?.getBoundingClientRect())}] content[${r(content?.getBoundingClientRect())}] footer[${r(footer?.getBoundingClientRect())}] active:${active?.id||active?.tagName}[${r(active?.getBoundingClientRect?.())}]`;
-    panel.textContent += line1 + "\n" + line2 + "\n" + line3 + "\n";
-    panel.scrollTop = panel.scrollHeight;
-}
-document.addEventListener("focusin", (e) => {
-    if (!["INPUT","TEXTAREA","SELECT"].includes(e.target.tagName)) return;
-    logFooterDiagnostics(`focus:${e.target.id||e.target.name||"?"} @closed`);
-    setTimeout(() => logFooterDiagnostics(`focus:${e.target.id||e.target.name||"?"} @open+400ms`), 400);
-}, true);
 
 // Best-effort companion to the landscape overlay in styles.css. This can
 // actively hold the device in portrait, but only under conditions most
