@@ -984,7 +984,7 @@ window.LoggerDB = {
 // page's own footer/button. Bundles everything into one downloaded JSON
 // file the user fully controls, independent of this device's own
 // IndexedDB/localStorage/service-worker cache.
-function handleFullBackup(e){
+async function handleFullBackup(e){
     e?.preventDefault?.();
     const backup = {
         version: 1,
@@ -995,11 +995,28 @@ function handleFullBackup(e){
         customExercisesData: window.customExercisesData || {},
         savedSettings: JSON.parse(localStorage.savedSettings || "{}"),
     };
-    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json;charset=utf-8;" });
+    const filename = `logger-one-backup-${new Date().toISOString().slice(0,10)}.json`;
+    const json = JSON.stringify(backup, null, 2);
+
+    // A plain <a download> click is unreliable specifically in an
+    // installed/standalone iOS PWA -- it relies on browser-chrome download
+    // handling that a standalone app can lack, so it can silently do
+    // nothing. navigator.share() with a real File invokes the native
+    // Share Sheet instead (Save to Files, AirDrop, Messages, etc.), which
+    // is much better supported there -- tried first, falling back to the
+    // download link only if the platform doesn't support sharing files at
+    // all (canShare returns false) or the user backs out of the sheet.
+    const file = new File([json], filename, { type: "application/json" });
+    if (navigator.canShare?.({ files: [file] })) {
+        try { await navigator.share({ files: [file], title: "Logger.One Backup" }); return; }
+        catch (err) { /* user cancelled the share sheet, or it failed -- fall through to the download link below */ }
+    }
+
+    const blob = new Blob([json], { type: "application/json;charset=utf-8;" });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
     link.setAttribute("href", url);
-    link.setAttribute("download", `logger-one-backup-${new Date().toISOString().slice(0,10)}.json`);
+    link.setAttribute("download", filename);
     link.click();
 }
 
