@@ -2453,16 +2453,57 @@ svg > path:nth-child(23) {
         background-color: var(--template-color-mid);
         border: 1px solid var(--template-color-mid);
     }
-    #settingspage #importexport {
+    /* #datamanagementprompt (settings.js) -- Import/Export/Backup/Restore,
+       consolidated into one popup reached via the "Reset & Backup" trigger
+       button instead of sitting inline on the main page. Same dark-dialog
+       look as every other dialog added tonight, but double-scoped under
+       #settingspage (matching the AI-dialog specificity lesson from
+       earlier) since #settingspage dialog button below (tuned for the
+       2-button Save/Close row in the measurements dialog) would otherwise
+       win the specificity fight and shrink these to 40% width. */
+    #settingspage #datamanagementprompt{
+        overflow: visible;
+        background-color: var(--template-color-mid);
+        color: white;
+        border: 1px solid white;
+        border-radius: 1vh;
+        padding: 3vh 4vw;
+        width: 80vw;
+        max-width: 22rem;
         display: flex;
-        flex-wrap: nowrap;
-        gap: 1vw;
-        margin: 2vh;
+        flex-direction: column;
+        gap: 1.6vh;
+        font-family: Georgia, 'Times New Roman', Times, serif;
     }
-    #settingspage > #settingscontainer img {
+    #settingspage .modal-close{
+        position: absolute;
+        top: -0.7rem;
+        right: -0.7rem;
+        width: 1.6rem;
+        height: 1.6rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--template-color-black);
+        border: 1px solid white;
+        border-radius: 50%;
+        font-size: 0.7rem;
+        line-height: 1;
+        cursor: pointer;
+    }
+    #settingspage #datamanagementprompt > p{
+        text-align: center;
+        font-size: 1.2rem;
+        font-weight: 900;
+        margin: 0;
+    }
+    #settingspage #datamanagementprompt > button{
         width: 100%;
-        margin-left: 1vw;
-        margin-left: 1vw;
+        height: 4vh;
+        font-size: 1rem;
+        background-color: var(--template-color-black);
+        color: white;
+        border: 1px solid var(--template-color-black);
     }
     #settingspage dialog > #measurementstable{
         height: 40vh;

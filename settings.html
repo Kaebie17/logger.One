@@ -21,7 +21,21 @@
         <img src="" alt="">
         <h1>logger.One</h1>
     </header>
-    <form id="settingscontainer" action="">
+    <!-- Was <form action="">. Nothing here ever relied on real form
+         submission -- saveSettings() reads each field's .value directly and
+         writes to localStorage itself, no server, no action="" navigation
+         ever intended to fire. But being a <form> WITH several `required`
+         fields meant any click the browser treated as a submit attempt
+         (fixed once already with type="button" on every button) could still
+         trigger native validation/submission handling -- and installed
+         PWAs on iOS are documented to handle in-app form submission
+         differently than a regular Safari tab, which lines up with this
+         page specifically (the only one in the app using a <form> at all)
+         misbehaving only in the installed app, never in Safari. A plain
+         div removes the entire mechanism instead of patching around it
+         again -- required attributes are now inert (harmless) since
+         there's no form left to validate against. -->
+    <div id="settingscontainer">
         <fieldset id="preferences">
             <span id="unitspan"><label for="unitval">Select Unit</label><select id="unitval" required><option value="" selected></option><option value="metric">Metric</option><option value="imperial">Imperial</option></select></span>
             <span id="barbellspan"><label for="barbellval">Barbell weight</label><span><input type="number" id="barbellval" step="0.1" required><p id="barbellunit">kgs</p></span></span>
@@ -39,32 +53,26 @@
             <!-- <a href="">Log Measurements</a> -->
             <legend>Personal Info</legend>
         </fieldset>
-        <!-- Every button in this form defaulted to type="submit" (the
-             implicit default) with several `required` fields elsewhere in
-             the form -- clicking ANY of them with even one required field
-             empty made the browser block the click's own action and
-             instead focus/highlight the FIRST invalid required field
-             (#unitval), regardless of what each button's own click handler
-             did. type="button" on all of them (same fix already applied to
-             the Backup/Restore buttons below) removes that native
-             submit/validation behavior entirely -- each button's own JS
-             handler already does the actual work (saveSettings,
-             handleImport, etc.), none of them ever relied on real form
-             submission. -->
-        <button type="button" form="settingscontainer" id="donebtn">Done</button>
+        <button type="button" id="donebtn">Done</button>
         <button type="button" id="logmeasurementsbtn">Log Measurements</button>
-        <span id="importexport">
-            <button type="button" id="importdata">Import Data</button>
-            <button type="button" id="exportdata">Export Data</button>
-            <a href="format_sheet.xlsx"><img src="./media/icons/icons8-excel-50.png" alt=""></a>
-        </span>
-        <!-- "Export Data" above only ever covered workout logs (CSV) -- these
-             two cover EVERYTHING (workouts, templates, muscle soreness,
-             custom exercises, settings) as one portable JSON file. type=button
-             explicit on both since they sit inside #settingscontainer's form. -->
+        <!-- Import/Export/Backup/Restore used to sit inline here -- moved
+             into their own popup (see #datamanagementprompt below),
+             reached through this one trigger button, decluttering the
+             main page. -->
+        <button type="button" id="datamanagementbtn">Reset &amp; Backup</button>
+    </div>
+    <dialog id="datamanagementprompt">
+        <span class="modal-close">❌</span>
+        <p>Data Management</p>
+        <button type="button" id="importdata">Workout Log Import</button>
+        <button type="button" id="exportdata">Workout Log Export</button>
+        <!-- "Workout Log Export" above only ever covered workout logs (CSV)
+             -- these two cover EVERYTHING (workouts, templates, muscle
+             soreness, custom exercises, settings) as one portable JSON
+             file. -->
         <button type="button" id="fullbackupdata">Backup All Data</button>
         <button type="button" id="fullrestoredata">Restore All Data</button>
-    </form>
+    </dialog>
     <dialog id="addmeasurements">
         <table id="measurementstable">
             <tr>

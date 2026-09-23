@@ -14,6 +14,8 @@ const importBtn = document.getElementById("importdata");
 const exportBtn = document.getElementById("exportdata");
 const fullBackupBtn = document.getElementById("fullbackupdata");
 const fullRestoreBtn = document.getElementById("fullrestoredata");
+const dataManagementBtn = document.getElementById("datamanagementbtn");
+const dataManagementDialog = document.getElementById("datamanagementprompt");
 const redirectHome = document.querySelector("#header > h1");
 const savedSettings = {};
 // Unguarded before this: if localStorage.savedSettings existed but was
@@ -262,6 +264,20 @@ const openMeasurementsDialog = (e) => {
     measurementsDialog.append(frag);
 }
 
+// Import/Export/Backup/Restore used to sit inline on the main page --
+// consolidated into this one popup instead, reached through a single
+// "Reset & Backup" trigger. pinToVisualViewport (functions.js) since this
+// dialog contains no inputs of its own, but keeping it consistent with
+// every other dialog added tonight costs nothing and protects against the
+// same keyboard/viewport bug if it's ever reached right after a field was
+// being edited elsewhere.
+function openDataManagementDialog(e){
+  e.preventDefault();
+  dataManagementDialog.showModal();
+  pinToVisualViewport(dataManagementDialog, 0.04);
+}
+dataManagementDialog.querySelector(".modal-close").addEventListener("click", () => dataManagementDialog.close());
+
 setUnits();
 retrieveSettings()
 
@@ -277,6 +293,7 @@ exportBtn.addEventListener("click",handleExport)
 fullBackupBtn.addEventListener("click", handleFullBackup)
 fullRestoreBtn.addEventListener("click", handleFullRestore)
 logMeasurementsBtn.addEventListener("click", openMeasurementsDialog)
+dataManagementBtn.addEventListener("click", openDataManagementDialog)
 
 function home() {
   document.location = "./index.html";
