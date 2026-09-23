@@ -2460,8 +2460,22 @@ svg > path:nth-child(23) {
        #settingspage (matching the AI-dialog specificity lesson from
        earlier) since #settingspage dialog button below (tuned for the
        2-button Save/Close row in the measurements dialog) would otherwise
-       win the specificity fight and shrink these to 40% width. */
-    #settingspage #datamanagementprompt{
+       win the specificity fight and shrink these to 40% width.
+
+       The [open] here is load-bearing, not decorative: this dialog is
+       written statically in the HTML (unlike every other dialog tonight,
+       which is only ever created by JS right before it's shown), so it
+       sits in the DOM from page load. The browser's own UA stylesheet
+       hides a <dialog> by default via `dialog:not([open]) { display:none }`
+       -- a plain `#settingspage #datamanagementprompt { display:flex }`
+       has far higher specificity than that basic UA rule and would
+       override it unconditionally, rendering the dialog in normal page
+       flow (visible, unhidden, never centered as a real modal overlay)
+       from the moment the page loads, regardless of whether showModal()
+       had ever been called. Scoping display:flex to only the [open] state
+       -- exactly the condition the UA stylesheet itself keys off -- keeps
+       it correctly hidden until JS actually opens it. */
+    #settingspage #datamanagementprompt[open]{
         overflow: visible;
         background-color: var(--template-color-mid);
         color: white;
