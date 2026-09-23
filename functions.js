@@ -68,6 +68,14 @@ window.addEventListener("orientationchange", setRealViewportHeight);
 // pinned to the live visual viewport, same technique as pinToVisualViewport
 // below but for the whole page instead of one dialog. Background lives on
 // <html> now (styles.css), not here -- body doesn't reliably repaint it.
+function findContentContainer(){
+    const ids = ["settingscontainer","createworkoutform","createtemplateform","history","container"];
+    for (const id of ids){
+        const el = document.getElementById(id);
+        if (el) return el;
+    }
+    return null;
+}
 function pinPageToVisualViewport(){
     const vv = window.visualViewport;
     const page = document.body;
@@ -78,6 +86,19 @@ function pinPageToVisualViewport(){
     page.style.top = `${vv.offsetTop}px`;
     page.style.width = `${vv.width}px`;
     page.style.height = `${vv.height}px`;
+    // Confirmed via inspector: flex:1 on the content container computes
+    // correctly (flex-grow:1, flex-shrink:1, flex-basis:0%, min-height:0)
+    // but the box itself doesn't actually resize when body's own height
+    // changes via JS -- stuck at its content's natural size (615px, on a
+    // page where body went 750px -> 310px) regardless. Setting height
+    // directly bypasses flex's auto-resize path entirely instead of
+    // depending on it.
+    const header = document.getElementById("header");
+    const footer = document.getElementById("footer");
+    const content = findContentContainer();
+    if (content && header && footer){
+        content.style.height = `${vv.height - header.offsetHeight - footer.offsetHeight}px`;
+    }
 }
 window.visualViewport?.addEventListener("resize", pinPageToVisualViewport);
 window.visualViewport?.addEventListener("scroll", pinPageToVisualViewport);
