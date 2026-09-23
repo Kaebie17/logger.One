@@ -13,7 +13,7 @@
 // pushes an update out -- browsers only re-check this script's own bytes
 // for changes, they don't know when styles.css or exercisesDB.js changed
 // unless this version string changes too.
-const CACHE_NAME = "logger-one-v69";
+const CACHE_NAME = "logger-one-v70";
 
 const PRECACHE_URLS = [
   "index.html", "exercises.html", "exercisedetails.html", "history.html",
@@ -62,31 +62,65 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+// The app shell (every page navigation, plus its own .html/.js/.css files)
+// is NETWORK-FIRST: always try the live network when online, only falling
+// back to the cache when the fetch genuinely fails (offline). Cache-first
+// (the old strategy, kept below for everything else) is why normal Safari
+// could keep serving old app code while Private Browsing -- which never
+// carries forward an old service worker/cache state -- always saw the
+// current deploy: cache-first PREFERS the cache whenever one exists,
+// regardless of whether the network has something newer, so an
+// already-cached device had no reason to ever check. Network-first closes
+// that gap directly: a normal page load now behaves the same as Private
+// Browsing's "always ask the network first" for the code that actually
+// matters, while still keeping the app usable offline as a fallback, which
+// remains this cache's real job.
+function isAppShellRequest(request) {
+  if (request.mode === "navigate") return true;
+  const { pathname, origin } = new URL(request.url);
+  return origin === location.origin && /\.(html|js|css)$/.test(pathname);
+}
+
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
+  if (isAppShellRequest(event.request)) {
+    event.respondWith(
+      fetch(event.request).then((response) => {
+        if (response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        }
+        return response;
+      }).catch(() =>
+        caches.match(event.request).then((cached) => {
+          if (cached) return cached;
+          // Offline, never cached, and (for a page navigation specifically)
+          // not the exact URL this cache was keyed on -- fall back to
+          // index.html rather than a bare browser error.
+          if (event.request.mode === "navigate") return caches.match("index.html");
+          return Response.error();
+        })
+      )
+    );
+    return;
+  }
+
+  // Everything else (icons, exercise images/videos) -- cache-first, as
+  // before. These rarely change and instant-load matters more than
+  // freshness here; still opportunistically cached the first time they're
+  // fetched successfully so they're available offline afterward.
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
 
       return fetch(event.request).then((response) => {
-        // Opportunistically cache anything else same-origin that gets
-        // fetched successfully (exercise images/videos, anything added to
-        // the app later without a matching sw.js update) so it's available
-        // offline on the NEXT visit, even though it wasn't precached.
         if (response.ok && new URL(event.request.url).origin === location.origin) {
           const copy = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
         }
         return response;
-      }).catch(() => {
-        // Offline and not cached. For a page navigation specifically, fall
-        // back to the cached index.html rather than a bare browser error --
-        // covers the case where something requests "/" instead of the exact
-        // "index.html" this cache was keyed on.
-        if (event.request.mode === "navigate") return caches.match("index.html");
-        return Response.error();
-      });
+      }).catch(() => Response.error());
     })
   );
 });
