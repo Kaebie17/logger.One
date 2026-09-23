@@ -64,15 +64,13 @@ window.addEventListener("resize", setRealViewportHeight);
 window.visualViewport?.addEventListener("resize", setRealViewportHeight);
 window.addEventListener("orientationchange", setRealViewportHeight);
 
-// #footer is position:fixed on every page now (styles.css), so it no
-// longer reserves its own space in any page's flex column -- every
-// page's content container still extends the same as before, right
-// underneath it, with nothing telling it to leave room. This measures
-// #footer's actual rendered height and reserves that much space in
-// whichever content container the current page has. Settings.html also
-// made #header fixed, so it gets the fuller treatment (container switched
-// to position:absolute with top/bottom insets, in its own CSS); every
-// other page just gets padding-bottom added to its existing container.
+// #header/#footer are position:fixed on every page now (styles.css) except
+// #createexercisespage (its own separate layout, untouched), so they no
+// longer reserve their own space in any page's flex/flow column -- each
+// page's content container is position:absolute instead (see styles.css),
+// bounded by top/bottom insets set here from #header/#footer's own actual
+// rendered height. This is the same treatment settings.html got first,
+// now generalized to every other page that has one of these containers.
 function findContentContainer(){
     const ids = ["settingscontainer","createworkoutform","createtemplateform","history","container"];
     for (const id of ids){
@@ -82,16 +80,12 @@ function findContentContainer(){
     return null;
 }
 function pinHeaderFooterFixed(){
+    const header = document.getElementById("header");
     const footer = document.getElementById("footer");
     const content = findContentContainer();
     if (!footer || !content) return;
-    if (document.body.id === "settingspage"){
-        const header = document.getElementById("header");
-        if (header) content.style.top = `${header.offsetHeight}px`;
-        content.style.bottom = `${footer.offsetHeight}px`;
-    } else {
-        content.style.paddingBottom = `${footer.offsetHeight}px`;
-    }
+    if (header) content.style.top = `${header.offsetHeight}px`;
+    content.style.bottom = `${footer.offsetHeight}px`;
 }
 window.addEventListener("load", pinHeaderFooterFixed);
 window.addEventListener("resize", pinHeaderFooterFixed);
