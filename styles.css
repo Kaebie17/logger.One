@@ -285,7 +285,6 @@ svg > path:nth-child(23) {
        fit its content and the whole page scrolled as one piece, header and
        footer included, instead of just #container. */
     #indexpage{
-        position: relative;
         height: 100vh;
         height: 100dvh;
         /* Real fallback for dvh being unreliable in standalone-PWA mode on
@@ -297,15 +296,14 @@ svg > path:nth-child(23) {
         overflow: hidden;
     }
     body #container{
-        /* #header/#footer are position:fixed now (see above), so they no
-           longer reserve flex space -- position:absolute here instead of
-           flex:1, with top/bottom set live by pinHeaderFooterFixed()
-           (functions.js) to match their actual rendered height. Needs
-           #pageid above to have position:relative as this box's
-           containing block. */
-        position: absolute;
-        left: 0;
-        right: 0;
+        /* flex:1, not a fixed vh: now that #header/#footer size themselves
+           to their actual content (min-height, can grow), a fixed 87vh here
+           would either leave a gap or get squeezed under/over them depending
+           on the device. flex:1 always takes exactly what's left; min-height:0
+           is required for a flex child to still shrink/scroll instead of
+           forcing its content's natural size. */
+        flex: 1;
+        min-height: 0;
         overflow-y: scroll;
     }
     #header{
@@ -332,22 +330,6 @@ svg > path:nth-child(23) {
            that space. */
         padding-top: env(safe-area-inset-top, 0px);
         background-image: linear-gradient(-60deg, var(--template-color-black), var(--template-color-mid), var(--template-color-soft));
-    }
-    /* iOS scrolls <html> on keyboard focus despite overflow:hidden;
-       position:fixed elements are exempt, normal flex children aren't --
-       confirmed via on-device testing (see functions.js's
-       pinHeaderFooterFixed). #footer already got this treatment app-wide;
-       #header needs the same everywhere or it (and everything else still
-       in flow) keeps getting dragged up with it. Scoped off
-       #createexercisespage on purpose -- that page has its own separate
-       layout (flex:1 #exerciselist, no single #container) and its own
-       existing keyboard handling, not part of this fix. */
-    body:not(#createexercisespage) #header{
-        position: fixed;
-        left: 0;
-        right: 0;
-        top: 0;
-        z-index: 100;
     }
     #header > h1{
         margin: 0;
@@ -739,12 +721,16 @@ svg > path:nth-child(23) {
        because every page's HTML already wraps its links in .footer-row;
        collapsing them back into one isn't necessary now that neither one
        is carrying any extra bottom space. */
+    /* Was position:fixed;bottom:0 -- pinned to the LAYOUT viewport, which
+       never shrinks when the keyboard opens (only the VISUAL viewport
+       does), so bottom:0 kept meaning "the real screen edge," now hidden
+       behind the keyboard. Back to a plain flex-shrink:0 flow child --
+       functions.js's pinPageToVisualViewport() now keeps <body> itself
+       (header, content and footer together, same internal layout as
+       always) pinned to the live visual viewport instead, so nothing
+       inside it needs its own fixed positioning any more. */
     #footer{
         width: 100%;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        z-index: 100;
         flex-shrink: 0;
         background-image: linear-gradient(-60deg, var(--template-color-black), var(--template-color-mid), var(--template-color-soft));
     }
@@ -986,19 +972,15 @@ svg > path:nth-child(23) {
         height: calc(var(--vh, 1vh) * 100);
         overflow: hidden;
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
-        position: relative;
     }
     #createworkoutform{
         overflow-y: scroll;
         margin-top: 2%;
-        /* Was a fixed 87vh -- #header/#footer are position:fixed now (see
-           above) so they no longer reserve flex space; position:absolute
-           with top/bottom set live by pinHeaderFooterFixed() (functions.js)
-           replaces it, matching their actual rendered height instead of a
-           guessed number. */
-        position: absolute;
-        left: 0;
-        right: 0;
+        /* Plain vh doesn't shrink when the keyboard opens; --vh does (see
+           the outer page container above) -- keeps this inner scroll area
+           in sync with it instead of the stale, keyboard-unaware value. */
+        height: 87vh;
+        height: calc(var(--vh, 1vh) * 87);
         display: flex;
         flex-wrap: wrap;
     }
@@ -1745,7 +1727,6 @@ svg > path:nth-child(23) {
 
     /* ---------------- */
     #createtemplatepage{
-        position: relative;
         height: 100vh;
         height: 100dvh;
         /* Real fallback for dvh being unreliable in standalone-PWA mode on
@@ -1761,9 +1742,8 @@ svg > path:nth-child(23) {
         overflow-y: scroll;
         margin-top: 2%;
         /* Same fix as #createworkoutform -- see its comment. */
-        position: absolute;
-        left: 0;
-        right: 0;
+        height: 87vh;
+        height: calc(var(--vh, 1vh) * 87);
         display: flex;
         flex-wrap: wrap;
     }
@@ -1862,7 +1842,6 @@ svg > path:nth-child(23) {
     
     /* history page */
     #historypage{
-        position: relative;
         height: 100vh;
         height: 100dvh;
         /* Real fallback for dvh being unreliable in standalone-PWA mode on
@@ -1876,12 +1855,9 @@ svg > path:nth-child(23) {
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
     }
     #historypage #history{
-        /* Same fix as #createworkoutform above -- see its comment. Only
-           position:absolute (no left/right) -- width:95vw + margin:1vw
-           below already fully determine this box's horizontal placement,
-           so left/right stay auto (its normal static position) and only
-           top/bottom (set live by pinHeaderFooterFixed) change. */
-        position: absolute;
+        /* Same fix as #createworkoutform above -- see its comment. */
+        height: 87.5vh;
+        height: calc(var(--vh, 1vh) * 87.5);
         width: 95vw;
         margin: 1vw;
         padding: 1vw;
@@ -1927,7 +1903,6 @@ svg > path:nth-child(23) {
     }
     /* past wprlout page */
     #pastworkout{
-        position: relative;
         height: 100vh;
         height: 100dvh;
         /* Real fallback for dvh being unreliable in standalone-PWA mode on
@@ -1942,9 +1917,8 @@ svg > path:nth-child(23) {
     }
     #pastworkout #container{
         /* Same fix as #createworkoutform above -- see its comment. */
-        position: absolute;
-        left: 0;
-        right: 0;
+        height: 87.5vh;
+        height: calc(var(--vh, 1vh) * 87.5);
         padding: 0.5vh;
         overflow-y: scroll;
     }
@@ -2282,7 +2256,6 @@ svg > path:nth-child(23) {
      
      /* trends page */
      #trendspage{
-        position: relative;
         height: 100vh;
         height: 100dvh;
         /* Real fallback for dvh being unreliable in standalone-PWA mode on
@@ -2297,9 +2270,8 @@ svg > path:nth-child(23) {
      }
      #trendspage #container{
         /* Same fix as #createworkoutform above -- see its comment. */
-        position: absolute;
-        left: 0;
-        right: 0;
+        height: 87vh;
+        height: calc(var(--vh, 1vh) * 87);
         padding: 0.5vw;
      }
      #trendspage #container #mainfilters{
@@ -2417,7 +2389,6 @@ svg > path:nth-child(23) {
       /* ___________________ */
 
     #settingspage{
-        position: relative;
         height: 100vh;
         height: 100dvh;
         /* Real fallback for dvh being unreliable in standalone-PWA mode on
@@ -2429,24 +2400,9 @@ svg > path:nth-child(23) {
         overflow: hidden;
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
     }
-    /* iOS scrolls <html> on keyboard focus despite overflow:hidden; fixed
-       elements are exempt, flex children aren't -- so header/footer are
-       fixed now instead of flex items. #settingscontainer is positioned
-       absolute with top/bottom set by pinHeaderFooterFixed() (functions.js)
-       to match, since header/footer no longer reserve flex space. */
-    #settingspage #header,
-    #settingspage #footer{
-        position: fixed;
-        left: 0;
-        right: 0;
-        z-index: 100;
-    }
-    #settingspage #header{ top: 0; }
-    #settingspage #footer{ bottom: 0; }
     #settingspage #settingscontainer{
-        position: absolute;
-        left: 0;
-        right: 0;
+        flex: 1;
+        min-height: 0;
         display: flex;
         flex-direction: column;
         gap: 2vh;
@@ -2618,7 +2574,6 @@ svg > path:nth-child(23) {
 /* ------------------ */
 
     #profilepage{
-        position: relative;
         height: 100vh;
         height: 100dvh;
         /* Real fallback for dvh being unreliable in standalone-PWA mode on
@@ -2636,9 +2591,8 @@ svg > path:nth-child(23) {
     #profilepage #container{
         display: grid;
         /* Same fix as #createworkoutform above -- see its comment. */
-        position: absolute;
-        left: 0;
-        right: 0;
+        height: 87.5vh;
+        height: calc(var(--vh, 1vh) * 87.5);
         padding: 0.5vh;
     }
     /* Same overflow:visible / .modal-close pattern as #pastworkout's
@@ -2857,7 +2811,6 @@ svg > path:nth-child(23) {
   /* ------------------ */
 
   #statspage{
-        position: relative;
         height: 100vh;
         height: 100dvh;
         /* Real fallback for dvh being unreliable in standalone-PWA mode on
@@ -2871,9 +2824,8 @@ svg > path:nth-child(23) {
     }
     #statspage #container{
         /* Same fix as #createworkoutform above -- see its comment. */
-        position: absolute;
-        left: 0;
-        right: 0;
+        height: 87.5vh;
+        height: calc(var(--vh, 1vh) * 87.5);
         padding: 0.5vh;
     }
     #statspage h2{

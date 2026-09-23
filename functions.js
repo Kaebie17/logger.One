@@ -64,38 +64,35 @@ window.addEventListener("resize", setRealViewportHeight);
 window.visualViewport?.addEventListener("resize", setRealViewportHeight);
 window.addEventListener("orientationchange", setRealViewportHeight);
 
-// #header/#footer are position:fixed on every page now (styles.css) except
-// #createexercisespage (its own separate layout, untouched), so they no
-// longer reserve their own space in any page's flex/flow column -- each
-// page's content container is position:absolute instead (see styles.css),
-// bounded by top/bottom insets set here from #header/#footer's own actual
-// rendered height. This is the same treatment settings.html got first,
-// now generalized to every other page that has one of these containers.
-function findContentContainer(){
-    const ids = ["settingscontainer","createworkoutform","createtemplateform","history","container"];
-    for (const id of ids){
-        const el = document.getElementById(id);
-        if (el) return el;
-    }
-    return null;
+// Making #header/#footer position:fixed (tried tonight) anchors them to
+// the LAYOUT viewport, which never shrinks when the keyboard opens -- only
+// the VISUAL viewport does. So bottom:0 kept meaning "the real screen
+// edge," now hidden behind the keyboard, while the content in between,
+// still sized against the (unshrunk) layout viewport, either overlapped
+// or left a gap. What's actually wanted: the whole page -- header, content,
+// footer, same internal flex layout as always -- shrinks and repositions
+// as ONE unit to exactly the visible area above the keyboard, the same way
+// pinToVisualViewport (below) already keeps a dialog aligned to it. This
+// applies that identical technique to <body> itself instead of a dialog,
+// so nothing inside it needs its own special positioning any more.
+// Excludes #createexercisespage, which has its own separate layout and
+// keyboard handling already.
+function pinPageToVisualViewport(){
+    const vv = window.visualViewport;
+    const page = document.body;
+    if (!vv || !page || page.id === "createexercisespage") return;
+    page.style.position = "fixed";
+    page.style.margin = "0";
+    page.style.left = `${vv.offsetLeft}px`;
+    page.style.top = `${vv.offsetTop}px`;
+    page.style.width = `${vv.width}px`;
+    page.style.height = `${vv.height}px`;
 }
-function pinHeaderFooterFixed(){
-    const header = document.getElementById("header");
-    const footer = document.getElementById("footer");
-    const content = findContentContainer();
-    if (!footer || !content) return;
-    if (header) content.style.top = `${header.offsetHeight}px`;
-    content.style.bottom = `${footer.offsetHeight}px`;
-}
-window.addEventListener("load", pinHeaderFooterFixed);
-window.addEventListener("resize", pinHeaderFooterFixed);
-window.addEventListener("orientationchange", pinHeaderFooterFixed);
-// The header's rendered height depends on the Anton webfont (loaded via
-// <link> in <head>) having actually swapped in -- measuring before that
-// finishes would use the fallback font's shorter/taller metrics and
-// undersize/oversize the gap left for it. fonts.ready resolves once every
-// font referenced anywhere in this page's stylesheets has loaded.
-document.fonts?.ready.then(pinHeaderFooterFixed).catch(() => {});
+window.visualViewport?.addEventListener("resize", pinPageToVisualViewport);
+window.visualViewport?.addEventListener("scroll", pinPageToVisualViewport);
+window.addEventListener("load", pinPageToVisualViewport);
+window.addEventListener("orientationchange", pinPageToVisualViewport);
+pinPageToVisualViewport();
 
 // The actual mechanism behind the keyboard/footer bug and the debug
 // overlay/dialogs rendering off-screen: position:fixed anchors to the
