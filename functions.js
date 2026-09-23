@@ -78,6 +78,16 @@ function pinPageToVisualViewport(){
     page.style.top = `${vv.offsetTop}px`;
     page.style.width = `${vv.width}px`;
     page.style.height = `${vv.height}px`;
+    // iOS's native scroll-to-reveal-focused-input can still leave
+    // document.documentElement/body with a nonzero scrollTop even though
+    // body's own position is now fully driven by top/left above -- that
+    // leftover offset is what exposes bare background below the footer.
+    // Safe to reset unconditionally now that body's position doesn't
+    // depend on scroll state at all (unlike the header/footer-fixed
+    // approach this replaced, where resetting scroll fought the layout
+    // instead of just clearing a redundant leftover value).
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
 }
 window.visualViewport?.addEventListener("resize", pinPageToVisualViewport);
 window.visualViewport?.addEventListener("scroll", pinPageToVisualViewport);
@@ -195,8 +205,22 @@ function showVersionTag(version) {
   const tag = document.createElement("div");
   tag.id = "app-version-tag";
   tag.textContent = version;
-  tag.style.cssText = "position:fixed; bottom:2px; right:4px; font-size:9px; color:rgba(255,255,255,0.35); z-index:999998; pointer-events:none; font-family:monospace;";
+  tag.style.cssText = "position:fixed; font-size:9px; color:rgba(255,255,255,0.35); z-index:999998; pointer-events:none; font-family:monospace;";
   document.body.appendChild(tag);
+  // Was a static bottom:2px/right:4px -- anchored to the LAYOUT viewport,
+  // which doesn't shrink when the keyboard opens, so it stayed pinned
+  // behind the keyboard instead of tracking the actually-visible bottom
+  // edge. Same live-tracking approach as pinToVisualViewport, anchored to
+  // the visual viewport's own bottom-right corner instead of top-center.
+  const vv = window.visualViewport;
+  if (!vv) { tag.style.bottom = "2px"; tag.style.right = "4px"; return; }
+  const update = () => {
+    tag.style.top = `${vv.offsetTop + vv.height - tag.offsetHeight - 2}px`;
+    tag.style.left = `${vv.offsetLeft + vv.width - tag.offsetWidth - 4}px`;
+  };
+  update();
+  vv.addEventListener("resize", update);
+  vv.addEventListener("scroll", update);
 }
 function requestVersionTag() {
   if (!navigator.serviceWorker.controller) return;
