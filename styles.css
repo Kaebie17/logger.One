@@ -120,17 +120,9 @@ html{
        handles) still win over this via normal CSS specificity. */
     touch-action: manipulation;
 }
-/* Real fix, not a guess this time -- research turned up that
-   touch-action:manipulation on form controls specifically is one of the
-   documented contributors to iOS's installed-PWA keyboard/viewport bug
-   (the on-screen keyboard opening shrinks visualViewport/100dvh without
-   ever correctly restoring them, independent of any app-level layout
-   fix -- see setRealViewportHeight/healViewportAfterKeyboard below for
-   the rest of the mitigation). Restoring native touch-action for exactly
-   the elements that trigger the keyboard is part of the current
-   community-documented workaround; type selectors already outrank the
-   universal `*` rule above regardless of source order, so this doesn't
-   need to move. */
+/* touch-action:manipulation on form controls is a documented contributor
+   to iOS's PWA keyboard/viewport bugs -- restoring native touch-action
+   here is part of the fix (see functions.js's healViewportAfterKeyboard). */
 input, textarea, select{
     touch-action: auto;
 }
@@ -975,16 +967,9 @@ svg > path:nth-child(23) {
     #createworkoutform{
         overflow-y: scroll;
         margin-top: 2%;
-        /* Was a plain height:87vh -- unlike the OUTER page container just
-           above (which correctly falls back to calc(var(--vh,1vh)*100)
-           when the keyboard shrinks the visual viewport), this INNER
-           scrolling container -- where the actual focused inputs live --
-           never shrank at all, staying pinned to 87% of the stale,
-           keyboard-unaware vh unit. That outer/inner height mismatch
-           while the keyboard is open is a real, confirmed contributor to
-           the footer/keyboard bug (see functions.js's footer diagnostic
-           panel and its data) -- this brings it in line with the same
-           --vh-aware pattern every outer page container already uses. */
+        /* Plain vh doesn't shrink when the keyboard opens; --vh does (see
+           the outer page container above) -- keeps this inner scroll area
+           in sync with it instead of the stale, keyboard-unaware value. */
         height: 87vh;
         height: calc(var(--vh, 1vh) * 87);
         display: flex;
@@ -2407,22 +2392,11 @@ svg > path:nth-child(23) {
         overflow: hidden;
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
     }
-    /* CONFIRMED fix, not a guess: on-device data proved #header/#footer --
-       plain flex children, never position:fixed -- move with <html>'s
-       scrollTop when iOS's native keyboard-focus behavior sets it
-       (something html{position:fixed} doesn't block, since that only
-       stops a user's own scroll gesture). The on-screen version tag
-       (functions.js), which IS position:fixed, was directly proven to
-       stay correctly in place through the exact same test -- position:
-       fixed elements are specifically exempt from moving with document
-       scroll, by definition. Giving header/footer the same treatment
-       here, scoped to settings.html only so it can be verified in
-       isolation before rolling out to every other page's identical
-       header/content/footer structure. #settingscontainer switches from
-       flex-participant height math to position:absolute with its
-       top/bottom insets set by pinHeaderFooterFixed() (functions.js) to
-       the header/footer's own measured heights, now that they're no
-       longer in flow to size around automatically. */
+    /* iOS scrolls <html> on keyboard focus despite overflow:hidden; fixed
+       elements are exempt, flex children aren't -- so header/footer are
+       fixed now instead of flex items. #settingscontainer is positioned
+       absolute with top/bottom set by pinHeaderFooterFixed() (functions.js)
+       to match, since header/footer no longer reserve flex space. */
     #settingspage #header,
     #settingspage #footer{
         position: fixed;
@@ -2458,22 +2432,9 @@ svg > path:nth-child(23) {
         align-items: center;
         margin: 0 3vh;
     }
-    /* Bare text-entry fields (no adjoining unit label) -- name, email,
-       gender, age. Was a broken comma-list before: only the first and last
-       parts had the #settingspage #personalinfo > * prefix, so
-       genderval/weightval/heightval matched with NO scoping at all (any
-       input/select with that id anywhere on the page, not just here --
-       harmless in practice since the ids are unique, but fragile). It also
-       selected input[id="genderval"] specifically, which is a <select>,
-       not an <input> -- that part of the selector never matched anything.
-       And nameval/mailval were missing from the list entirely, so they
-       fell back to the browser's bare default input size instead of
-       matching ageval/genderval next to them -- the actual visible
-       inconsistency being fixed here. weightval/heightval moved out of
-       this rule (they have a unit label next to them, so the nested-span
-       rule below already sizes them consistently with barbell/dumbbell --
-       being in both rules at once, with two different width values, was
-       the second inconsistency). */
+    /* Bare fields (no unit label) -- name/email/gender/age, sized
+       consistently. weightval/heightval excluded: their unit-label rule
+       below already sizes them. */
     #settingspage #personalinfo > span > input[id="nameval"],
     #settingspage #personalinfo > span > input[id="mailval"],
     #settingspage #personalinfo > span > select[id="genderval"],
