@@ -1280,11 +1280,25 @@ svg > path:nth-child(23) {
       where the generic rules end up. */
    #settingspage #aiconfigprompt,
    #settingspage #generateexerciseprompt{
-    /* Native <dialog> defaults to overflow:auto, which clips anything
-       positioned outside its own box -- including .modal-close below,
-       deliberately placed half off the corner (same issue #pastworkout
-       .changesmodal already documents/fixes the same way). */
-    overflow: visible;
+    /* Reported: with a keyboard open (this dialog has text inputs, so
+       that's every time it's actually used), part of the dialog rendered
+       off-screen/behind the header -- the same underlying keyboard/
+       viewport bug documented above, now hitting a dialog instead of a
+       page footer. No fix for that root cause exists yet, but this makes
+       its consequence survivable: a bounded max-height in plain vh (NOT
+       dvh/--vh, which are exactly the unreliable-during-keyboard values)
+       always caps the box at a fixed fraction of the FULL layout
+       viewport regardless of what the visual viewport is currently doing,
+       with overflow-y:auto so anything that doesn't fit is reachable by
+       scrolling inside the dialog instead of being stuck unreachable
+       behind the header. margin-top pins it near the top of the screen
+       (dialog's UA default is margin:auto, i.e. vertically centered) --
+       a keyboard opens from the BOTTOM, so top-anchored is the position
+       most likely to stay clear of it. */
+    max-height: 45vh;
+    overflow-y: auto;
+    margin-top: 4vh;
+    margin-bottom: auto;
     background-color: var(--template-color-mid);
     color: white;
     border: 1px solid white;
@@ -1297,13 +1311,13 @@ svg > path:nth-child(23) {
     gap: 1.6vh;
     font-family: Georgia, 'Times New Roman', Times, serif;
    }
-   /* #exercisepreviewprompt needs real overflow-y:auto (long descriptions
-      can overflow it), so its close button stays fully inside the padded
-      box instead of straddling the edge -- see .modal-close below. */
+   /* overflow-y:auto above clips anything positioned outside the box, so
+      (unlike #pastworkout's dialogs) the close button sits fully inside
+      the padded area instead of straddling the edge. */
    #settingspage .modal-close{
     position: absolute;
-    top: -0.7rem;
-    right: -0.7rem;
+    top: 0.6rem;
+    right: 0.6rem;
     width: 1.6rem;
     height: 1.6rem;
     display: flex;
@@ -1372,6 +1386,12 @@ svg > path:nth-child(23) {
     color: #ffb3a7;
    }
    #settingspage #exercisepreviewprompt{
+    /* Same top-anchoring/bounded-height reasoning as #aiconfigprompt/
+       #generateexerciseprompt above -- this one has no text inputs of its
+       own, but can still be reached right after one of those two closes,
+       while the viewport may still be in a keyboard-confused state. */
+    margin-top: 4vh;
+    margin-bottom: auto;
     background-color: var(--template-color-mid);
     color: white;
     border: 1px solid white;
@@ -1379,7 +1399,7 @@ svg > path:nth-child(23) {
     padding: 3vh 4vw;
     width: 82vw;
     max-width: 24rem;
-    max-height: 75vh;
+    max-height: 65vh;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
