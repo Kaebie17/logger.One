@@ -133,12 +133,33 @@ function showUpdateBanner(worker) {
   document.body.appendChild(banner);
 }
 
+// Small on-screen readout of exactly which build is controlling this page
+// right now (sw.js's own CACHE_NAME, fetched live via postMessage rather
+// than duplicated here, so it can never drift out of sync with the actual
+// running worker) -- a direct, visible way to confirm a device is really on
+// the latest deploy instead of inferring it from symptoms.
+function showVersionTag(version) {
+  if (document.getElementById("app-version-tag")) return;
+  const tag = document.createElement("div");
+  tag.id = "app-version-tag";
+  tag.textContent = version;
+  tag.style.cssText = "position:fixed; bottom:2px; right:4px; font-size:9px; color:rgba(255,255,255,0.35); z-index:999998; pointer-events:none; font-family:monospace;";
+  document.body.appendChild(tag);
+}
+function requestVersionTag() {
+  if (!navigator.serviceWorker.controller) return;
+  const channel = new MessageChannel();
+  channel.port1.onmessage = (e) => showVersionTag(e.data);
+  navigator.serviceWorker.controller.postMessage("GET_VERSION", [channel.port2]);
+}
+
 // Registering the same URL twice is a safe no-op (the browser recognizes an
 // already-registered worker and does nothing), so this can run unguarded on
 // every page. Deferred to `load` so it doesn't compete with the page's own
 // scripts/images for bandwidth on first paint.
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
+    requestVersionTag();
     navigator.serviceWorker.register("sw.js").then((reg) => {
       // GitHub Pages serves sw.js itself with Cache-Control: max-age=600 --
       // the spec requires browsers to bypass HTTP cache for the update

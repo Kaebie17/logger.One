@@ -13,7 +13,7 @@
 // pushes an update out -- browsers only re-check this script's own bytes
 // for changes, they don't know when styles.css or exercisesDB.js changed
 // unless this version string changes too.
-const CACHE_NAME = "logger-one-v68";
+const CACHE_NAME = "logger-one-v69";
 
 const PRECACHE_URLS = [
   "index.html", "exercises.html", "exercisedetails.html", "history.html",
@@ -43,8 +43,13 @@ self.addEventListener("install", (event) => {
 
 // Sent by functions.js when the user taps the update banner -- only then
 // does this worker take over and the old cache get cleaned up in activate.
+// GET_VERSION lets any page ask which build is actually controlling it right
+// now (see the on-screen version tag in functions.js) -- a fast, visible way
+// to confirm whether a given device is truly on the latest deploy instead of
+// guessing from symptoms.
 self.addEventListener("message", (event) => {
   if (event.data === "SKIP_WAITING") self.skipWaiting();
+  if (event.data === "GET_VERSION") event.ports[0]?.postMessage(CACHE_NAME);
 });
 
 self.addEventListener("activate", (event) => {
