@@ -87,6 +87,17 @@ function pinPageToVisualViewport(){
     page.style.top = `${vv.offsetTop}px`;
     page.style.width = `${vv.width}px`;
     page.style.height = `${vv.height}px`;
+    // iOS Safari can fail to repaint a gradient background-image on a
+    // position:fixed element after its size/position is rewritten from JS
+    // (rather than CSS/layout alone) -- it stays visually blank (white)
+    // even though the element's own geometry is correct. A brief, reverted
+    // opacity nudge forces a repaint without side effects: unlike
+    // transform/will-change/filter, opacity doesn't make this element a
+    // new containing block for its position:fixed descendants (the dialogs
+    // pinToVisualViewport tracks), so they keep resolving top/left against
+    // the true viewport instead of suddenly resolving against <body>.
+    page.style.opacity = "0.999";
+    requestAnimationFrame(() => { page.style.opacity = ""; });
 }
 window.visualViewport?.addEventListener("resize", pinPageToVisualViewport);
 window.visualViewport?.addEventListener("scroll", pinPageToVisualViewport);
