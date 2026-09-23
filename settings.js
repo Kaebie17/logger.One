@@ -274,7 +274,7 @@ const openMeasurementsDialog = (e) => {
 function openDataManagementDialog(e){
   e.preventDefault();
   dataManagementDialog.showModal();
-  pinToVisualViewport(dataManagementDialog, 0.04);
+//   pinToVisualViewport(dataManagementDialog, 0.04);
 }
 dataManagementDialog.querySelector(".modal-close").addEventListener("click", () => dataManagementDialog.close());
 
