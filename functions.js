@@ -83,6 +83,26 @@ document.addEventListener("focusin", (e) => {
     setTimeout(() => logFooterDiagnostics(`focus:${e.target.id||e.target.name||"?"} @open+400ms`), 400);
 }, true);
 
+// CONFIRMED FIX, not another guess: direct on-device measurement proved
+// document.documentElement (<html>) is the element iOS's native
+// keyboard-focus behavior scrolls -- html{position:fixed;inset:0;
+// overflow:hidden} above was supposed to make that impossible, but
+// programmatic scrollTop assignment (which is what this native behavior
+// does internally) isn't blocked by position:fixed the way a user's own
+// scroll gesture is. The inner content container's own scrollTop never
+// moved (confirmed: stayed 0 throughout), so this is never fighting real,
+// wanted scrolling -- only undoing the specific unwanted one. Reset
+// happens on the "scroll" event itself (fires the instant <html> gets a
+// nonzero scrollTop, before the next paint) rather than waiting for the
+// next focus/timeout cycle.
+document.addEventListener("scroll", () => {
+    const html = document.documentElement;
+    if (html.scrollTop !== 0 || html.scrollLeft !== 0) {
+        html.scrollTop = 0;
+        html.scrollLeft = 0;
+    }
+}, { capture: true, passive: true });
+
 // Best-effort companion to the landscape overlay in styles.css. This can
 // actively hold the device in portrait, but only under conditions most
 // browsers require (fullscreen, or an installed/standalone PWA) -- it
