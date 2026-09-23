@@ -83,6 +83,17 @@ window.addEventListener("orientationchange", setRealViewportHeight);
 // onward); exercises.js's own focusin/scrollIntoView handling is a
 // separate, narrower fix for its inner #selectionlistdisplay scroll
 // timing and doesn't conflict with this.
+// Every other page's content container between #header and #footer.
+// exercises.html doesn't need an entry -- it isn't broken in the first
+// place (see below).
+function findContentContainer(){
+    const ids = ["settingscontainer","createworkoutform","createtemplateform","history","container"];
+    for (const id of ids){
+        const el = document.getElementById(id);
+        if (el) return el;
+    }
+    return null;
+}
 function pinPageToVisualViewport(){
     const vv = window.visualViewport;
     const page = document.body;
@@ -93,28 +104,29 @@ function pinPageToVisualViewport(){
     page.style.top = `${vv.offsetTop}px`;
     page.style.width = `${vv.width}px`;
     page.style.height = `${vv.height}px`;
-    // iOS Safari can fail to repaint a gradient background-image on a
-    // position:fixed element after its size/position is rewritten from JS
-    // (rather than CSS/layout alone) -- it stays visually blank (white)
-    // even though the element's own geometry is correct. An opacity nudge
-    // alone wasn't reliable enough. display:none/restore is the same
-    // proven trick healViewportAfterKeyboard already uses for this exact
-    // class of WebKit bug -- a full teardown/rebuild that reliably forces
-    // a repaint, stronger than an opacity toggle. Only safe to run when no
-    // input is focused, though: toggling display on an ancestor of the
+    // Confirmed root cause (not a guess this time): every page but
+    // exercises.html shows a plain white body background here, from the
+    // very first paint, on every load. exercises.js is the one page script
+    // that writes an inline display style onto its own content sections
+    // right after load (switchListsDisp(), called from
+    // exercisesDBpage.onload) -- no other page's JS touches its content
+    // container's display at all. That's the one real difference between
+    // the page that works and the ones that don't. Toggling the content
+    // container's own display here reproduces that same trigger generally,
+    // instead of the two things already tried and confirmed to do nothing
+    // (toggling opacity/display on <body> itself, removed). Skipped while
+    // an input is focused -- toggling display on an ancestor of the
     // focused input would blur it and close the keyboard, which is exactly
     // when this function also runs (visualViewport resize/scroll firing
-    // for the keyboard opening). Falls back to the milder opacity nudge in
-    // that case -- not as reliable, but doesn't fight the keyboard.
+    // for the keyboard opening).
     const focused = document.activeElement;
     const isEditing = focused && ["INPUT","TEXTAREA","SELECT"].includes(focused.tagName);
-    if (isEditing){
-        page.style.opacity = "0.999";
-        requestAnimationFrame(() => { page.style.opacity = ""; });
-    } else {
-        page.style.display = "none";
-        void page.offsetHeight;
-        page.style.display = "";
+    const content = findContentContainer();
+    if (content && !isEditing){
+        const prevDisplay = content.style.display;
+        content.style.display = "none";
+        void content.offsetHeight;
+        content.style.display = prevDisplay;
     }
 }
 window.visualViewport?.addEventListener("resize", pinPageToVisualViewport);
