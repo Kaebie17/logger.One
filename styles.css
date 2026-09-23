@@ -722,6 +722,7 @@ svg > path:nth-child(23) {
        collapsing them back into one isn't necessary now that neither one
        is carrying any extra bottom space. */
     #footer{
+        width: 100%;
         position: fixed;
         bottom: 0;
         flex-shrink: 0;
