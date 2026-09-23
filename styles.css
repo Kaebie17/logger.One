@@ -94,7 +94,7 @@ html{
        needed. */
     position: fixed;
     inset: 0;
-    overflow: hidden;
+    overflow:hidden;
     /* <body> doesn't reliably repaint its own background once JS makes it
        position:fixed -- index.html's gradient lives here on <html> instead. */
     background-image: linear-gradient(60deg, var(--template-color-black), var(--template-color-mid), var(--template-color-soft));
@@ -280,8 +280,8 @@ svg > path:nth-child(23) {
 @media (max-width: 50rem){
     body{
         margin: 0;
-        display: flex;
-        flex-direction: column;
+        /* display: flex;
+        flex-direction: column; */
     }
     /* Every other page pins its body to one viewport (height + overflow:
        hidden) via a page-specific id (#profilepage, #pastworkout, ...),
