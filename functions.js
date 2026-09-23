@@ -33,6 +33,51 @@ window.addEventListener("resize", setRealViewportHeight);
 window.visualViewport?.addEventListener("resize", setRealViewportHeight);
 window.addEventListener("orientationchange", setRealViewportHeight);
 
+// TEMPORARY diagnostic -- reads live viewport numbers directly off a real
+// device instead of guessing at the keyboard/footer bug from research
+// alone. Shows itself (top of screen, on top of everything, so it stays
+// visible above the keyboard) the moment any input/textarea/select is
+// focused, updates continuously while it's focused, and stays up briefly
+// after it's blurred too (to catch the "stuck after keyboard closes" case
+// as well as the "wrong while open" case). Remove once the actual cause
+// is confirmed from what this shows.
+function createViewportDebugOverlay(){
+    const overlay = document.createElement("div");
+    overlay.id = "viewportdebugoverlay";
+    overlay.style.cssText = "position:fixed; top:0; left:0; right:0; z-index:999999; background:rgba(0,0,0,0.85); color:#0f0; font-family:monospace; font-size:11px; padding:4px 8px; white-space:pre; pointer-events:none; display:none;";
+    document.body.append(overlay);
+    return overlay;
+}
+let viewportDebugOverlay;
+let viewportDebugRAF;
+function updateViewportDebugOverlay(){
+    if (!viewportDebugOverlay || viewportDebugOverlay.style.display === "none") return;
+    const footer = document.getElementById("footer");
+    const footerRect = footer?.getBoundingClientRect();
+    const vh = getComputedStyle(document.documentElement).getPropertyValue("--vh");
+    viewportDebugOverlay.textContent = [
+        `innerHeight: ${window.innerHeight}`,
+        `visualViewport.height: ${window.visualViewport?.height ?? "n/a"}`,
+        `visualViewport.offsetTop: ${window.visualViewport?.offsetTop ?? "n/a"}`,
+        `--vh (x100): ${(parseFloat(vh)*100).toFixed(1)}`,
+        `documentElement.clientHeight: ${document.documentElement.clientHeight}`,
+        `footer.top / .bottom: ${footerRect?.top?.toFixed(1) ?? "n/a"} / ${footerRect?.bottom?.toFixed(1) ?? "n/a"}`,
+        `window.scrollY: ${window.scrollY}`,
+    ].join("\n");
+    viewportDebugRAF = requestAnimationFrame(updateViewportDebugOverlay);
+}
+document.addEventListener("focusin", (e) => {
+    if (!["INPUT","TEXTAREA","SELECT"].includes(e.target.tagName)) return;
+    if (!viewportDebugOverlay) viewportDebugOverlay = createViewportDebugOverlay();
+    viewportDebugOverlay.style.display = "block";
+    updateViewportDebugOverlay();
+}, true);
+document.addEventListener("focusout", (e) => {
+    if (!["INPUT","TEXTAREA","SELECT"].includes(e.target.tagName)) return;
+    cancelAnimationFrame(viewportDebugRAF);
+    setTimeout(() => { if (viewportDebugOverlay) viewportDebugOverlay.style.display = "none"; }, 4000);
+}, true);
+
 // The keyboard-open layout glitch this is meant to fix (footer landing up
 // near the header, a gap of bare background below it -- reported across
 // exercises.html, settings.html, and template.html's workout-name field)
