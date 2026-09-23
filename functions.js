@@ -75,12 +75,18 @@ window.addEventListener("orientationchange", setRealViewportHeight);
 // pinToVisualViewport (below) already keeps a dialog aligned to it. This
 // applies that identical technique to <body> itself instead of a dialog,
 // so nothing inside it needs its own special positioning any more.
-// Excludes #createexercisespage, which has its own separate layout and
-// keyboard handling already.
+// Runs on every page, including #createexercisespage -- its header/
+// content/footer already use the same plain flex-column layout as
+// everywhere else (#exerciselist is flex:1, same pattern as #container),
+// and this is in fact where the underlying bug was first reported
+// tonight (footer landing up near the header on the second exercise
+// onward); exercises.js's own focusin/scrollIntoView handling is a
+// separate, narrower fix for its inner #selectionlistdisplay scroll
+// timing and doesn't conflict with this.
 function pinPageToVisualViewport(){
     const vv = window.visualViewport;
     const page = document.body;
-    if (!vv || !page || page.id === "createexercisespage") return;
+    if (!vv || !page) return;
     page.style.position = "fixed";
     page.style.margin = "0";
     page.style.left = `${vv.offsetLeft}px`;
