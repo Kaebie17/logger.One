@@ -389,22 +389,8 @@ function closeDialog(){
 // than one API call per exercise.
 async function handleGenerateExercise(e){
   e.preventDefault(); // this button sits inside #settingscontainer's <form>
-  // Temporary diagnostic, split into two checkpoints to isolate exactly
-  // where this breaks: (1) this alert fires the instant the button is
-  // tapped, synchronously, before anything else runs -- if THIS never
-  // shows, the click isn't reaching this function at all (wrong element,
-  // nothing attached, cache still stale). If it DOES show but nothing
-  // after it does, the function is running but ensureAIConfig/showModal
-  // is failing silently (a real WebKit rendering bug, no JS error to
-  // catch) -- same symptom class as the quick-log-popup bug earlier this
-  // session. Remove both alerts once the cause is confirmed.
-  alert("handleGenerateExercise: click received");
-  try {
-    await ensureAIConfig();
-    showGenerateExerciseDialog();
-  } catch (err) {
-    alert("handleGenerateExercise error: " + (err?.stack || err));
-  }
+  await ensureAIConfig();
+  showGenerateExerciseDialog();
 }
 
 function showGenerateExerciseDialog(){
@@ -458,6 +444,7 @@ function showGenerateExerciseDialog(){
 
   document.body.append(dialog);
   dialog.showModal();
+  pinToVisualViewport(dialog, 0.04);
 }
 
 // `results` is an array of {key, exercise} (see generateExercisesWithAI) --
@@ -533,4 +520,5 @@ function showExercisePreviewDialog(results){
 
   document.body.append(dialog);
   dialog.showModal();
+  pinToVisualViewport(dialog, 0.04);
 }

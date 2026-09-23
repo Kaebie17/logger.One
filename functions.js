@@ -33,50 +33,36 @@ window.addEventListener("resize", setRealViewportHeight);
 window.visualViewport?.addEventListener("resize", setRealViewportHeight);
 window.addEventListener("orientationchange", setRealViewportHeight);
 
-// TEMPORARY diagnostic -- reads live viewport numbers directly off a real
-// device instead of guessing at the keyboard/footer bug from research
-// alone. Shows itself (top of screen, on top of everything, so it stays
-// visible above the keyboard) the moment any input/textarea/select is
-// focused, updates continuously while it's focused, and stays up briefly
-// after it's blurred too (to catch the "stuck after keyboard closes" case
-// as well as the "wrong while open" case). Remove once the actual cause
-// is confirmed from what this shows.
-function createViewportDebugOverlay(){
-    const overlay = document.createElement("div");
-    overlay.id = "viewportdebugoverlay";
-    overlay.style.cssText = "position:fixed; top:0; left:0; right:0; z-index:999999; background:rgba(0,0,0,0.85); color:#0f0; font-family:monospace; font-size:11px; padding:4px 8px; white-space:pre; pointer-events:none; display:none;";
-    document.body.append(overlay);
-    return overlay;
+// The actual mechanism behind the keyboard/footer bug and the debug
+// overlay/dialogs rendering off-screen: position:fixed anchors to the
+// LAYOUT viewport, which never moves. On iOS, opening the keyboard can
+// scroll the VISUAL viewport (what's actually drawn on screen) to bring
+// the focused input above the keyboard -- independently of the layout
+// viewport, and independently of anything html{position:fixed} controls,
+// since that's a DOM-scroll-level fix and this is a compositor-level
+// scroll. A fixed element sitting at top:0 relative to the layout
+// viewport can end up scrolled entirely off the currently-visible screen.
+// The fix is to stop trusting plain position:fixed for anything that must
+// stay on screen during keyboard use, and instead track
+// visualViewport.offsetTop/offsetLeft directly, repositioning live.
+function pinToVisualViewport(el, topOffsetFraction = 0){
+    const vv = window.visualViewport;
+    if (!vv) return () => {}; // no visualViewport API -- nothing to track, leave plain fixed positioning as the fallback
+    const update = () => {
+        el.style.position = "fixed";
+        el.style.margin = "0";
+        el.style.top = `${vv.offsetTop + vv.height * topOffsetFraction}px`;
+        // Horizontal centering computed against the element's own rendered
+        // width, not left:0/margin:auto -- overriding position/top already
+        // means overriding margin (set to 0 above), so auto-centering via
+        // margin no longer applies once this runs.
+        el.style.left = `${vv.offsetLeft + (vv.width - el.offsetWidth) / 2}px`;
+    };
+    update();
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => { vv.removeEventListener("resize", update); vv.removeEventListener("scroll", update); };
 }
-let viewportDebugOverlay;
-let viewportDebugRAF;
-function updateViewportDebugOverlay(){
-    if (!viewportDebugOverlay || viewportDebugOverlay.style.display === "none") return;
-    const footer = document.getElementById("footer");
-    const footerRect = footer?.getBoundingClientRect();
-    const vh = getComputedStyle(document.documentElement).getPropertyValue("--vh");
-    viewportDebugOverlay.textContent = [
-        `innerHeight: ${window.innerHeight}`,
-        `visualViewport.height: ${window.visualViewport?.height ?? "n/a"}`,
-        `visualViewport.offsetTop: ${window.visualViewport?.offsetTop ?? "n/a"}`,
-        `--vh (x100): ${(parseFloat(vh)*100).toFixed(1)}`,
-        `documentElement.clientHeight: ${document.documentElement.clientHeight}`,
-        `footer.top / .bottom: ${footerRect?.top?.toFixed(1) ?? "n/a"} / ${footerRect?.bottom?.toFixed(1) ?? "n/a"}`,
-        `window.scrollY: ${window.scrollY}`,
-    ].join("\n");
-    viewportDebugRAF = requestAnimationFrame(updateViewportDebugOverlay);
-}
-document.addEventListener("focusin", (e) => {
-    if (!["INPUT","TEXTAREA","SELECT"].includes(e.target.tagName)) return;
-    if (!viewportDebugOverlay) viewportDebugOverlay = createViewportDebugOverlay();
-    viewportDebugOverlay.style.display = "block";
-    updateViewportDebugOverlay();
-}, true);
-document.addEventListener("focusout", (e) => {
-    if (!["INPUT","TEXTAREA","SELECT"].includes(e.target.tagName)) return;
-    cancelAnimationFrame(viewportDebugRAF);
-    setTimeout(() => { if (viewportDebugOverlay) viewportDebugOverlay.style.display = "none"; }, 4000);
-}, true);
 
 // The keyboard-open layout glitch this is meant to fix (footer landing up
 // near the header, a gap of bare background below it -- reported across
@@ -1233,6 +1219,7 @@ function ensureAIConfig(){
         dialog.append(saveBtn);
         document.body.append(dialog);
         dialog.showModal();
+        pinToVisualViewport(dialog, 0.04);
     });
 }
 
