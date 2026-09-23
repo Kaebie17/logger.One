@@ -213,11 +213,11 @@ function showUpdateBanner(worker) {
 // the latest deploy instead of inferring it from symptoms.
 function showVersionTag(version) {
   if (document.getElementById("app-version-tag")) return;
-  const tag = document.createElement("div");
+  const tag = document.createElement("p");
   tag.id = "app-version-tag";
   tag.textContent = version;
   tag.style.cssText = "position:fixed; bottom:2px; right:4px; font-size:9px; color:rgba(255,255,255,0.35); z-index:999998; pointer-events:none; font-family:monospace;";
-  document.body.appendChild(tag);
+  document.body.lastElementChild.appendChild(tag);
 }
 function requestVersionTag() {
   if (!navigator.serviceWorker.controller) return;

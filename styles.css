@@ -148,6 +148,7 @@ body{
        the few elements users actually need to type or select text in. */
     -webkit-user-select: none;
     user-select: none;
+    background-image: linear-gradient(60deg, var(--template-color-black), var(--template-color-mid), var(--template-color-soft));
 }
 input, textarea{
     -webkit-user-select: text;
