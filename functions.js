@@ -78,16 +78,6 @@ function pinPageToVisualViewport(){
     page.style.top = `${vv.offsetTop}px`;
     page.style.width = `${vv.width}px`;
     page.style.height = `${vv.height}px`;
-    // iOS's native scroll-to-reveal-focused-input can still leave
-    // document.documentElement/body with a nonzero scrollTop even though
-    // body's own position is now fully driven by top/left above -- that
-    // leftover offset is what exposes bare background below the footer.
-    // Safe to reset unconditionally now that body's position doesn't
-    // depend on scroll state at all (unlike the header/footer-fixed
-    // approach this replaced, where resetting scroll fought the layout
-    // instead of just clearing a redundant leftover value).
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
 }
 window.visualViewport?.addEventListener("resize", pinPageToVisualViewport);
 window.visualViewport?.addEventListener("scroll", pinPageToVisualViewport);
