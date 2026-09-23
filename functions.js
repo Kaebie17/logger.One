@@ -52,14 +52,29 @@ function ensureFooterDiagPanel(){
     footerDiagUnpin = pinToVisualViewport(footerDiagPanel, 0);
     return footerDiagPanel;
 }
+// The page's own inner scrolling container (the one that SHOULD be the
+// only thing with a nonzero scrollTop while the keyboard is open) -- one
+// of these ids exists on whichever page is currently loaded.
+function findContentContainer(){
+    const ids = ["settingscontainer","createworkoutform","createtemplateform","history","container"];
+    for (const id of ids){
+        const el = document.getElementById(id);
+        if (el) return el;
+    }
+    return null;
+}
 function logFooterDiagnostics(label){
     const panel = ensureFooterDiagPanel();
     const footer = document.getElementById("footer");
+    const header = document.getElementById("header");
+    const content = findContentContainer();
     const active = document.activeElement;
     const vv = window.visualViewport;
     const r = (rect) => rect ? `t${rect.top.toFixed(0)} b${rect.bottom.toFixed(0)}` : "n/a";
-    const line = `${label} | innerH:${window.innerHeight} clientH:${document.documentElement.clientHeight} vvH:${vv?.height?.toFixed(0)} vvTop:${vv?.offsetTop?.toFixed(1)} vvPageTop:${vv?.pageTop?.toFixed(1)} scrollY:${window.scrollY} --vh:${getComputedStyle(document.documentElement).getPropertyValue("--vh")} active:${active?.id||active?.tagName}[${r(active?.getBoundingClientRect?.())}] footer[${r(footer?.getBoundingClientRect())}]`;
-    panel.textContent += line + "\n";
+    const line1 = `${label} | innerH:${window.innerHeight} clientH:${document.documentElement.clientHeight} vvH:${vv?.height?.toFixed(0)} vvTop:${vv?.offsetTop?.toFixed(1)} vvPageTop:${vv?.pageTop?.toFixed(1)} --vh:${getComputedStyle(document.documentElement).getPropertyValue("--vh")}`;
+    const line2 = `  scrollY:${window.scrollY} docEl.scrollTop:${document.documentElement.scrollTop} body.scrollTop:${document.body.scrollTop} scrollingEl.scrollTop:${document.scrollingElement?.scrollTop} content(#${content?.id}).scrollTop:${content?.scrollTop}`;
+    const line3 = `  header[${r(header?.getBoundingClientRect())}] content[${r(content?.getBoundingClientRect())}] footer[${r(footer?.getBoundingClientRect())}] active:${active?.id||active?.tagName}[${r(active?.getBoundingClientRect?.())}]`;
+    panel.textContent += line1 + "\n" + line2 + "\n" + line3 + "\n";
     panel.scrollTop = panel.scrollHeight;
 }
 document.addEventListener("focusin", (e) => {
