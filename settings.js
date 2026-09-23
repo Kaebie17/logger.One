@@ -197,31 +197,10 @@ const handleExport = (e) => {
     link.click();
 }
 
-// The CSV export above only ever covered workout logs -- everything else
-// (templates, muscle soreness, custom AI-generated exercises, and the
-// settings form itself) had no backup path at all. This bundles all of it
-// into one portable JSON file the user downloads and fully controls,
-// independent of this device's IndexedDB/localStorage/service-worker
-// cache -- so it survives a reinstall, a cleared cache, or a new device,
-// none of which the app's own storage does on its own.
-const handleFullBackup = (e) => {
-    e.preventDefault();
-    const backup = {
-        version: 1,
-        exportedAt: new Date().toISOString(),
-        workoutLogData: window.workoutLogData || [],
-        templatesData: window.templatesData || {},
-        muscleSorenessData: window.muscleSorenessData || {},
-        customExercisesData: window.customExercisesData || {},
-        savedSettings: JSON.parse(localStorage.savedSettings || "{}"),
-    };
-    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json;charset=utf-8;" });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", `logger-one-backup-${new Date().toISOString().slice(0,10)}.json`);
-    link.click();
-}
+// handleFullBackup now lives in functions.js (shared with index.html's
+// footer link, since it has no dependency on any settings.html-specific
+// DOM element) -- this page just wires its own button to that same
+// function, same as before.
 
 // Fully REPLACES current data with whatever's in the chosen backup file --
 // confirmed explicitly before anything is written, since this is

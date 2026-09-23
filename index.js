@@ -18,6 +18,12 @@ let dateSorter = Intl.Collator(undefined,{numeric:true}).compare;
 let monthlyScroll=0;
 let liftsScroll=0;
 const dataInterface = new DataInterface();
+const backupDataLink = document.getElementById("backupdata");
+// Reachable from the home page specifically since settings.html was
+// reported unreachable/broken on-device -- handleFullBackup (functions.js)
+// has no dependency on settings.html's own DOM, so it works identically
+// here.
+backupDataLink.addEventListener("click", handleFullBackup);
 
 const date = new Date();
 const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];

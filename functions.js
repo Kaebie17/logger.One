@@ -976,6 +976,33 @@ window.LoggerDB = {
     },
 };
 
+// Shared here (not settings.js, where it originated) since it only reads
+// window.workoutLogData/templatesData/muscleSorenessData/customExercisesData
+// -- all populated by initApp() above on EVERY page, not just settings.html
+// -- and localStorage.savedSettings directly. No dependency on any
+// settings.html-specific DOM element, so it works identically from any
+// page's own footer/button. Bundles everything into one downloaded JSON
+// file the user fully controls, independent of this device's own
+// IndexedDB/localStorage/service-worker cache.
+function handleFullBackup(e){
+    e?.preventDefault?.();
+    const backup = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        workoutLogData: window.workoutLogData || [],
+        templatesData: window.templatesData || {},
+        muscleSorenessData: window.muscleSorenessData || {},
+        customExercisesData: window.customExercisesData || {},
+        savedSettings: JSON.parse(localStorage.savedSettings || "{}"),
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `logger-one-backup-${new Date().toISOString().slice(0,10)}.json`);
+    link.click();
+}
+
 // toLocaleDateString()'s day/month/year ORDER depends on the runtime's
 // locale (en-GB/en-IN: DD/MM/YYYY, en-US: MM/DD/YYYY, ...) -- every workout
 // Map key and workoutDate/workoutStartTime/workoutEndTime field in this
