@@ -352,7 +352,7 @@ function showGenerateExerciseDialog(){
 
   document.body.append(dialog);
   dialog.showModal();
-  pinToVisualViewport(dialog, 0.04);
+//   pinToVisualViewport(dialog, 0.04);
 }
 
 // `results` is an array of {key, exercise} -- always plural, even for a
@@ -427,7 +427,7 @@ function showExercisePreviewDialog(results){
 
   document.body.append(dialog);
   dialog.showModal();
-  pinToVisualViewport(dialog, 0.04);
+//   pinToVisualViewport(dialog, 0.04);
 }
 
 setUnits();
