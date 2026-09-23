@@ -85,7 +85,7 @@ function pinPageToVisualViewport(){
     page.style.left = `${vv.offsetLeft}px`;
     page.style.top = `${vv.offsetTop}px`;
     page.style.width = `${vv.width}px`;
-    page.style.height = `${vv.height}px`;
+    // page.style.height = `${vv.height}px`;
     // Confirmed via inspector: flex:1 on the content container computes
     // correctly (flex-grow:1, flex-shrink:1, flex-basis:0%, min-height:0)
     // but the box itself doesn't actually resize when body's own height
@@ -1351,7 +1351,7 @@ function ensureAIConfig(){
         dialog.append(saveBtn);
         document.body.append(dialog);
         dialog.showModal();
-        pinToVisualViewport(dialog, 0.04);
+        // pinToVisualViewport(dialog, 0.04);
     });
 }
 
