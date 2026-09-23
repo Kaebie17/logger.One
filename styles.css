@@ -97,12 +97,12 @@ html{
     overflow: hidden;
     /* <body> doesn't reliably repaint its own background once JS makes it
        position:fixed -- index.html's gradient lives here on <html> instead. */
-    background-image: linear-gradient(60deg, var(--template-color-black), var(--template-color-mid), var(--template-color-soft));
+    /* background-image: linear-gradient(60deg, var(--template-color-black), var(--template-color-mid), var(--template-color-soft)); */
 }
 /* Same fix as above, for every other page (shared gradient, class="gradient-page" set per-file on <html>). */
-html.gradient-page{
+/* html.gradient-page{
     background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
-}
+} */
 /* Mobile-app polish -- makes this feel like an installed app rather than a
    website in a frame, now that it's meant to be installed as one. */
 *{
