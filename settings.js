@@ -389,14 +389,16 @@ function closeDialog(){
 // than one API call per exercise.
 async function handleGenerateExercise(e){
   e.preventDefault(); // this button sits inside #settingscontainer's <form>
-  // Temporary diagnostic -- reported as "doesn't open anything" specifically
-  // on a real installed PWA (not reproducible in browser/emulation), same
-  // symptom class as the earlier quick-log-popup bug this session, which
-  // turned out to be a real WebKit rendering issue with no JS error at all.
-  // This tells the two cases apart: a visible alert here means a genuine
-  // JS exception (fixable in code); no alert at all, still nothing on
-  // screen, points at another WebKit standalone-dialog rendering bug like
-  // that one. Remove once the cause is confirmed either way.
+  // Temporary diagnostic, split into two checkpoints to isolate exactly
+  // where this breaks: (1) this alert fires the instant the button is
+  // tapped, synchronously, before anything else runs -- if THIS never
+  // shows, the click isn't reaching this function at all (wrong element,
+  // nothing attached, cache still stale). If it DOES show but nothing
+  // after it does, the function is running but ensureAIConfig/showModal
+  // is failing silently (a real WebKit rendering bug, no JS error to
+  // catch) -- same symptom class as the quick-log-popup bug earlier this
+  // session. Remove both alerts once the cause is confirmed.
+  alert("handleGenerateExercise: click received");
   try {
     await ensureAIConfig();
     showGenerateExerciseDialog();
