@@ -78,7 +78,7 @@ function findContentContainer(){
 }
 function pinPageToVisualViewport(){
     const vv = window.visualViewport;
-    const page = document.firstElementChild;
+    const page = document.body;
     if (!vv || !page) return;
     page.style.position = "fixed";
     page.style.margin = "0";

@@ -2551,8 +2551,6 @@ svg > path:nth-child(23) {
     #settingspage #generateexerciseprompt{
         max-height: 45vh;
         overflow-y: auto;
-        margin-top: 4vh;
-        margin-bottom: auto;
         background-color: var(--template-color-mid);
         color: white;
         border: 1px solid white;
