@@ -14,6 +14,7 @@ const fullBackupBtn = document.getElementById("fullbackupdata");
 const fullRestoreBtn = document.getElementById("fullrestoredata");
 const dataManagementBtn = document.getElementById("datamanagementbtn");
 const dataManagementDialog = document.getElementById("datamanagementprompt");
+const generateExercise = document.getElementById("generateexercise");
 const redirectHome = document.querySelector("#header > h1");
 const savedSettings = {};
 // Unguarded before this: if localStorage.savedSettings existed but was
@@ -289,6 +290,146 @@ function openDataManagementDialog(e){
 }
 dataManagementDialog.querySelector(".modal-close").addEventListener("click", () => dataManagementDialog.close());
 
+// --- AI-generated exercises ------------------------------------------
+// ensureAIConfig/generateExercisesWithAI (functions.js) do the actual
+// config-collection and network call; this just drives the two-step UI
+// (names+hint -> preview list) and merges whichever results the user
+// checks once they hit Save, never before. One call generates every name
+// typed in at once, one per line, instead of one API call per exercise.
+async function handleGenerateExercise(){
+  await ensureAIConfig();
+  showGenerateExerciseDialog();
+}
+
+function showGenerateExerciseDialog(){
+  if (document.getElementById("generateexerciseprompt")) return;
+  const dialog = document.createElement("dialog");
+  dialog.id = "generateexerciseprompt";
+  const closeBtn = document.createElement("span");
+  closeBtn.className = "modal-close";
+  closeBtn.textContent = "❌";
+  const title = document.createElement("p");
+  title.textContent = "Generate new exercises";
+
+  const nameLabel = document.createElement("label");
+  nameLabel.textContent = "Exercise names (one per line)";
+  const nameInput = document.createElement("textarea");
+  nameInput.rows = 4;
+  nameInput.placeholder = "Cable Y-Raise\nReverse Nordic Curl\nLandmine Meadows Row";
+  nameLabel.append(nameInput);
+
+  const hintLabel = document.createElement("label");
+  hintLabel.textContent = "Hint (optional, applies to all of them)";
+  const hintInput = document.createElement("input");
+  hintInput.type = "text";
+  hintInput.placeholder = "e.g. shoulder isolation, cable machine";
+  hintLabel.append(hintInput);
+
+  const statusEl = document.createElement("p");
+  statusEl.className = "ai-status";
+  const generateBtn = document.createElement("button");
+  generateBtn.type = "button";
+  generateBtn.textContent = "Generate";
+
+  dialog.append(closeBtn, title, nameLabel, hintLabel, statusEl, generateBtn);
+
+  closeBtn.addEventListener("click", () => { dialog.close(); dialog.remove(); });
+  generateBtn.addEventListener("click", async () => {
+    const names = nameInput.value.split("\n").map(n => n.trim()).filter(Boolean);
+    if (!names.length) { statusEl.textContent = "Enter at least one exercise name first."; return; }
+    generateBtn.disabled = true;
+    statusEl.textContent = names.length > 1 ? `Generating ${names.length} exercises...` : "Generating...";
+    try {
+      const results = await generateExercisesWithAI(names, hintInput.value.trim());
+      dialog.close();
+      dialog.remove();
+      showExercisePreviewDialog(results);
+    } catch (e) {
+      statusEl.textContent = e.message;
+      generateBtn.disabled = false;
+    }
+  });
+
+  document.body.append(dialog);
+  dialog.showModal();
+  pinToVisualViewport(dialog, 0.04);
+}
+
+// `results` is an array of {key, exercise} -- always plural, even for a
+// single generated exercise, so there's one preview/save path regardless
+// of how many were requested. Each gets its own checkbox (checked by
+// default) so a batch with one bad entry doesn't force discarding the rest.
+function showExercisePreviewDialog(results){
+  const dialog = document.createElement("dialog");
+  dialog.id = "exercisepreviewprompt";
+  const closeBtn = document.createElement("span");
+  closeBtn.className = "modal-close";
+  closeBtn.textContent = "❌";
+  const title = document.createElement("p");
+  title.textContent = results.length > 1 ? `${results.length} exercises generated` : results[0].exercise.name;
+
+  const list = document.createElement("div");
+  list.className = "ai-preview-list";
+  const checkboxes = results.map(({ key, exercise }) => {
+    const card = document.createElement("div");
+    card.className = "ai-preview-card";
+    const header = document.createElement("label");
+    header.className = "ai-preview-card-header";
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = true;
+    const name = document.createElement("b");
+    name.textContent = exercise.name;
+    header.append(checkbox, name);
+    const details = document.createElement("div");
+    details.className = "ai-preview-details";
+    [
+      ["Bodypart", exercise.bodypart],
+      ["Movers", exercise.movers.join(", ")],
+      ["Type", exercise.type],
+      ["Equipment", exercise.equipment.join(", ")],
+      ["Description", exercise.description],
+    ].forEach(([label, val]) => {
+      const row = document.createElement("p");
+      row.innerHTML = `<b>${label}:</b> ${val}`;
+      details.append(row);
+    });
+    card.append(header, details);
+    list.append(card);
+    return { key, exercise, checkbox };
+  });
+
+  const btnRow = document.createElement("div");
+  btnRow.className = "ai-preview-buttons";
+  const discardBtn = document.createElement("button");
+  discardBtn.type = "button";
+  discardBtn.textContent = "Discard";
+  const saveBtn = document.createElement("button");
+  saveBtn.type = "button";
+  saveBtn.textContent = results.length > 1 ? "Save Selected" : "Save";
+  btnRow.append(discardBtn, saveBtn);
+
+  dialog.append(closeBtn, title, list, btnRow);
+
+  const cleanup = () => { dialog.close(); dialog.remove(); };
+  closeBtn.addEventListener("click", cleanup);
+  discardBtn.addEventListener("click", cleanup);
+  saveBtn.addEventListener("click", async () => {
+    const selected = checkboxes.filter(c => c.checkbox.checked);
+    if (!selected.length) { cleanup(); return; }
+    const merged = { ...(window.customExercisesData||{}) };
+    selected.forEach(({ key, exercise }) => { merged[key] = exercise; });
+    await window.LoggerDB.saveCustomExercises(merged);
+    cleanup();
+    const names = selected.map(s => `"${s.exercise.name}"`).join(", ");
+    alert(`${names} added -- find ${selected.length > 1 ? "them" : "it"} next time you add exercises to a workout.`);
+  });
+
+  document.body.append(dialog);
+  dialog.showModal();
+  pinToVisualViewport(dialog, 0.04);
+}
+
 setUnits();
 retrieveSettings()
 
@@ -303,6 +444,7 @@ fullBackupBtn.addEventListener("click", handleFullBackup)
 fullRestoreBtn.addEventListener("click", handleFullRestore)
 logMeasurementsBtn.addEventListener("click", openMeasurementsDialog)
 dataManagementBtn.addEventListener("click", openDataManagementDialog)
+generateExercise.addEventListener("click", handleGenerateExercise)
 
 function home() {
   document.location = "./index.html";

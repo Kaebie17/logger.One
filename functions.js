@@ -1266,6 +1266,221 @@ function ensureWeightSettings(){
     });
 }
 
+// --- AI-generated exercises ----------------------------------------------
+// Provider APIs reject browser-JS requests directly (no CORS for arbitrary
+// origins) -- this relay (ai-relay/api/relay.js, deployed to Vercel) does
+// the fetch server-side instead. Fixed URL, not a config field -- update
+// this if the relay is ever redeployed elsewhere.
+const AI_RELAY_URL = "https://logger-one-nu.vercel.app/api/relay";
+
+function getMissingAIConfigFields(){
+    const c = JSON.parse(localStorage.aiConfig || "{}");
+    const missing = [];
+    if (!c.label) missing.push("label");
+    if (!c.endpoint) missing.push("endpoint");
+    if (!c.model) missing.push("model");
+    if (!c.apiKey) missing.push("apiKey");
+    return missing;
+}
+
+function ensureAIConfig(){
+    const missing = getMissingAIConfigFields();
+    if (!missing.length) return Promise.resolve();
+    return new Promise((resolve) => {
+        if (document.getElementById("aiconfigprompt")) { resolve(); return; }
+        const existing = JSON.parse(localStorage.aiConfig || "{}");
+        const dialog = document.createElement("dialog");
+        dialog.id = "aiconfigprompt";
+        const label = document.createElement("p");
+        label.textContent = "Set up an AI to generate new exercises";
+        dialog.append(label);
+        const fields = {
+            label: "AI Name (just a label, e.g. \"Claude\")",
+            endpoint: "API Endpoint",
+            model: "Model",
+            apiKey: "API Key",
+        };
+        const inputs = {};
+        Object.entries(fields).forEach(([key, text]) => {
+            const row = document.createElement("label");
+            row.textContent = text;
+            const input = document.createElement("input");
+            input.type = key === "apiKey" ? "password" : "text";
+            input.value = existing[key] || "";
+            inputs[key] = input;
+            row.append(input);
+            dialog.append(row);
+        });
+        const saveBtn = document.createElement("button");
+        saveBtn.type = "button";
+        saveBtn.textContent = "Save";
+        saveBtn.addEventListener("click", () => {
+            const merged = { ...existing };
+            let allFilled = true;
+            Object.entries(inputs).forEach(([key, input]) => {
+                if (input.value.trim()) merged[key] = input.value.trim();
+                else allFilled = false;
+            });
+            if (!allFilled) return;
+            localStorage.aiConfig = JSON.stringify(merged);
+            dialog.close();
+            dialog.remove();
+            resolve();
+        });
+        dialog.append(saveBtn);
+        document.body.append(dialog);
+        dialog.showModal();
+        pinToVisualViewport(dialog, 0.04);
+    });
+}
+
+// bodypart/categories/movers constrained to values already in exerciseDB()
+// -- movers has a hard technical reason (muscle-map SVG matches mover
+// names literally against `svg [data-name='<name>']`), bodypart/categories
+// follow the same rule by choice, not requirement.
+function getExistingDBVocab(){
+    const db = exerciseDB();
+    const bodyparts = new Set(), categories = new Set(), movers = new Set();
+    Object.values(db).forEach(e => {
+        if (e.bodypart) bodyparts.add(e.bodypart);
+        (e.categories||[]).forEach(c => categories.add(c));
+        (e.movers||[]).forEach(m => movers.add(m));
+    });
+    return {
+        bodyparts: [...bodyparts].sort(),
+        categories: [...categories].sort(),
+        movers: [...movers].sort(),
+    };
+}
+
+function buildExercisePrompt(exerciseNames, hint){
+    const { bodyparts, categories, movers } = getExistingDBVocab();
+    const n = exerciseNames.length;
+    return `You are generating ${n} new strength-training exercise ${n===1?"entry":"entries"} for a fitness-tracking app's exercise database, one for each name listed at the bottom, in the same order.
+
+Return ONLY a single valid JSON array of ${n} object${n===1?"":"s"} -- no markdown code fences, no commentary before or after. Each object needs exactly these fields:
+{
+  "name": string, Title Case display name,
+  "bodypart": string, lowercase -- reuse the closest match from this exact existing list, do not invent a new value unless truly none of these fit: ${JSON.stringify(bodyparts)},
+  "categories": array of lowercase strings -- reuse values from this exact existing list, do not invent new ones unless truly none fit: ${JSON.stringify(categories)},
+  "movers": array of 1-5 strings ORDERED from primary to least-involved muscle, using ONLY these exact values, nothing else (this drives which muscles actually get colored on the app's muscle-map SVG -- an unrecognized name would silently never show up there): ${JSON.stringify(movers)},
+  "equipment": array of lowercase strings, e.g. "barbell", "dumbbells", "bodyweight", "cable machine",
+  "description": one or two plain instructional sentences describing the movement, e.g. "Lie flat on a bench while gripping the barbell with hands shoulder-width apart. Lower the barbell under control to the mid-chest, then press it back up until arms are fully extended.",
+  "type": one of "bilateral" | "unilateral" | "isometric" -- classify using ONLY the primary and secondary movers (the first two entries in your own "movers" array): if the movement carries them through BOTH a concentric and an eccentric phase each rep (a real up/down or push/pull cycle), it's "bilateral" (both limbs/sides work together) or "unilateral" (one side at a time). If instead it holds those same primary/secondary movers fixed in ONE phase -- usually contracted -- for the whole set, with no phase cycling, it's "isometric", regardless of whether some other part of the body is moving (e.g. walking while holding a static grip/brace is still isometric for the graded muscles),
+  "effectiveness": integer 1-10,
+  "technicality": integer 1-10,
+  "fatigue": integer 1-10,
+  "media": {"imagelinks": "", "videolinks": ""}
+}
+
+Exercises to generate, in order: ${JSON.stringify(exerciseNames)}
+${hint ? `Additional context that applies to all of them: ${hint}` : ""}
+
+Return ONLY the JSON array, nothing else.`;
+}
+
+function stripCodeFences(text){
+    return text.trim().replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "").trim();
+}
+
+// Branches request/response shape on provider (Anthropic Messages API vs
+// the OpenAI-compatible chat-completions shape most others use) -- separate
+// concern from the CORS problem the relay above solves.
+function buildProviderRequest(config, prompt){
+    const isAnthropic = new URL(config.endpoint).hostname === "api.anthropic.com";
+    if (isAnthropic){
+        return {
+            headers: {
+                "x-api-key": config.apiKey,
+                "anthropic-version": "2023-06-01",
+            },
+            body: {
+                model: config.model,
+                max_tokens: 1024,
+                messages: [{ role: "user", content: prompt }],
+            },
+        };
+    }
+    return {
+        headers: { "Authorization": `Bearer ${config.apiKey}` },
+        body: {
+            model: config.model,
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.7,
+        },
+    };
+}
+
+function extractGeneratedText(config, responseData){
+    const isAnthropic = new URL(config.endpoint).hostname === "api.anthropic.com";
+    if (isAnthropic) return responseData?.content?.[0]?.text;
+    return responseData?.choices?.[0]?.message?.content;
+}
+
+// Calls the configured AI (through the relay) once for every name in
+// exerciseNames, validates each result against the DB's own live
+// vocabulary, and returns {key, exercise} pairs -- never writes anything
+// itself. A bad/invalid response is rejected as a whole, not partially saved.
+async function generateExercisesWithAI(exerciseNames, hint){
+    const config = JSON.parse(localStorage.aiConfig || "{}");
+    if (getMissingAIConfigFields().length) throw new Error("AI isn't configured yet.");
+
+    const prompt = buildExercisePrompt(exerciseNames, hint);
+    const { headers, body } = buildProviderRequest(config, prompt);
+
+    let relayResponse;
+    try {
+        relayResponse = await fetch(AI_RELAY_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ endpoint: config.endpoint, headers, body }),
+        });
+    } catch (e) {
+        throw new Error(`Couldn't reach the relay at ${AI_RELAY_URL} -- check that it's still deployed.`);
+    }
+
+    const responseData = await relayResponse.json().catch(() => null);
+    if (!relayResponse.ok){
+        const detail = responseData?.error || responseData?.detail || relayResponse.statusText;
+        throw new Error(`${config.label} request failed: ${detail}`);
+    }
+
+    const text = extractGeneratedText(config, responseData);
+    if (!text) throw new Error(`${config.label} returned no usable response.`);
+
+    let exercises;
+    try { exercises = JSON.parse(stripCodeFences(text)); }
+    catch (e) { throw new Error(`${config.label}'s response wasn't valid JSON: ${text.slice(0, 200)}`); }
+
+    if (!Array.isArray(exercises)) throw new Error(`${config.label} didn't return a JSON array: ${text.slice(0, 200)}`);
+    if (exercises.length !== exerciseNames.length){
+        throw new Error(`Asked for ${exerciseNames.length} exercises, got ${exercises.length} back.`);
+    }
+
+    const { bodyparts: validBodyparts, categories: validCategories, movers: validMovers } = getExistingDBVocab();
+    const requiredKeys = ["name","bodypart","categories","movers","equipment","description","type","effectiveness","technicality","fatigue"];
+
+    return exercises.map((exercise, i) => {
+        const label = exerciseNames[i] || `#${i+1}`;
+        const missingKeys = requiredKeys.filter(k => exercise[k] === undefined);
+        if (missingKeys.length) throw new Error(`"${label}" is missing: ${missingKeys.join(", ")}`);
+        if (!validBodyparts.includes(exercise.bodypart)){
+            throw new Error(`"${label}" has a "bodypart" not already in the DB: ${exercise.bodypart}`);
+        }
+        if (!Array.isArray(exercise.categories) || !exercise.categories.length || exercise.categories.some(c => !validCategories.includes(c))){
+            throw new Error(`"${label}" has a "categories" value not already in the DB: ${JSON.stringify(exercise.categories)}`);
+        }
+        if (!Array.isArray(exercise.movers) || !exercise.movers.length || exercise.movers.some(m => !validMovers.includes(m))){
+            throw new Error(`"${label}" has an invalid "movers" list: ${JSON.stringify(exercise.movers)}`);
+        }
+        if (!["bilateral","unilateral","isometric"].includes(exercise.type)){
+            throw new Error(`"${label}" has an invalid "type": ${exercise.type}`);
+        }
+        if (!exercise.media) exercise.media = { imagelinks: "", videolinks: "" };
+        return { key: nameToId(exercise.name), exercise };
+    });
+}
+
 // Maps each page's own <body id> (already used throughout for CSS scoping)
 // to the script it should run -- but only once the workout/template data
 // it depends on has actually loaded. Pages not listed here (exercisedetails.html,

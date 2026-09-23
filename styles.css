@@ -2541,6 +2541,149 @@ svg > path:nth-child(23) {
         color: white;
         border: 1px solid var(--template-color-black);
     }
+    /* AI exercise generation dialogs (settings.js) -- JS-created/removed, not static HTML, so no [open] guard needed. */
+    #settingspage #aiconfigprompt,
+    #settingspage #generateexerciseprompt{
+        max-height: 45vh;
+        overflow-y: auto;
+        margin-top: 4vh;
+        margin-bottom: auto;
+        background-color: var(--template-color-mid);
+        color: white;
+        border: 1px solid white;
+        border-radius: 1vh;
+        padding: 3vh 4vw;
+        width: 80vw;
+        max-width: 22rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.6vh;
+        font-family: Georgia, 'Times New Roman', Times, serif;
+    }
+    #aiconfigprompt::backdrop,
+    #generateexerciseprompt::backdrop,
+    #exercisepreviewprompt::backdrop{
+        background: rgba(0,0,0,0.6);
+    }
+    #settingspage #aiconfigprompt > p,
+    #settingspage #generateexerciseprompt > p{
+        text-align: center;
+        font-size: 1.1rem;
+        margin: 0;
+    }
+    #settingspage #aiconfigprompt > label,
+    #settingspage #generateexerciseprompt > label{
+        display: flex;
+        flex-direction: column;
+        gap: 0.6vh;
+        font-size: 0.85rem;
+    }
+    #settingspage #aiconfigprompt > label > input,
+    #settingspage #generateexerciseprompt > label > input,
+    #settingspage #generateexerciseprompt > label > textarea{
+        border: 0;
+        border-radius: 0.5vh;
+        padding: 1.2vh 3vw;
+        font-size: 1rem;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    #settingspage #generateexerciseprompt > label > textarea{
+        font-family: Georgia, 'Times New Roman', Times, serif;
+        resize: vertical;
+    }
+    #settingspage #aiconfigprompt > button,
+    #settingspage #generateexerciseprompt > button{
+        align-self: center;
+        width: 60%;
+        height: 4vh;
+        background-image: linear-gradient(60deg, var(--template-color-light), var(--template-color-soft));
+        border: 0;
+        color: white;
+        font-family: Georgia, 'Times New Roman', Times, serif;
+        font-size: 1.1rem;
+        border-radius: 0.5vh;
+    }
+    #settingspage #generateexerciseprompt > .ai-status{
+        text-align: center;
+        font-size: 0.8rem;
+        margin: 0;
+        min-height: 1em;
+        color: #ffb3a7;
+    }
+    #settingspage #exercisepreviewprompt{
+        margin-top: 4vh;
+        margin-bottom: auto;
+        background-color: var(--template-color-mid);
+        color: white;
+        border: 1px solid white;
+        border-radius: 1vh;
+        padding: 3vh 4vw;
+        width: 82vw;
+        max-width: 24rem;
+        max-height: 65vh;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 1.2vh;
+        font-family: Georgia, 'Times New Roman', Times, serif;
+    }
+    #settingspage #exercisepreviewprompt > p:first-of-type{
+        text-align: center;
+        font-size: 1.2rem;
+        font-weight: 900;
+        margin: 0;
+    }
+    #settingspage #exercisepreviewprompt .ai-preview-list{
+        display: flex;
+        flex-direction: column;
+        gap: 1.2vh;
+        overflow-y: auto;
+    }
+    #settingspage #exercisepreviewprompt .ai-preview-card{
+        background-color: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 0.6vh;
+        padding: 1.4vh 3vw;
+    }
+    #settingspage #exercisepreviewprompt .ai-preview-card-header{
+        display: flex;
+        align-items: center;
+        gap: 2vw;
+        font-size: 1rem;
+        margin-bottom: 0.6vh;
+    }
+    #settingspage #exercisepreviewprompt .ai-preview-card-header > input[type="checkbox"]{
+        width: 1.1rem;
+        height: 1.1rem;
+        flex-shrink: 0;
+    }
+    #settingspage #exercisepreviewprompt .ai-preview-details > p{
+        font-size: 0.85rem;
+        margin: 0 0 0.8vh 0;
+        line-height: 1.4;
+    }
+    #settingspage #exercisepreviewprompt .ai-preview-buttons{
+        display: flex;
+        gap: 2vw;
+        margin-top: 1vh;
+    }
+    #settingspage #exercisepreviewprompt .ai-preview-buttons > button{
+        flex: 1;
+        height: 4vh;
+        border: 0;
+        border-radius: 0.5vh;
+        font-family: Georgia, 'Times New Roman', Times, serif;
+        font-size: 1rem;
+        color: white;
+    }
+    #settingspage #exercisepreviewprompt .ai-preview-buttons > button:first-child{
+        background-color: rgba(255,255,255,0.15);
+        border: 1px solid rgba(255,255,255,0.3);
+    }
+    #settingspage #exercisepreviewprompt .ai-preview-buttons > button:last-child{
+        background-image: linear-gradient(60deg, var(--template-color-light), var(--template-color-soft));
+    }
     #settingspage dialog > #measurementstable{
         height: 40vh;
     }
