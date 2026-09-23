@@ -975,7 +975,18 @@ svg > path:nth-child(23) {
     #createworkoutform{
         overflow-y: scroll;
         margin-top: 2%;
+        /* Was a plain height:87vh -- unlike the OUTER page container just
+           above (which correctly falls back to calc(var(--vh,1vh)*100)
+           when the keyboard shrinks the visual viewport), this INNER
+           scrolling container -- where the actual focused inputs live --
+           never shrank at all, staying pinned to 87% of the stale,
+           keyboard-unaware vh unit. That outer/inner height mismatch
+           while the keyboard is open is a real, confirmed contributor to
+           the footer/keyboard bug (see functions.js's footer diagnostic
+           panel and its data) -- this brings it in line with the same
+           --vh-aware pattern every outer page container already uses. */
         height: 87vh;
+        height: calc(var(--vh, 1vh) * 87);
         display: flex;
         flex-wrap: wrap;
     }
@@ -1736,7 +1747,9 @@ svg > path:nth-child(23) {
     #createtemplateform{
         overflow-y: scroll;
         margin-top: 2%;
+        /* Same fix as #createworkoutform -- see its comment. */
         height: 87vh;
+        height: calc(var(--vh, 1vh) * 87);
         display: flex;
         flex-wrap: wrap;
     }
@@ -1848,7 +1861,9 @@ svg > path:nth-child(23) {
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
     }
     #historypage #history{
+        /* Same fix as #createworkoutform above -- see its comment. */
         height: 87.5vh;
+        height: calc(var(--vh, 1vh) * 87.5);
         width: 95vw;
         margin: 1vw;
         padding: 1vw;
@@ -1907,7 +1922,9 @@ svg > path:nth-child(23) {
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
     }
     #pastworkout #container{
+        /* Same fix as #createworkoutform above -- see its comment. */
         height: 87.5vh;
+        height: calc(var(--vh, 1vh) * 87.5);
         padding: 0.5vh;
         overflow-y: scroll;
     }
@@ -2258,7 +2275,9 @@ svg > path:nth-child(23) {
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
      }
      #trendspage #container{
+        /* Same fix as #createworkoutform above -- see its comment. */
         height: 87vh;
+        height: calc(var(--vh, 1vh) * 87);
         padding: 0.5vw;
      }
      #trendspage #container #mainfilters{
@@ -2391,7 +2410,20 @@ svg > path:nth-child(23) {
         display: flex;
         flex-direction: column;
         gap: 2vh;
+        /* Was a plain height:87.5vh -- unlike the OUTER page container
+           above (calc(var(--vh,1vh)*100), correctly shrinking with the
+           keyboard), this INNER scrolling container -- where the actual
+           focused inputs live -- never shrank at all. Confirmed by direct
+           on-device measurement (functions.js's footer diagnostic panel):
+           for an input still within the correctly-shrunk visual viewport,
+           the footer sat exactly at its bottom edge (correct); for one
+           further down, native scroll-into-view additionally kicked in
+           and shifted everything up an extra ~323px on top of the
+           already-correct resize -- exactly the reported gap. This
+           outer/inner height mismatch while the keyboard is open is a
+           real, confirmed contributor to that. */
         height: 87.5vh;
+        height: calc(var(--vh, 1vh) * 87.5);
         padding: 0.5vh;
         overflow-y: scroll;
     }
@@ -2589,7 +2621,9 @@ svg > path:nth-child(23) {
        of a separate button row, so #container gets that budget back. */
     #profilepage #container{
         display: grid;
+        /* Same fix as #createworkoutform above -- see its comment. */
         height: 87.5vh;
+        height: calc(var(--vh, 1vh) * 87.5);
         padding: 0.5vh;
     }
     /* Same overflow:visible / .modal-close pattern as #pastworkout's
@@ -2820,8 +2854,10 @@ svg > path:nth-child(23) {
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
     }
     #statspage #container{
+        /* Same fix as #createworkoutform above -- see its comment. */
         height: 87.5vh;
-        padding: 0.5vh;   
+        height: calc(var(--vh, 1vh) * 87.5);
+        padding: 0.5vh;
     }
     #statspage h2{
         text-align: center;
