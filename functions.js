@@ -118,6 +118,33 @@ window.addEventListener("resize", setRealViewportHeight);
 window.visualViewport?.addEventListener("resize", setRealViewportHeight);
 window.addEventListener("orientationchange", setRealViewportHeight);
 
+// #header/#footer on settings.html are now position:fixed (styles.css --
+// confirmed fix, see its comment there) instead of flex participants, so
+// they no longer automatically reserve space for themselves in the
+// layout. This measures their actual rendered height once and sets the
+// content area's top/bottom insets to match, so it fills exactly the
+// remaining space instead of rendering underneath the now-fixed
+// header/footer. Settings.html only for now -- scoped by id check,
+// rolling out to other pages once this is confirmed working.
+function pinHeaderFooterFixed(){
+    if (document.body.id !== "settingspage") return;
+    const header = document.getElementById("header");
+    const footer = document.getElementById("footer");
+    const content = document.getElementById("settingscontainer");
+    if (!header || !footer || !content) return;
+    content.style.top = `${header.offsetHeight}px`;
+    content.style.bottom = `${footer.offsetHeight}px`;
+}
+window.addEventListener("load", pinHeaderFooterFixed);
+window.addEventListener("resize", pinHeaderFooterFixed);
+window.addEventListener("orientationchange", pinHeaderFooterFixed);
+// The header's rendered height depends on the Anton webfont (loaded via
+// <link> in <head>) having actually swapped in -- measuring before that
+// finishes would use the fallback font's shorter/taller metrics and
+// undersize/oversize the gap left for it. fonts.ready resolves once every
+// font referenced anywhere in this page's stylesheets has loaded.
+document.fonts?.ready.then(pinHeaderFooterFixed).catch(() => {});
+
 // The actual mechanism behind the keyboard/footer bug and the debug
 // overlay/dialogs rendering off-screen: position:fixed anchors to the
 // LAYOUT viewport, which never moves. On iOS, opening the keyboard can

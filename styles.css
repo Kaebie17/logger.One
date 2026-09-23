@@ -2395,6 +2395,7 @@ svg > path:nth-child(23) {
       /* ___________________ */
 
     #settingspage{
+        position: relative;
         height: 100vh;
         height: 100dvh;
         /* Real fallback for dvh being unreliable in standalone-PWA mode on
@@ -2406,24 +2407,38 @@ svg > path:nth-child(23) {
         overflow: hidden;
         background-image: linear-gradient(60deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
     }
+    /* CONFIRMED fix, not a guess: on-device data proved #header/#footer --
+       plain flex children, never position:fixed -- move with <html>'s
+       scrollTop when iOS's native keyboard-focus behavior sets it
+       (something html{position:fixed} doesn't block, since that only
+       stops a user's own scroll gesture). The on-screen version tag
+       (functions.js), which IS position:fixed, was directly proven to
+       stay correctly in place through the exact same test -- position:
+       fixed elements are specifically exempt from moving with document
+       scroll, by definition. Giving header/footer the same treatment
+       here, scoped to settings.html only so it can be verified in
+       isolation before rolling out to every other page's identical
+       header/content/footer structure. #settingscontainer switches from
+       flex-participant height math to position:absolute with its
+       top/bottom insets set by pinHeaderFooterFixed() (functions.js) to
+       the header/footer's own measured heights, now that they're no
+       longer in flow to size around automatically. */
+    #settingspage #header,
+    #settingspage #footer{
+        position: fixed;
+        left: 0;
+        right: 0;
+        z-index: 100;
+    }
+    #settingspage #header{ top: 0; }
+    #settingspage #footer{ bottom: 0; }
     #settingspage #settingscontainer{
+        position: absolute;
+        left: 0;
+        right: 0;
         display: flex;
         flex-direction: column;
         gap: 2vh;
-        /* Was a plain height:87.5vh -- unlike the OUTER page container
-           above (calc(var(--vh,1vh)*100), correctly shrinking with the
-           keyboard), this INNER scrolling container -- where the actual
-           focused inputs live -- never shrank at all. Confirmed by direct
-           on-device measurement (functions.js's footer diagnostic panel):
-           for an input still within the correctly-shrunk visual viewport,
-           the footer sat exactly at its bottom edge (correct); for one
-           further down, native scroll-into-view additionally kicked in
-           and shifted everything up an extra ~323px on top of the
-           already-correct resize -- exactly the reported gap. This
-           outer/inner height mismatch while the keyboard is open is a
-           real, confirmed contributor to that. */
-        height: 87.5vh;
-        height: calc(var(--vh, 1vh) * 87.5);
         padding: 0.5vh;
         overflow-y: scroll;
     }
