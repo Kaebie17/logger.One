@@ -1,3 +1,33 @@
+// Surfaces any uncaught JS error or unhandled promise rejection directly
+// on screen -- registered as the very first thing this file does, so it
+// can catch failures from anywhere, including later in this same file.
+// Exists because "a button is visually present but does nothing" is
+// indistinguishable, from the outside, between a real thrown exception
+// that killed every listener registered after it and a native-browser
+// behavior silently intercepting the click (both have been real causes
+// tonight) -- this makes that distinction directly visible instead of
+// requiring Mac/Web Inspector access to find out. Kept permanently, not
+// just for tonight's debugging: surfacing uncaught errors is worth having
+// regardless.
+function showJsErrorBanner(message){
+    const banner = document.createElement("div");
+    banner.className = "js-error-banner";
+    banner.style.cssText = "position:fixed; top:0; left:0; right:0; z-index:999999; background:#c0392b; color:white; font-family:monospace; font-size:11px; padding:8px 32px 8px 8px; white-space:pre-wrap; word-break:break-word; box-shadow:0 2px 6px rgba(0,0,0,0.4);";
+    banner.textContent = message;
+    const closeBtn = document.createElement("span");
+    closeBtn.textContent = "✕";
+    closeBtn.style.cssText = "position:absolute; top:4px; right:8px; cursor:pointer; font-weight:bold;";
+    closeBtn.addEventListener("click", () => banner.remove());
+    banner.append(closeBtn);
+    document.body ? document.body.appendChild(banner) : document.addEventListener("DOMContentLoaded", () => document.body.appendChild(banner));
+}
+window.addEventListener("error", (e) => {
+    showJsErrorBanner(`JS ERROR: ${e.message}\n${(e.filename||"").split("/").pop()}:${e.lineno}:${e.colno}`);
+});
+window.addEventListener("unhandledrejection", (e) => {
+    showJsErrorBanner(`UNHANDLED PROMISE REJECTION: ${e.reason?.stack || e.reason}`);
+});
+
 // Best-effort companion to the landscape overlay in styles.css. This can
 // actively hold the device in portrait, but only under conditions most
 // browsers require (fullscreen, or an installed/standalone PWA) -- it
