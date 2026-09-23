@@ -39,11 +39,23 @@
             <!-- <a href="">Log Measurements</a> -->
             <legend>Personal Info</legend>
         </fieldset>
-        <button form="settingscontainer" id="donebtn">Done</button>
-        <button id="logmeasurementsbtn">Log Measurements</button>
+        <!-- Every button in this form defaulted to type="submit" (the
+             implicit default) with several `required` fields elsewhere in
+             the form -- clicking ANY of them with even one required field
+             empty made the browser block the click's own action and
+             instead focus/highlight the FIRST invalid required field
+             (#unitval), regardless of what each button's own click handler
+             did. type="button" on all of them (same fix already applied to
+             the Backup/Restore buttons below) removes that native
+             submit/validation behavior entirely -- each button's own JS
+             handler already does the actual work (saveSettings,
+             handleImport, etc.), none of them ever relied on real form
+             submission. -->
+        <button type="button" form="settingscontainer" id="donebtn">Done</button>
+        <button type="button" id="logmeasurementsbtn">Log Measurements</button>
         <span id="importexport">
-            <button id="importdata">Import Data</button>
-            <button id="exportdata">Export Data</button>
+            <button type="button" id="importdata">Import Data</button>
+            <button type="button" id="exportdata">Export Data</button>
             <a href="format_sheet.xlsx"><img src="./media/icons/icons8-excel-50.png" alt=""></a>
         </span>
         <!-- "Export Data" above only ever covered workout logs (CSV) -- these
