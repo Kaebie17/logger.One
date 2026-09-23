@@ -195,22 +195,8 @@ function showVersionTag(version) {
   const tag = document.createElement("div");
   tag.id = "app-version-tag";
   tag.textContent = version;
-  tag.style.cssText = "position:fixed; font-size:9px; color:rgba(255,255,255,0.35); z-index:999998; pointer-events:none; font-family:monospace;";
+  tag.style.cssText = "position:fixed; bottom:2px; right:4px; font-size:9px; color:rgba(255,255,255,0.35); z-index:999998; pointer-events:none; font-family:monospace;";
   document.body.appendChild(tag);
-  // Was a static bottom:2px/right:4px -- anchored to the LAYOUT viewport,
-  // which doesn't shrink when the keyboard opens, so it stayed pinned
-  // behind the keyboard instead of tracking the actually-visible bottom
-  // edge. Same live-tracking approach as pinToVisualViewport, anchored to
-  // the visual viewport's own bottom-right corner instead of top-center.
-  const vv = window.visualViewport;
-  if (!vv) { tag.style.bottom = "2px"; tag.style.right = "4px"; return; }
-  const update = () => {
-    tag.style.top = `${vv.offsetTop + vv.height - tag.offsetHeight - 2}px`;
-    tag.style.left = `${vv.offsetLeft + vv.width - tag.offsetWidth - 4}px`;
-  };
-  update();
-  vv.addEventListener("resize", update);
-  vv.addEventListener("scroll", update);
 }
 function requestVersionTag() {
   if (!navigator.serviceWorker.controller) return;
