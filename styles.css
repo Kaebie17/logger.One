@@ -148,7 +148,7 @@ body{
        the few elements users actually need to type or select text in. */
     -webkit-user-select: none;
     user-select: none;
-    /* background-color: linear-gradient(60deg, var(--template-color-black), var(--template-color-mid), var(--template-color-soft)); */
+    background-color: red;
 }
 input, textarea{
     -webkit-user-select: text;
@@ -280,8 +280,8 @@ svg > path:nth-child(23) {
 @media (max-width: 50rem){
     body{
         margin: 0;
-        /* display: flex;
-        flex-direction: column; */
+        display: flex;
+        flex-direction: column;
     }
     /* Every other page pins its body to one viewport (height + overflow:
        hidden) via a page-specific id (#profilepage, #pastworkout, ...),
