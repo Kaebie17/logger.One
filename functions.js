@@ -79,7 +79,7 @@ function findContentContainer(){
 function pinPageToVisualViewport(){
     const vv = window.visualViewport;
     const page = document.body;
-    console.log(vv.height, "body: "+page,document.firstElementChild.style.height+"px");
+    console.log(vv.height, "body: "+page.style.height,"html: "+document.firstElementChild.style.height);
     if (!vv || !page) return;
     page.style.position = "fixed";
     page.style.margin = "0";
@@ -88,7 +88,7 @@ function pinPageToVisualViewport(){
     page.style.width = `${vv.width}px`;
     page.style.height = `${vv.height}px`;
     document.firstElementChild.style.height = `${vv.height}px`; 
-    console.log(vv.height, "body: "+page,document.firstElementChild.style.height+"px");
+    console.log(vv.height, "body: "+page.style.height,"html: "+document.firstElementChild.style.height);
     // Confirmed via inspector: flex:1 on the content container computes
     // correctly (flex-grow:1, flex-shrink:1, flex-basis:0%, min-height:0)
     // but the box itself doesn't actually resize when body's own height
