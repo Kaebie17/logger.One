@@ -66,36 +66,53 @@ window.addEventListener("resize", setRealViewportHeight);
 window.visualViewport?.addEventListener("resize", setRealViewportHeight);
 window.addEventListener("orientationchange", setRealViewportHeight);
 
-// Clean, final keyboard handler for the footer only
-function initKeyboardHandler() {
-    const footer = document.getElementById("footer");
-    if (!window.visualViewport || !footer) return;
-
-    const updateFooter = () => {
-        const keyboardHeight = window.innerHeight - window.visualViewport.height;
-        
-        if (keyboardHeight > 100) {
-            // Push ONLY the footer up by the exact keyboard height
-            footer.style.position = "fixed";
-            footer.style.bottom = `${keyboardHeight}px`;
-            footer.style.left = "0";
-            footer.style.width = "100%";
-            footer.style.top = "auto"; // Ensure top isn't locked
-        } else {
-            // Reset footer back to normal CSS flow when keyboard closes
-            footer.style.position = "";
-            footer.style.bottom = "";
-            footer.style.left = "";
-            footer.style.width = "";
-            footer.style.top = "";
-        }
-    };
-
-    window.visualViewport.addEventListener("resize", updateFooter);
-    window.visualViewport.addEventListener("scroll", updateFooter);
+// 1. Viewport Sizing & Positioning
+function updateViewport() {
+    const vv = window.visualViewport;
+    const style = document.documentElement.style;
+    
+    if (vv) {
+        style.setProperty('--app-height', `${vv.height}px`);
+        style.setProperty('--app-top', `${vv.offsetTop}px`);
+    } else {
+        style.setProperty('--app-height', `${window.innerHeight}px`);
+        style.setProperty('--app-top', '0px');
+    }
 }
 
-initKeyboardHandler();
+if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", updateViewport);
+    window.visualViewport.addEventListener("scroll", updateViewport);
+}
+
+window.addEventListener("resize", updateViewport);
+window.addEventListener("orientationchange", updateViewport);
+
+// Run immediately on load
+updateViewport();
+
+// 2. Prevent iOS from panning/scrolling the entire document window when keyboard opens
+const lockDocumentScroll = () => {
+    if (window.scrollY > 0) {
+        window.scrollTo(0, 0);
+    }
+};
+
+if (window.visualViewport) {
+    window.visualViewport.addEventListener("scroll", lockDocumentScroll);
+    window.visualViewport.addEventListener("resize", lockDocumentScroll);
+}
+
+document.addEventListener("focusin", (e) => {
+    if (["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName)) {
+        setTimeout(() => {
+            window.scrollTo(0, 0);
+            e.target.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }, 50);
+    }
+});
+
+window.addEventListener("scroll", lockDocumentScroll);
 // The actual mechanism behind the keyboard/footer bug and the debug
 // overlay/dialogs rendering off-screen: position:fixed anchors to the
 // LAYOUT viewport, which never moves. On iOS, opening the keyboard can
