@@ -66,51 +66,36 @@ window.addEventListener("resize", setRealViewportHeight);
 window.visualViewport?.addEventListener("resize", setRealViewportHeight);
 window.addEventListener("orientationchange", setRealViewportHeight);
 
-// 2. Precise Visual Viewport Footer Anchor (Prevents double-shifting)
+// Clean, final keyboard handler for the footer only
 function initKeyboardHandler() {
     const footer = document.getElementById("footer");
     if (!window.visualViewport || !footer) return;
 
-    const updateFooterPosition = () => {
-        const vv = window.visualViewport;
+    const updateFooter = () => {
+        const keyboardHeight = window.innerHeight - window.visualViewport.height;
         
-        // Check if keyboard is open (arbitrary threshold or height difference)
-        const isKeyboardOpen = window.innerHeight - vv.height > 100;
-
-        if (isKeyboardOpen) {
+        if (keyboardHeight > 100) {
+            // Push ONLY the footer up by the exact keyboard height
             footer.style.position = "fixed";
-            // Pin the footer right above the keyboard by calculating 
-            // the exact visual viewport bottom edge minus the footer's height
-            footer.style.top = `${vv.offsetTop + vv.height - footer.offsetHeight}px`;
-            footer.style.left = `${vv.offsetLeft}px`;
-            footer.style.width = `${vv.width}px`;
-            footer.style.bottom = "auto";
+            footer.style.bottom = `${keyboardHeight}px`;
+            footer.style.left = "0";
+            footer.style.width = "100%";
+            footer.style.top = "auto"; // Ensure top isn't locked
         } else {
-            // Reset back to normal CSS positioning when keyboard closes
+            // Reset footer back to normal CSS flow when keyboard closes
             footer.style.position = "";
-            footer.style.top = "";
+            footer.style.bottom = "";
             footer.style.left = "";
             footer.style.width = "";
-            footer.style.bottom = "";
+            footer.style.top = "";
         }
     };
 
-    window.visualViewport.addEventListener("resize", updateFooterPosition);
-    window.visualViewport.addEventListener("scroll", updateFooterPosition);
-    
-    // Also trigger update on focus/blur of inputs
-    document.addEventListener("focusin", (e) => {
-        if (["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName)) {
-            setTimeout(updateFooterPosition, 100);
-        }
-    });
-    document.addEventListener("focusout", () => {
-        setTimeout(updateFooterPosition, 150);
-    });
+    window.visualViewport.addEventListener("resize", updateFooter);
+    window.visualViewport.addEventListener("scroll", updateFooter);
 }
 
 initKeyboardHandler();
-
 // The actual mechanism behind the keyboard/footer bug and the debug
 // overlay/dialogs rendering off-screen: position:fixed anchors to the
 // LAYOUT viewport, which never moves. On iOS, opening the keyboard can

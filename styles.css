@@ -281,12 +281,11 @@ svg > path:nth-child(23) {
 }
 @media (max-width: 50rem){
     body{
+        height: 100%;
         margin: 0;
         display: flex;
         flex-direction: column;
-        height: 100dvh;
-        box-sizing: border-box;
-        overflow: hidden;
+        background: transparent;
     }
     /* Every other page pins its body to one viewport (height + overflow:
        hidden) via a page-specific id (#profilepage, #pastworkout, ...),
@@ -317,6 +316,7 @@ svg > path:nth-child(23) {
         flex: 1;
         min-height: 0;
         overflow-y: scroll;
+        -webkit-overflow-scrolling: touch;
     }
     #header{
         /* max() gives this a floor: it keeps scaling with 8vh normally in
@@ -745,6 +745,8 @@ svg > path:nth-child(23) {
         width: 100%;
         flex-shrink: 0;
         background-image: linear-gradient(-60deg, var(--template-color-black), var(--template-color-mid), var(--template-color-soft));
+        /* Add padding for the iOS home indicator bar when keyboard is closed */
+        padding-bottom: env(safe-area-inset-bottom, 0px);
     }
     .footer-row{
         display: flex;
@@ -1751,6 +1753,7 @@ svg > path:nth-child(23) {
         min-height: 0;
         display: flex;
         flex-wrap: wrap;
+        -webkit-overflow-scrolling: touch;
     }
     #createtemplateform > *:not(p,hr)
     {
@@ -1870,6 +1873,7 @@ svg > path:nth-child(23) {
         display: grid;
         align-content: start;
         overflow-y: scroll;
+        -webkit-overflow-scrolling: touch;
     }
     #historypage custom-option-element {
         width: fit-content;
@@ -2411,6 +2415,7 @@ svg > path:nth-child(23) {
         gap: 2vh;
         padding: 0.5vh;
         overflow-y: scroll;
+        -webkit-overflow-scrolling: touch;
     }
     #settingspage #personalinfo,#preferences{
         display: flex;
