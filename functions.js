@@ -120,11 +120,25 @@ document.addEventListener("touchmove", (e) => {
     const isKeyboardOpen = vv && (window.innerHeight - vv.height > 100);
 
     if (isKeyboardOpen) {
-        // Find if the touch is happening inside your scrollable content section
-        const contentSection = e.target.closest('.content-section, #settingscontainer, #createworkoutform, #createtemplateform, #history, #container');
-        
-        // If they are trying to scroll outside the content area (like pulling down past the footer), block it!
-        if (!contentSection) {
+        // Walk up the DOM to see if the user is touching inside ANY element that is scrollable
+        let target = e.target;
+        let isScrollable = false;
+
+        while (target && target !== document.body && target !== document.documentElement) {
+            const style = window.getComputedStyle(target);
+            const overflowY = style.getPropertyValue('overflow-y');
+            
+            // Check if this element has scroll enabled and actually has content to scroll
+            if ((overflowY === 'auto' || overflowY === 'scroll') && target.scrollHeight > target.clientHeight) {
+                isScrollable = true;
+                break;
+            }
+            target = target.parentElement;
+        }
+
+        // If it's inside a scrollable area, LET THEM SCROLL. 
+        // If they are touching static areas or the dead space, block it.
+        if (!isScrollable) {
             e.preventDefault();
         }
     }
