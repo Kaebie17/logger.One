@@ -149,7 +149,6 @@ body{
        the few elements users actually need to type or select text in. */
     -webkit-user-select: none;
     user-select: none;
-    background-color: red;
 }
 input, textarea{
     -webkit-user-select: text;
