@@ -95,9 +95,10 @@ html{
     position: fixed;
     inset: 0;
     overflow:hidden;
+    background-color: #f1c40f;
     /* <body> doesn't reliably repaint its own background once JS makes it
        position:fixed -- index.html's gradient lives here on <html> instead. */
-    background-image: linear-gradient(60deg, var(--template-color-black), var(--template-color-mid), var(--template-color-soft));
+    /* background-image: linear-gradient(60deg, var(--template-color-black), var(--template-color-mid), var(--template-color-soft)); */
 }
 /* Same fix as above, for every other page (shared gradient, class="gradient-page" set per-file on <html>). */
 /* html.gradient-page{
@@ -970,13 +971,13 @@ svg > path:nth-child(23) {
            real visible height live and fixes it; the 100vh above stays as a
            fallback for browsers that don't support dvh. */
         height: 100vh;
-        height: 100dvh;
+        /* height: 100dvh; */
         /* Real fallback for dvh being unreliable in standalone-PWA mode on
            some iOS versions -- see setRealViewportHeight in functions.js.
            A no-op wherever --vh was never set (falls back to 1vh, same as
            the line above) or dvh already worked correctly (this line just
            happens to compute the same value). */
-        height: calc(var(--vh, 1vh) * 100);
+        /* height: calc(var(--vh, 1vh) * 100); */
         overflow: hidden;
     }
     #createworkoutform{
