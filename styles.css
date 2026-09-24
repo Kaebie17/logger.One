@@ -337,6 +337,8 @@ svg > path:nth-child(23) {
            from squeezing it back down regardless. */
         min-height: max(8vh, 44px);
         flex-shrink: 0;
+        box-sizing: border-box;
+        z-index: 10;
         /* env() falls back to 0 on a device with no notch/dynamic island, so
            this is a no-op there and only does anything on hardware that
            actually needs it. Only relevant once installed standalone --
@@ -748,9 +750,6 @@ svg > path:nth-child(23) {
         width: 100%;
         flex-shrink: 0;
         background-image: linear-gradient(-60deg, var(--template-color-black), var(--template-color-mid), var(--template-color-soft));
-        /* Add padding for the iOS home indicator bar when keyboard is closed */
-        padding-bottom: env(safe-area-inset-bottom, 0px);
-        
     }
     .footer-row{
         display: flex;
