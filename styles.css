@@ -286,6 +286,7 @@ svg > path:nth-child(23) {
         display: flex;
         flex-direction: column;
         background: transparent;
+        overflow: hidden;
     }
     /* Every other page pins its body to one viewport (height + overflow:
        hidden) via a page-specific id (#profilepage, #pastworkout, ...),

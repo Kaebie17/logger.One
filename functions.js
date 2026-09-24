@@ -56,50 +56,38 @@ try { screen.orientation?.lock?.("portrait")?.catch(() => {}) } catch (e) {}
 // updates correctly as iOS shows/hides its own chrome and the on-screen
 // keyboard; resize alone can miss those on some versions.
 
-// 1. Viewport Sizing & Positioning (Keeps app container matched to visible screen)
+// 1. Keep dynamic viewport height updated for iOS
 function updateViewport() {
     const vv = window.visualViewport;
-    const style = document.documentElement.style;
-    
-    if (vv) {
-        style.setProperty('--app-height', `${vv.height}px`);
-        style.setProperty('--app-top', `${vv.offsetTop}px`);
-        style.setProperty('--vh', `${vv.height * 0.01}px`);
-    } else {
-        style.setProperty('--app-height', `${window.innerHeight}px`);
-        style.setProperty('--app-top', '0px');
-        style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
-    }
+    const h = vv ? vv.height : window.innerHeight;
+    document.documentElement.style.setProperty("--vh", `${h * 0.01}px`);
 }
 
 if (window.visualViewport) {
     window.visualViewport.addEventListener("resize", updateViewport);
-    window.visualViewport.addEventListener("scroll", updateViewport);
 }
-
 window.addEventListener("resize", updateViewport);
 window.addEventListener("orientationchange", updateViewport);
 updateViewport();
 
-// 2. Smooth Input Focus (Gently brings focused input into view without fighting iOS)
+// 2. Smooth input focus helper (Prevents iOS from losing track of the input)
 document.addEventListener("focusin", (e) => {
     if (["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName)) {
         setTimeout(() => {
+            // Instantly snap document back if iOS pans it, then scroll input into view smoothly
+            window.scrollTo(0, 0);
             e.target.scrollIntoView({ behavior: "smooth", block: "nearest" });
-        }, 100);
+        }, 50);
     }
 });
 
-// 3. Touch-Move Blocker (Stops the app from pulling/scrolling into the dead space below the footer)
+// 3. Touch-move blocker to stop pulling into dead space below footer
 document.addEventListener("touchmove", (e) => {
     const vv = window.visualViewport;
     const isKeyboardOpen = vv && (window.innerHeight - vv.height > 100);
 
     if (isKeyboardOpen) {
-        // Check if the touch is happening inside your scrollable content section
         const contentSection = e.target.closest('.content-section, #settingscontainer, #createworkoutform, #createtemplateform, #history, #container');
-        
-        // If they try to drag/scroll outside the content area (like pulling past the footer), block it completely
         if (!contentSection) {
             e.preventDefault();
         }
