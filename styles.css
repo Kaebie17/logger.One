@@ -341,7 +341,8 @@ svg > path:nth-child(23) {
            actually needs it. Only relevant once installed standalone --
            inside a normal browser tab the browser's own UI already occupies
            that space. */
-        padding-top: 2vh;
+        /* Add padding for the iOS home indicator bar when keyboard is closed */
+        padding-top: env(safe-area-inset-bottom, 0px);
         background-image: linear-gradient(-60deg, var(--template-color-black), var(--template-color-mid), var(--template-color-soft));
     }
     #header > h1{
@@ -746,6 +747,8 @@ svg > path:nth-child(23) {
         width: 100%;
         flex-shrink: 0;
         background-image: linear-gradient(-60deg, var(--template-color-black), var(--template-color-mid), var(--template-color-soft));
+        /* Add padding for the iOS home indicator bar when keyboard is closed */
+        padding-bottom: env(safe-area-inset-bottom, 0px);
         
     }
     .footer-row{
