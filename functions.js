@@ -56,38 +56,74 @@ try { screen.orientation?.lock?.("portrait")?.catch(() => {}) } catch (e) {}
 // updates correctly as iOS shows/hides its own chrome and the on-screen
 // keyboard; resize alone can miss those on some versions.
 
-// 1. Keep dynamic viewport height updated for iOS
+// 1. Keep your custom property setter
+function setRealViewportHeight() {
+    const h = window.visualViewport?.height || window.innerHeight;
+    document.documentElement.style.setProperty("--vh", `${h * 0.01}px`);
+}
+setRealViewportHeight();
+window.addEventListener("resize", setRealViewportHeight);
+window.visualViewport?.addEventListener("resize", setRealViewportHeight);
+window.addEventListener("orientationchange", setRealViewportHeight);
+
+// 1. Viewport Sizing & Positioning
 function updateViewport() {
     const vv = window.visualViewport;
-    const h = vv ? vv.height : window.innerHeight;
-    document.documentElement.style.setProperty("--vh", `${h * 0.01}px`);
+    const style = document.documentElement.style;
+    
+    if (vv) {
+        style.setProperty('--app-height', `${vv.height}px`);
+        style.setProperty('--app-top', `${vv.offsetTop}px`);
+    } else {
+        style.setProperty('--app-height', `${window.innerHeight}px`);
+        style.setProperty('--app-top', '0px');
+    }
 }
 
 if (window.visualViewport) {
     window.visualViewport.addEventListener("resize", updateViewport);
+    window.visualViewport.addEventListener("scroll", updateViewport);
 }
+
 window.addEventListener("resize", updateViewport);
 window.addEventListener("orientationchange", updateViewport);
+
+// Run immediately on load
 updateViewport();
 
-// 2. Smooth input focus helper (Prevents iOS from losing track of the input)
+// 2. Prevent iOS from panning/scrolling the entire document window when keyboard opens
+const lockDocumentScroll = () => {
+    if (window.scrollY > 0) {
+        window.scrollTo(0, 0);
+    }
+};
+
+if (window.visualViewport) {
+    window.visualViewport.addEventListener("scroll", lockDocumentScroll);
+    window.visualViewport.addEventListener("resize", lockDocumentScroll);
+}
+
 document.addEventListener("focusin", (e) => {
     if (["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName)) {
         setTimeout(() => {
-            // Instantly snap document back if iOS pans it, then scroll input into view smoothly
             window.scrollTo(0, 0);
             e.target.scrollIntoView({ behavior: "smooth", block: "nearest" });
         }, 50);
     }
 });
 
-// 3. Touch-move blocker to stop pulling into dead space below footer
+window.addEventListener("scroll", lockDocumentScroll);
+
+// Add a simple touch-move blocker that only triggers when the keyboard is open
 document.addEventListener("touchmove", (e) => {
     const vv = window.visualViewport;
     const isKeyboardOpen = vv && (window.innerHeight - vv.height > 100);
 
     if (isKeyboardOpen) {
+        // Find if the touch is happening inside your scrollable content section
         const contentSection = e.target.closest('.content-section, #settingscontainer, #createworkoutform, #createtemplateform, #history, #container');
+        
+        // If they are trying to scroll outside the content area (like pulling down past the footer), block it!
         if (!contentSection) {
             e.preventDefault();
         }
