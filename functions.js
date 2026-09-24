@@ -56,17 +56,7 @@ try { screen.orientation?.lock?.("portrait")?.catch(() => {}) } catch (e) {}
 // updates correctly as iOS shows/hides its own chrome and the on-screen
 // keyboard; resize alone can miss those on some versions.
 
-// 1. Keep your custom property setter
-function setRealViewportHeight() {
-    const h = window.visualViewport?.height || window.innerHeight;
-    document.documentElement.style.setProperty("--vh", `${h * 0.01}px`);
-}
-setRealViewportHeight();
-window.addEventListener("resize", setRealViewportHeight);
-window.visualViewport?.addEventListener("resize", setRealViewportHeight);
-window.addEventListener("orientationchange", setRealViewportHeight);
-
-// 1. Viewport Sizing & Positioning
+// 1. Viewport Sizing & Positioning (Keeps app container matched to visible screen)
 function updateViewport() {
     const vv = window.visualViewport;
     const style = document.documentElement.style;
@@ -74,9 +64,11 @@ function updateViewport() {
     if (vv) {
         style.setProperty('--app-height', `${vv.height}px`);
         style.setProperty('--app-top', `${vv.offsetTop}px`);
+        style.setProperty('--vh', `${vv.height * 0.01}px`);
     } else {
         style.setProperty('--app-height', `${window.innerHeight}px`);
         style.setProperty('--app-top', '0px');
+        style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
     }
 }
 
@@ -87,32 +79,32 @@ if (window.visualViewport) {
 
 window.addEventListener("resize", updateViewport);
 window.addEventListener("orientationchange", updateViewport);
-
-// Run immediately on load
 updateViewport();
 
-// 2. Prevent iOS from panning/scrolling the entire document window when keyboard opens
-const lockDocumentScroll = () => {
-    if (window.scrollY > 0) {
-        window.scrollTo(0, 0);
-    }
-};
-
-if (window.visualViewport) {
-    window.visualViewport.addEventListener("scroll", lockDocumentScroll);
-    window.visualViewport.addEventListener("resize", lockDocumentScroll);
-}
-
+// 2. Smooth Input Focus (Gently brings focused input into view without fighting iOS)
 document.addEventListener("focusin", (e) => {
     if (["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName)) {
         setTimeout(() => {
-            window.scrollTo(0, 0);
             e.target.scrollIntoView({ behavior: "smooth", block: "nearest" });
-        }, 50);
+        }, 100);
     }
 });
 
-window.addEventListener("scroll", lockDocumentScroll);
+// 3. Touch-Move Blocker (Stops the app from pulling/scrolling into the dead space below the footer)
+document.addEventListener("touchmove", (e) => {
+    const vv = window.visualViewport;
+    const isKeyboardOpen = vv && (window.innerHeight - vv.height > 100);
+
+    if (isKeyboardOpen) {
+        // Check if the touch is happening inside your scrollable content section
+        const contentSection = e.target.closest('.content-section, #settingscontainer, #createworkoutform, #createtemplateform, #history, #container');
+        
+        // If they try to drag/scroll outside the content area (like pulling past the footer), block it completely
+        if (!contentSection) {
+            e.preventDefault();
+        }
+    }
+}, { passive: false });
 // The actual mechanism behind the keyboard/footer bug and the debug
 // overlay/dialogs rendering off-screen: position:fixed anchors to the
 // LAYOUT viewport, which never moves. On iOS, opening the keyboard can
