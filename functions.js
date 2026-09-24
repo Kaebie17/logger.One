@@ -56,7 +56,7 @@ try { screen.orientation?.lock?.("portrait")?.catch(() => {}) } catch (e) {}
 // updates correctly as iOS shows/hides its own chrome and the on-screen
 // keyboard; resize alone can miss those on some versions.
 
-// 1. Keep your custom property setter for dynamic viewport heights
+// 1. Keep your custom property setter
 function setRealViewportHeight() {
     const h = window.visualViewport?.height || window.innerHeight;
     document.documentElement.style.setProperty("--vh", `${h * 0.01}px`);
@@ -66,21 +66,50 @@ window.addEventListener("resize", setRealViewportHeight);
 window.visualViewport?.addEventListener("resize", setRealViewportHeight);
 window.addEventListener("orientationchange", setRealViewportHeight);
 
-// 2. Lightweight keyboard handler for the footer (No body/html mutation)
-const footer = document.getElementById("footer");
-if (window.visualViewport && footer) {
-    window.visualViewport.addEventListener("resize", () => {
-        const keyboardHeight = window.innerHeight - window.visualViewport.height;
+// 2. Precise Visual Viewport Footer Anchor (Prevents double-shifting)
+function initKeyboardHandler() {
+    const footer = document.getElementById("footer");
+    if (!window.visualViewport || !footer) return;
+
+    const updateFooterPosition = () => {
+        const vv = window.visualViewport;
         
-        if (keyboardHeight > 100) {
-            // Push the footer up by the exact height of the keyboard
-            footer.style.transform = `translateY(-${keyboardHeight}px)`;
+        // Check if keyboard is open (arbitrary threshold or height difference)
+        const isKeyboardOpen = window.innerHeight - vv.height > 100;
+
+        if (isKeyboardOpen) {
+            footer.style.position = "fixed";
+            // Pin the footer right above the keyboard by calculating 
+            // the exact visual viewport bottom edge minus the footer's height
+            footer.style.top = `${vv.offsetTop + vv.height - footer.offsetHeight}px`;
+            footer.style.left = `${vv.offsetLeft}px`;
+            footer.style.width = `${vv.width}px`;
+            footer.style.bottom = "auto";
         } else {
-            // Reset footer position when keyboard closes
-            footer.style.transform = "translateY(0)";
+            // Reset back to normal CSS positioning when keyboard closes
+            footer.style.position = "";
+            footer.style.top = "";
+            footer.style.left = "";
+            footer.style.width = "";
+            footer.style.bottom = "";
+        }
+    };
+
+    window.visualViewport.addEventListener("resize", updateFooterPosition);
+    window.visualViewport.addEventListener("scroll", updateFooterPosition);
+    
+    // Also trigger update on focus/blur of inputs
+    document.addEventListener("focusin", (e) => {
+        if (["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName)) {
+            setTimeout(updateFooterPosition, 100);
         }
     });
+    document.addEventListener("focusout", () => {
+        setTimeout(updateFooterPosition, 150);
+    });
 }
+
+initKeyboardHandler();
 
 // The actual mechanism behind the keyboard/footer bug and the debug
 // overlay/dialogs rendering off-screen: position:fixed anchors to the
