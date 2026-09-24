@@ -55,7 +55,9 @@ try { screen.orientation?.lock?.("portrait")?.catch(() => {}) } catch (e) {}
 // visualViewport specifically (over plain innerHeight) is what actually
 // updates correctly as iOS shows/hides its own chrome and the on-screen
 // keyboard; resize alone can miss those on some versions.
-function setRealViewportHeight(){
+
+// 1. Keep your custom property setter for dynamic viewport heights
+function setRealViewportHeight() {
     const h = window.visualViewport?.height || window.innerHeight;
     document.documentElement.style.setProperty("--vh", `${h * 0.01}px`);
 }
@@ -64,50 +66,21 @@ window.addEventListener("resize", setRealViewportHeight);
 window.visualViewport?.addEventListener("resize", setRealViewportHeight);
 window.addEventListener("orientationchange", setRealViewportHeight);
 
-// Keeps <body> (header/content/footer, same internal layout as always)
-// pinned to the live visual viewport, same technique as pinToVisualViewport
-// below but for the whole page instead of one dialog. Background lives on
-// <html> now (styles.css), not here -- body doesn't reliably repaint it.
-function findContentContainer(){
-    const ids = ["settingscontainer","createworkoutform","createtemplateform","history","container"];
-    for (const id of ids){
-        const el = document.getElementById(id);
-        if (el) return el;
-    }
-    return null;
+// 2. Lightweight keyboard handler for the footer (No body/html mutation)
+const footer = document.getElementById("footer");
+if (window.visualViewport && footer) {
+    window.visualViewport.addEventListener("resize", () => {
+        const keyboardHeight = window.innerHeight - window.visualViewport.height;
+        
+        if (keyboardHeight > 100) {
+            // Push the footer up by the exact height of the keyboard
+            footer.style.transform = `translateY(-${keyboardHeight}px)`;
+        } else {
+            // Reset footer position when keyboard closes
+            footer.style.transform = "translateY(0)";
+        }
+    });
 }
-function pinPageToVisualViewport(){
-    const vv = window.visualViewport;
-    const page = document.body;
-    console.log(vv.height, "body: "+page.style.height,"html: "+document.firstElementChild.style.height);
-    if (!vv || !page) return;
-    page.style.position = "fixed";
-    page.style.margin = "0";
-    page.style.left = `${vv.offsetLeft}px`;
-    page.style.top = `${vv.offsetTop}px`;
-    page.style.width = `${vv.width}px`;
-    page.style.height = `${vv.height}px`;
-    document.firstElementChild.style.height = `${vv.height}px`; 
-    console.log(vv.height, "body: "+page.style.height,"html: "+document.firstElementChild.style.height);
-    // Confirmed via inspector: flex:1 on the content container computes
-    // correctly (flex-grow:1, flex-shrink:1, flex-basis:0%, min-height:0)
-    // but the box itself doesn't actually resize when body's own height
-    // changes via JS -- stuck at its content's natural size (615px, on a
-    // page where body went 750px -> 310px) regardless. Setting height
-    // directly bypasses flex's auto-resize path entirely instead of
-    // depending on it.
-    const header = document.getElementById("header");
-    const footer = document.getElementById("footer");
-    const content = findContentContainer();
-    if (content && header && footer){
-        content.style.height = `${vv.height - header.offsetHeight - footer.offsetHeight}px`;
-    }
-}
-window.visualViewport?.addEventListener("resize", pinPageToVisualViewport);
-window.visualViewport?.addEventListener("scroll", pinPageToVisualViewport);
-window.addEventListener("load", pinPageToVisualViewport);
-window.addEventListener("orientationchange", pinPageToVisualViewport);
-pinPageToVisualViewport();
 
 // The actual mechanism behind the keyboard/footer bug and the debug
 // overlay/dialogs rendering off-screen: position:fixed anchors to the
