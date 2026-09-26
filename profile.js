@@ -291,7 +291,7 @@ function getMuscleElements(name){
 }
 
 function currentMuscleTier(name){
-    return decayedTier((window.muscleSorenessData || {})[name]);
+    return decayedTier((window.muscleSorenessData || {})[name], Date.now(), name);
 }
 
 // Colors every element sharing this data-name, in BOTH views -- some
@@ -316,7 +316,7 @@ async function adjustMuscleTier(name, delta){
     // Was TIER_COLORS.length - 1 (capped manual adjustment at tier 4, one
     // short of the workout-driven path's max of 5, TIER_COLORS.length) --
     // now that both paths share one stored value, they need the same cap.
-    const current = decayedTier(data[name]);
+    const current = decayedTier(data[name], Date.now(), name);
     const next = Math.max(0, Math.min(TIER_COLORS.length, current + delta));
     if (next === 0) delete data[name]; else data[name] = {tier: next, lastUpdated: Date.now()};
     paintMuscle(name);

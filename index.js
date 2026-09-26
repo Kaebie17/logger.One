@@ -137,7 +137,7 @@ function renderMuscleSorenessMap(){
     const now = Date.now();
     // Matches the old rgbValues call site's own selector (document.querySelectorAll(`svg [data-name='${key}']`))
     // rather than assuming svgContainer is the SVGs' direct container.
-    document.querySelectorAll("svg [data-name]").forEach(el => applyTierColor(el, decayedTier(data[el.dataset.name], now)));
+    document.querySelectorAll("svg [data-name]").forEach(el => applyTierColor(el, decayedTier(data[el.dataset.name], now, el.dataset.name)));
 }
 
 function createTemplateItem(program,cover){

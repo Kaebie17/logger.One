@@ -572,6 +572,7 @@ function handleSystemicFatigueEdit(){
         sessionStorage.finalLog = JSON.stringify(Object.entries(finalLog));
         const updatedLog = pastWorkoutsObject.map(arr => arr[0] === key ? [arr[0], finalLog[key]] : arr);
         await window.LoggerDB.saveWorkoutLog(updatedLog);
+        await applySystemicFatigueToMuscles(key, finalLog[key]);
         snapshotContainer.lastElementChild.lastElementChild.textContent = input.value;
         modalEl.close();
         modalEl.remove();

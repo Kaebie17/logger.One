@@ -799,21 +799,30 @@ function applyTierColor(el, tier){
 // its own the longer a muscle goes untouched. See muscleSoreness's DB
 // layer below for the {tier, lastUpdated} record shape this operates on.
 
-// Tier 5 (the maximum) fully fades 72h after the muscle was last touched;
-// lower tiers scale down proportionally (5 tiers over 72h = 14.4h per tier).
-const SORENESS_FULL_DECAY_HOURS = 72;
-const SORENESS_HOURS_PER_TIER = SORENESS_FULL_DECAY_HOURS / TIER_COLORS.length;
+// Hours for tier 5 to fully fade (lower tiers scale down proportionally):
+// large muscles 72h, small muscles 48h. Any muscle not listed is large.
+const SORENESS_LARGE_HOURS = 72;
+const SORENESS_SMALL_HOURS = 48;
+const SMALL_MUSCLES = new Set(["abs","oblique","biceps","triceps","forearms","forearmextensors","brachioradialis","calves","neck","frontdelt","sidedelt","reardelt","rotatorcuffs"]);
+// Systemic fatigue rating (0-10, the user's own next-day rating) slows
+// recovery: 0 -> x1.0, 10 -> x1.5 on the time a tier takes to fade.
+function fatigueFactorForRating(rating){
+    const r = Math.max(0, Math.min(10, Number(rating) || 0));
+    return 1 + (r / 10) * 0.5;
+}
 
 // Whole displayed tier: a level shows for as long as any of it remains, so
-// it drops 5 -> 4 -> ... -> 0 as each 14.4h step elapses since the last
-// workout contribution or manual +/-. Never persisted on its own -- purely
-// a read-time view of the stored record; only an actual mutation (see
-// applyWorkoutToMuscleSoreness / profile.js's adjustMuscleTier) bakes a
-// new value back into storage.
-function decayedTier(record, now = Date.now()){
+// it steps down 5 -> 4 -> ... -> 0 as each tier's share of the muscle's
+// fade time elapses since the last workout contribution or manual +/-.
+// Never persisted on its own -- purely a read-time view of the stored
+// record; only an actual mutation (see applyWorkoutToMuscleSoreness /
+// profile.js's adjustMuscleTier) bakes a new value back into storage.
+function decayedTier(record, now = Date.now(), muscle){
     if (!record) return 0;
+    const baseHours = SMALL_MUSCLES.has(muscle) ? SORENESS_SMALL_HOURS : SORENESS_LARGE_HOURS;
+    const hoursPerTier = (baseHours / TIER_COLORS.length) * (record.fatigueFactor || 1);
     const elapsedHours = Math.max(0, (now - record.lastUpdated) / 3600000);
-    const remaining = record.tier - elapsedHours / SORENESS_HOURS_PER_TIER;
+    const remaining = record.tier - elapsedHours / hoursPerTier;
     return Math.max(0, Math.min(TIER_COLORS.length, Math.ceil(remaining)));
 }
 
@@ -877,8 +886,28 @@ async function applyWorkoutToMuscleSoreness(workoutExercises){
     percents.forEach((pct, muscle) => {
         const contribution = tierForVol(pct);
         if (contribution <= 0) return;
-        const current = decayedTier(data[muscle], now);
-        data[muscle] = { tier: Math.max(0, Math.min(TIER_COLORS.length, current + contribution)), lastUpdated: now };
+        const current = decayedTier(data[muscle], now, muscle);
+        data[muscle] = { tier: Math.max(0, Math.min(TIER_COLORS.length, current + contribution)), lastUpdated: now, fatigueFactor: data[muscle]?.fatigueFactor };
+        changed = true;
+    });
+    if (changed) await window.LoggerDB.saveMuscleSoreness(data);
+}
+
+// Called once the user rates a workout's systemic fatigue (next-day prompt,
+// or Edit Systemic Fatigue on Past Workout): slows recovery of the muscles
+// that workout worked. Only applies to the most recent workout -- older
+// ones' muscles have since been re-touched or faded, so their rating no
+// longer describes what those records are recovering from.
+async function applySystemicFatigueToMuscles(key, entry){
+    const log = window.workoutLogData || [];
+    const latest = log.slice().sort((a,b) => parseWorkoutKey(a[0]) - parseWorkoutKey(b[0])).at(-1);
+    if (!latest || latest[0] !== key) return;
+    const data = window.muscleSorenessData || (window.muscleSorenessData = {});
+    const factor = fatigueFactorForRating(entry.workoutSystemicFatigue);
+    let changed = false;
+    computeWorkoutMuscleVolumePercents(entry.workoutExercises).forEach((pct, muscle) => {
+        if (tierForVol(pct) <= 0 || !data[muscle]) return;
+        data[muscle] = { ...data[muscle], fatigueFactor: factor };
         changed = true;
     });
     if (changed) await window.LoggerDB.saveMuscleSoreness(data);
@@ -971,7 +1000,7 @@ async function loadTemplates(db){
 // decayedTier's hour-based decay above.
 async function loadMuscleSoreness(db){
     const rows = await idbGetAll(db, "muscleSoreness");
-    return Object.fromEntries(rows.map(({muscle, tier, lastUpdated}) => [muscle, {tier, lastUpdated}]));
+    return Object.fromEntries(rows.map(({muscle, tier, lastUpdated, fatigueFactor}) => [muscle, {tier, lastUpdated, fatigueFactor}]));
 }
 
 async function saveWorkoutLog(db, arrayOfTuples){
@@ -985,7 +1014,7 @@ async function saveTemplates(db, obj){
 }
 
 async function saveMuscleSoreness(db, obj){
-    await idbReplaceAll(db, "muscleSoreness", Object.entries(obj).map(([muscle, {tier, lastUpdated}]) => ({muscle, tier, lastUpdated})));
+    await idbReplaceAll(db, "muscleSoreness", Object.entries(obj).map(([muscle, {tier, lastUpdated, fatigueFactor}]) => ({muscle, tier, lastUpdated, fatigueFactor})));
     window.muscleSorenessData = obj;
 }
 
@@ -1241,6 +1270,7 @@ function showSystemicFatiguePrompt(key, entry, log){
         entry.workoutSystemicFatigue = input.value;
         const updated = log.map(([k,v]) => k === key ? [k, entry] : [k, v]);
         await window.LoggerDB.saveWorkoutLog(updated);
+        await applySystemicFatigueToMuscles(key, entry);
         dialog.close();
         dialog.remove();
     });
