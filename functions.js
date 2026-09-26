@@ -799,27 +799,22 @@ function applyTierColor(el, tier){
 // its own the longer a muscle goes untouched. See muscleSoreness's DB
 // layer below for the {tier, lastUpdated} record shape this operates on.
 
-// Calendar-day distance (midnight to midnight), not raw elapsed hours --
-// matches every other today/backdated comparison already in this codebase
-// (checkLastWorkoutSystemicFatigue below, logworkout.js's
-// updateSystemicFatigueAvailability), and is what makes two workouts
-// logged on the same real day both contribute in full with zero spurious
-// decay between them.
-function daysBetweenCalendar(fromMs, toMs){
-    const a = new Date(fromMs); a.setHours(0,0,0,0);
-    const b = new Date(toMs);   b.setHours(0,0,0,0);
-    return Math.round((b - a) / 86400000);
-}
+// Tier 5 (the maximum) fully fades 72h after the muscle was last touched;
+// lower tiers scale down proportionally (5 tiers over 72h = 14.4h per tier).
+const SORENESS_FULL_DECAY_HOURS = 72;
+const SORENESS_HOURS_PER_TIER = SORENESS_FULL_DECAY_HOURS / TIER_COLORS.length;
 
-// 1 tier point lost per full elapsed calendar day since this muscle was
-// last touched (a workout contribution or a manual +/-), floored at 0.
-// Never persisted on its own -- purely a read-time view of the stored
-// record; only an actual mutation (see applyWorkoutToMuscleSoreness /
-// profile.js's adjustMuscleTier) bakes a new value back into storage.
+// Whole displayed tier: a level shows for as long as any of it remains, so
+// it drops 5 -> 4 -> ... -> 0 as each 14.4h step elapses since the last
+// workout contribution or manual +/-. Never persisted on its own -- purely
+// a read-time view of the stored record; only an actual mutation (see
+// applyWorkoutToMuscleSoreness / profile.js's adjustMuscleTier) bakes a
+// new value back into storage.
 function decayedTier(record, now = Date.now()){
     if (!record) return 0;
-    const elapsedDays = daysBetweenCalendar(record.lastUpdated, now);
-    return Math.max(0, Math.min(TIER_COLORS.length, record.tier - elapsedDays));
+    const elapsedHours = Math.max(0, (now - record.lastUpdated) / 3600000);
+    const remaining = record.tier - elapsedHours / SORENESS_HOURS_PER_TIER;
+    return Math.max(0, Math.min(TIER_COLORS.length, Math.ceil(remaining)));
 }
 
 // Distributes ONE workout's own volume across each exercise's mover
@@ -973,7 +968,7 @@ async function loadTemplates(db){
 // Absent muscle = tier 0 (resting). lastUpdated (epoch ms, not a
 // toLocaleDateString() string -- see checkLastWorkoutSystemicFatigue's
 // comment on why locale date strings are unsafe to re-parse) drives
-// decayedTier's day-based decay above.
+// decayedTier's hour-based decay above.
 async function loadMuscleSoreness(db){
     const rows = await idbGetAll(db, "muscleSoreness");
     return Object.fromEntries(rows.map(({muscle, tier, lastUpdated}) => [muscle, {tier, lastUpdated}]));
