@@ -1341,15 +1341,22 @@ function getMissingAIConfigFields(){
 
 function ensureAIConfig(){
     const missing = getMissingAIConfigFields();
-    if (!missing.length) return Promise.resolve();
+    if (!missing.length) return Promise.resolve(true);
     return new Promise((resolve) => {
-        if (document.getElementById("aiconfigprompt")) { resolve(); return; }
+        if (document.getElementById("aiconfigprompt")) { resolve(false); return; }
         const existing = JSON.parse(localStorage.aiConfig || "{}");
         const dialog = document.createElement("dialog");
         dialog.id = "aiconfigprompt";
+        const closeBtn = document.createElement("span");
+        closeBtn.className = "modal-close";
+        closeBtn.textContent = "❌";
+        // Resolves false however it's dismissed (button, Escape) so the caller stops instead of hanging.
+        let saved = false;
+        dialog.addEventListener("close", () => { dialog.remove(); resolve(saved); });
+        closeBtn.addEventListener("click", () => dialog.close());
         const label = document.createElement("p");
         label.textContent = "Set up an AI to generate new exercises";
-        dialog.append(label);
+        dialog.append(closeBtn, label);
         const fields = {
             label: "AI Name (just a label, e.g. \"Claude\")",
             endpoint: "API Endpoint",
@@ -1379,9 +1386,8 @@ function ensureAIConfig(){
             });
             if (!allFilled) return;
             localStorage.aiConfig = JSON.stringify(merged);
+            saved = true;
             dialog.close();
-            dialog.remove();
-            resolve();
         });
         dialog.append(saveBtn);
         document.body.append(dialog);

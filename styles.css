@@ -2575,6 +2575,12 @@ svg > path:nth-child(23) {
     #exercisepreviewprompt::backdrop{
         background: rgba(0,0,0,0.6);
     }
+    #settingspage #aiconfigprompt > .modal-close,
+    #settingspage #generateexerciseprompt > .modal-close,
+    #settingspage #exercisepreviewprompt > .modal-close{
+        top: 0.6rem;
+        right: 0.6rem;
+    }
     #settingspage #aiconfigprompt > p,
     #settingspage #generateexerciseprompt > p{
         text-align: center;

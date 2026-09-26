@@ -297,7 +297,7 @@ dataManagementDialog.querySelector(".modal-close").addEventListener("click", () 
 // checks once they hit Save, never before. One call generates every name
 // typed in at once, one per line, instead of one API call per exercise.
 async function handleGenerateExercise(){
-  await ensureAIConfig();
+  if (!(await ensureAIConfig())) return;
   showGenerateExerciseDialog();
 }
 
