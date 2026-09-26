@@ -661,13 +661,13 @@ class DataInterface extends Object{
     byMonth(monthnum,year = new Date().getFullYear()){
         // debugger
         if (monthnum>12 || monthnum<0) return [];
-        let s = this.toKeys().findIndex(k => parseWorkoutKey(k).getMonth() === monthnum-1 && parseWorkoutKey(k).getFullYear() === year)  ;
+        let s = this.toKeys().findIndex(k => new Date(k).getMonth() === monthnum-1 && new Date(k).getFullYear() === year)  ;
         // findIndex returns -1 when no workout falls in this month/year --
         // without this guard, slice(-1) below reads as "last element of the
         // whole array" instead of "nothing found", silently pulling in the
         // most recent workout from a different month.
         if (s < 0) return [];
-        let e = this.toKeys().findIndex(k => parseWorkoutKey(k).getMonth() === monthnum && parseWorkoutKey(k).getFullYear() === year) ;
+        let e = this.toKeys().findIndex(k => new Date(k).getMonth() === monthnum && new Date(k).getFullYear() === year) ;
         return e < 0 ? [...this].slice(s) : [...this].slice(s,e);
     }
     byExercise(exercise){
