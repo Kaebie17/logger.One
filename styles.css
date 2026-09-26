@@ -2655,6 +2655,12 @@ svg > path:nth-child(23) {
         font-weight: 900;
         margin: 0;
     }
+    #settingspage #exercisepreviewprompt .ai-preview-failures{
+        font-size: 0.8rem;
+        color: #ffb3a7;
+        white-space: pre-wrap;
+        margin: 0;
+    }
     #settingspage #exercisepreviewprompt .ai-preview-list{
         display: flex;
         flex-direction: column;

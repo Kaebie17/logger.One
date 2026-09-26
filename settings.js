@@ -340,10 +340,10 @@ function showGenerateExerciseDialog(){
     generateBtn.disabled = true;
     statusEl.textContent = names.length > 1 ? `Generating ${names.length} exercises...` : "Generating...";
     try {
-      const results = await generateExercisesWithAI(names, hintInput.value.trim());
+      const { results, failures } = await generateExercisesWithAI(names, hintInput.value.trim());
       dialog.close();
       dialog.remove();
-      showExercisePreviewDialog(results);
+      showExercisePreviewDialog(results, failures);
     } catch (e) {
       statusEl.textContent = e.message;
       generateBtn.disabled = false;
@@ -359,7 +359,7 @@ function showGenerateExerciseDialog(){
 // single generated exercise, so there's one preview/save path regardless
 // of how many were requested. Each gets its own checkbox (checked by
 // default) so a batch with one bad entry doesn't force discarding the rest.
-function showExercisePreviewDialog(results){
+function showExercisePreviewDialog(results, failures = []){
   const dialog = document.createElement("dialog");
   dialog.id = "exercisepreviewprompt";
   const closeBtn = document.createElement("span");
@@ -367,6 +367,11 @@ function showExercisePreviewDialog(results){
   closeBtn.textContent = "❌";
   const title = document.createElement("p");
   title.textContent = results.length > 1 ? `${results.length} exercises generated` : results[0].exercise.name;
+
+  const failNote = document.createElement("p");
+  failNote.className = "ai-preview-failures";
+  failNote.textContent = failures.join("\n");
+  failNote.hidden = !failures.length;
 
   const list = document.createElement("div");
   list.className = "ai-preview-list";
@@ -416,7 +421,7 @@ function showExercisePreviewDialog(results){
   updateSave();
   btnRow.append(discardBtn, saveBtn);
 
-  dialog.append(closeBtn, title, list, btnRow);
+  dialog.append(closeBtn, title, failNote, list, btnRow);
 
   const cleanup = () => { dialog.close(); dialog.remove(); };
   closeBtn.addEventListener("click", cleanup);

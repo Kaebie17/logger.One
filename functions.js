@@ -1464,8 +1464,8 @@ function buildExercisePrompt(exerciseNames, hint){
 Return ONLY a single valid JSON array of ${n} object${n===1?"":"s"} -- no markdown code fences, no commentary before or after. Each object needs exactly these fields:
 {
   "name": string, Title Case display name,
-  "bodypart": string, lowercase -- reuse the closest match from this exact existing list, do not invent a new value unless truly none of these fit: ${JSON.stringify(bodyparts)},
-  "categories": array of lowercase strings -- reuse values from this exact existing list, do not invent new ones unless truly none fit: ${JSON.stringify(categories)},
+  "bodypart": string -- MUST be exactly one value from this list; pick the closest one, never invent a new value: ${JSON.stringify(bodyparts)},
+  "categories": array of 1-3 strings -- MUST be values copied exactly from this list; pick the closest ones, never invent a new value (a value not in this list makes the whole entry rejected): ${JSON.stringify(categories)},
   "movers": array of 1-5 strings ORDERED from primary to least-involved muscle, using ONLY these exact values, nothing else (this drives which muscles actually get colored on the app's muscle-map SVG -- an unrecognized name would silently never show up there): ${JSON.stringify(movers)},
   "equipment": array of lowercase strings, e.g. "barbell", "dumbbells", "bodyweight", "cable machine",
   "description": one or two plain instructional sentences describing the movement, e.g. "Lie flat on a bench while gripping the barbell with hands shoulder-width apart. Lower the barbell under control to the mid-chest, then press it back up until arms are fully extended.",
@@ -1563,25 +1563,27 @@ async function generateExercisesWithAI(exerciseNames, hint){
     const { bodyparts: validBodyparts, categories: validCategories, movers: validMovers } = getExistingDBVocab();
     const requiredKeys = ["name","bodypart","categories","movers","equipment","description","type","effectiveness","technicality","fatigue"];
 
-    return exercises.map((exercise, i) => {
+    // One bad entry is skipped (and reported), not allowed to throw away the
+    // rest of an already-paid-for batch.
+    const results = [], failures = [];
+    exercises.forEach((exercise, i) => {
         const label = exerciseNames[i] || `#${i+1}`;
-        const missingKeys = requiredKeys.filter(k => exercise[k] === undefined);
-        if (missingKeys.length) throw new Error(`"${label}" is missing: ${missingKeys.join(", ")}`);
-        if (!validBodyparts.includes(exercise.bodypart)){
-            throw new Error(`"${label}" has a "bodypart" not already in the DB: ${exercise.bodypart}`);
-        }
+        const fail = (reason) => failures.push(`"${label}" skipped: ${reason}`);
+        const missingKeys = requiredKeys.filter(k => exercise?.[k] === undefined);
+        if (missingKeys.length) return fail(`missing ${missingKeys.join(", ")}`);
+        if (!validBodyparts.includes(exercise.bodypart)) return fail(`bodypart "${exercise.bodypart}" isn't in the DB`);
         if (!Array.isArray(exercise.categories) || !exercise.categories.length || exercise.categories.some(c => !validCategories.includes(c))){
-            throw new Error(`"${label}" has a "categories" value not already in the DB: ${JSON.stringify(exercise.categories)}`);
+            return fail(`categories ${JSON.stringify(exercise.categories)} aren't all in the DB`);
         }
         if (!Array.isArray(exercise.movers) || !exercise.movers.length || exercise.movers.some(m => !validMovers.includes(m))){
-            throw new Error(`"${label}" has an invalid "movers" list: ${JSON.stringify(exercise.movers)}`);
+            return fail(`invalid muscles ${JSON.stringify(exercise.movers)}`);
         }
-        if (!["bilateral","unilateral","isometric"].includes(exercise.type)){
-            throw new Error(`"${label}" has an invalid "type": ${exercise.type}`);
-        }
+        if (!["bilateral","unilateral","isometric"].includes(exercise.type)) return fail(`invalid type "${exercise.type}"`);
         if (!exercise.media) exercise.media = { imagelinks: "", videolinks: "" };
-        return { key: nameToId(exercise.name), exercise };
+        results.push({ key: nameToId(exercise.name), exercise });
     });
+    if (!results.length) throw new Error(failures.join("\n"));
+    return { results, failures };
 }
 
 // Maps each page's own <body id> (already used throughout for CSS scoping)
