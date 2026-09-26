@@ -2594,6 +2594,7 @@ svg > path:nth-child(23) {
         gap: 0.6vh;
         font-size: 0.85rem;
     }
+    #settingspage #aiconfigprompt > label > select,
     #settingspage #aiconfigprompt > label > input,
     #settingspage #generateexerciseprompt > label > input,
     #settingspage #generateexerciseprompt > label > textarea{
@@ -2607,6 +2608,10 @@ svg > path:nth-child(23) {
     #settingspage #generateexerciseprompt > label > textarea{
         font-family: Georgia, 'Times New Roman', Times, serif;
         resize: vertical;
+    }
+    #settingspage #aiconfigprompt > label > select{
+        background-color: white;
+        color: black;
     }
     #settingspage #aiconfigprompt > button,
     #settingspage #generateexerciseprompt > button{

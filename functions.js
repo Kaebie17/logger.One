@@ -1339,6 +1339,42 @@ function getMissingAIConfigFields(){
     return missing;
 }
 
+// Preset providers for the setup dialog's dropdowns; "Other" on each field
+// falls back to typing the value in manually.
+const AI_PRESETS = [
+    {name: "Claude", endpoint: "https://api.anthropic.com/v1/messages", models: ["claude-sonnet-5", "claude-opus-5", "claude-haiku-4-5-20251001"]},
+    {name: "OpenAI", endpoint: "https://api.openai.com/v1/chat/completions", models: ["gpt-4o", "gpt-4o-mini"]},
+    {name: "Gemini", endpoint: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", models: ["gemini-2.0-flash", "gemini-1.5-pro"]},
+    {name: "Perplexity", endpoint: "https://api.perplexity.ai/chat/completions", models: ["sonar", "sonar-pro"]},
+];
+const AI_OTHER = "__other__";
+
+// A dropdown of preset values plus "Other", which reveals a text box.
+// `.value` is whichever is active, so the save loop can treat it like an input.
+function makeAIChoiceField(labelText){
+    const row = document.createElement("label");
+    row.textContent = labelText;
+    const select = document.createElement("select");
+    const text = document.createElement("input");
+    text.type = "text";
+    text.placeholder = "Type it in";
+    text.hidden = true;
+    row.append(select, text);
+    select.addEventListener("change", () => { text.hidden = select.value !== AI_OTHER; });
+    return {
+        row, select,
+        get value(){ return select.value === AI_OTHER ? text.value : select.value; },
+        // options: [{value, text}]; selected: value to show, or a custom string -> Other
+        setOptions(options, selected){
+            select.replaceChildren(...options.map(o => new Option(o.text, o.value)), new Option("Other (type manually)", AI_OTHER));
+            if (options.some(o => o.value === selected)) select.value = selected;
+            else if (selected){ select.value = AI_OTHER; text.value = selected; }
+            else select.value = options[0]?.value ?? AI_OTHER;
+            text.hidden = select.value !== AI_OTHER;
+        },
+    };
+}
+
 function ensureAIConfig(){
     const missing = getMissingAIConfigFields();
     if (!missing.length) return Promise.resolve(true);
@@ -1357,23 +1393,28 @@ function ensureAIConfig(){
         const label = document.createElement("p");
         label.textContent = "Set up an AI to generate new exercises";
         dialog.append(closeBtn, label);
-        const fields = {
-            label: "AI Name (just a label, e.g. \"Claude\")",
-            endpoint: "API Endpoint",
-            model: "Model",
-            apiKey: "API Key",
-        };
-        const inputs = {};
-        Object.entries(fields).forEach(([key, text]) => {
-            const row = document.createElement("label");
-            row.textContent = text;
-            const input = document.createElement("input");
-            input.type = key === "apiKey" ? "password" : "text";
-            input.value = existing[key] || "";
-            inputs[key] = input;
-            row.append(input);
-            dialog.append(row);
+        const nameField = makeAIChoiceField("AI Name");
+        const endpointField = makeAIChoiceField("API Endpoint");
+        const modelField = makeAIChoiceField("Model");
+        const keyRow = document.createElement("label");
+        keyRow.textContent = "API Key";
+        const keyInput = document.createElement("input");
+        keyInput.type = "password";
+        keyInput.value = existing.apiKey || "";
+        keyRow.append(keyInput);
+
+        nameField.setOptions(AI_PRESETS.map(p => ({value: p.name, text: p.name})), existing.label);
+        endpointField.setOptions(AI_PRESETS.map(p => ({value: p.endpoint, text: `${p.name} (${new URL(p.endpoint).hostname})`})), existing.endpoint);
+        const modelsFor = (endpoint) => (AI_PRESETS.find(p => p.endpoint === endpoint)?.models || []).map(m => ({value: m, text: m}));
+        modelField.setOptions(modelsFor(endpointField.value), existing.model);
+        // Picking a preset provider fills in its name and model list; "Other" leaves both to be typed.
+        endpointField.select.addEventListener("change", () => {
+            const preset = AI_PRESETS.find(p => p.endpoint === endpointField.select.value);
+            if (preset) nameField.setOptions(AI_PRESETS.map(p => ({value: p.name, text: p.name})), preset.name);
+            modelField.setOptions(modelsFor(endpointField.select.value), "");
         });
+        const inputs = {label: nameField, endpoint: endpointField, model: modelField, apiKey: keyInput};
+        dialog.append(nameField.row, endpointField.row, modelField.row, keyRow);
         const saveBtn = document.createElement("button");
         saveBtn.type = "button";
         saveBtn.textContent = "Save";
