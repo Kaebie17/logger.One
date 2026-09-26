@@ -2674,10 +2674,31 @@ svg > path:nth-child(23) {
         font-size: 1rem;
         margin-bottom: 0.6vh;
     }
+    /* The global appearance:none reset strips native checkboxes to nothing, so draw a visible one. */
     #settingspage #exercisepreviewprompt .ai-preview-card-header > input[type="checkbox"]{
-        width: 1.1rem;
-        height: 1.1rem;
+        width: 1.6rem;
+        height: 1.6rem;
         flex-shrink: 0;
+        border: 2px solid white;
+        border-radius: 0.35rem;
+        background-color: transparent;
+        display: grid;
+        place-content: center;
+    }
+    #settingspage #exercisepreviewprompt .ai-preview-card-header > input[type="checkbox"]:checked{
+        background-color: var(--template-color-soft);
+    }
+    #settingspage #exercisepreviewprompt .ai-preview-card-header > input[type="checkbox"]:checked::after{
+        content: "✓";
+        color: white;
+        font-size: 1.1rem;
+        line-height: 1;
+    }
+    #settingspage #exercisepreviewprompt .ai-preview-card-off{
+        opacity: 0.45;
+    }
+    #settingspage #exercisepreviewprompt .ai-preview-buttons > button:disabled{
+        opacity: 0.4;
     }
     #settingspage #exercisepreviewprompt .ai-preview-details > p{
         font-size: 0.85rem;

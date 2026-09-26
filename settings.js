@@ -396,6 +396,7 @@ function showExercisePreviewDialog(results){
     });
     card.append(header, details);
     list.append(card);
+    checkbox.addEventListener("change", () => { card.classList.toggle("ai-preview-card-off", !checkbox.checked); updateSave(); });
     return { key, exercise, checkbox };
   });
 
@@ -406,7 +407,13 @@ function showExercisePreviewDialog(results){
   discardBtn.textContent = "Discard";
   const saveBtn = document.createElement("button");
   saveBtn.type = "button";
-  saveBtn.textContent = results.length > 1 ? "Save Selected" : "Save";
+  // Shows how many will be saved and is disabled at zero, so Save can never silently save nothing.
+  function updateSave(){
+    const n = checkboxes.filter(c => c.checkbox.checked).length;
+    saveBtn.textContent = `Save (${n})`;
+    saveBtn.disabled = n === 0;
+  }
+  updateSave();
   btnRow.append(discardBtn, saveBtn);
 
   dialog.append(closeBtn, title, list, btnRow);
