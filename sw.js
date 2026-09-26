@@ -13,7 +13,7 @@
 // pushes an update out -- browsers only re-check this script's own bytes
 // for changes, they don't know when styles.css or exercisesDB.js changed
 // unless this version string changes too.
-const CACHE_NAME = "logger-one-v2.4.6";
+const CACHE_NAME = "logger-one-v2.4.7";
 
 const PRECACHE_URLS = [
   "index.html", "exercises.html", "exercisedetails.html", "history.html",
@@ -86,7 +86,10 @@ self.addEventListener("fetch", (event) => {
 
   if (isAppShellRequest(event.request)) {
     event.respondWith(
-      fetch(event.request).then((response) => {
+      // no-cache = revalidate with the server (cheap 304 via ETag) instead of
+      // trusting GitHub Pages' max-age=600, which let a fresh functions.js
+      // run against a stale settings.js for up to 10 minutes after a deploy.
+      fetch(event.request, { cache: "no-cache" }).then((response) => {
         if (response.ok) {
           const copy = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
