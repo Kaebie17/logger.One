@@ -1441,18 +1441,35 @@ function ensureAIConfig(){
 // -- movers has a hard technical reason (muscle-map SVG matches mover
 // names literally against `svg [data-name='<name>']`), bodypart/categories
 // follow the same rule by choice, not requirement.
+// Spelling variants of the same value ("isometric"/"isometrics",
+// "low back"/"lowback", "rear delts"/"rear-delts") collapse to one entry --
+// the most-used spelling -- so the AI is offered one choice, not near-duplicates.
+const vocabKey = (v) => String(v).toLowerCase().replace(/[\s-]+/g, "").replace(/s$/, "");
+function collapseVocab(counts){
+    const groups = new Map();
+    counts.forEach((n, v) => {
+        const k = vocabKey(v);
+        if (!groups.has(k) || n > groups.get(k).n) groups.set(k, {value: v, n});
+    });
+    return groups; // vocabKey -> {value: canonical spelling}
+}
 function getExistingDBVocab(){
     const db = exerciseDB();
-    const bodyparts = new Set(), categories = new Set(), movers = new Set();
+    const bodypartCounts = new Map(), categoryCounts = new Map(), movers = new Set();
+    const bump = (m, v) => m.set(v, (m.get(v) || 0) + 1);
     Object.values(db).forEach(e => {
-        if (e.bodypart) bodyparts.add(e.bodypart);
-        (e.categories||[]).forEach(c => categories.add(c));
+        if (e.bodypart) bump(bodypartCounts, e.bodypart);
+        (e.categories||[]).forEach(c => bump(categoryCounts, c));
         (e.movers||[]).forEach(m => movers.add(m));
     });
+    const bodypartGroups = collapseVocab(bodypartCounts), categoryGroups = collapseVocab(categoryCounts);
     return {
-        bodyparts: [...bodyparts].sort(),
-        categories: [...categories].sort(),
+        bodyparts: [...bodypartGroups.values()].map(g => g.value).sort(),
+        categories: [...categoryGroups.values()].map(g => g.value).sort(),
         movers: [...movers].sort(),
+        // Maps any accepted spelling to the canonical one (undefined if not in the DB at all)
+        canonBodypart: (v) => bodypartGroups.get(vocabKey(v))?.value,
+        canonCategory: (v) => categoryGroups.get(vocabKey(v))?.value,
     };
 }
 
@@ -1465,7 +1482,7 @@ Return ONLY a single valid JSON array of ${n} object${n===1?"":"s"} -- no markdo
 {
   "name": string, Title Case display name,
   "bodypart": string -- MUST be exactly one value from this list; pick the closest one, never invent a new value: ${JSON.stringify(bodyparts)},
-  "categories": array of 1-3 strings -- MUST be values copied exactly from this list; pick the closest ones, never invent a new value (a value not in this list makes the whole entry rejected): ${JSON.stringify(categories)},
+  "categories": array of 1-3 strings -- MUST be values copied exactly from this list; pick the closest ones, never invent a new value (any value not in this list is discarded): ${JSON.stringify(categories)},
   "movers": array of 1-5 strings ORDERED from primary to least-involved muscle, using ONLY these exact values, nothing else (this drives which muscles actually get colored on the app's muscle-map SVG -- an unrecognized name would silently never show up there): ${JSON.stringify(movers)},
   "equipment": array of lowercase strings, e.g. "barbell", "dumbbells", "bodyweight", "cable machine",
   "description": one or two plain instructional sentences describing the movement, e.g. "Lie flat on a bench while gripping the barbell with hands shoulder-width apart. Lower the barbell under control to the mid-chest, then press it back up until arms are fully extended.",
@@ -1560,7 +1577,7 @@ async function generateExercisesWithAI(exerciseNames, hint){
         throw new Error(`Asked for ${exerciseNames.length} exercises, got ${exercises.length} back.`);
     }
 
-    const { bodyparts: validBodyparts, categories: validCategories, movers: validMovers } = getExistingDBVocab();
+    const { movers: validMovers, canonBodypart, canonCategory } = getExistingDBVocab();
     const requiredKeys = ["name","bodypart","categories","movers","equipment","description","type","effectiveness","technicality","fatigue"];
 
     // One bad entry is skipped (and reported), not allowed to throw away the
@@ -1571,10 +1588,14 @@ async function generateExercisesWithAI(exerciseNames, hint){
         const fail = (reason) => failures.push(`"${label}" skipped: ${reason}`);
         const missingKeys = requiredKeys.filter(k => exercise?.[k] === undefined);
         if (missingKeys.length) return fail(`missing ${missingKeys.join(", ")}`);
-        if (!validBodyparts.includes(exercise.bodypart)) return fail(`bodypart "${exercise.bodypart}" isn't in the DB`);
-        if (!Array.isArray(exercise.categories) || !exercise.categories.length || exercise.categories.some(c => !validCategories.includes(c))){
-            return fail(`categories ${JSON.stringify(exercise.categories)} aren't all in the DB`);
-        }
+        const bodypart = canonBodypart(exercise.bodypart);
+        if (!bodypart) return fail(`bodypart "${exercise.bodypart}" isn't in the DB`);
+        exercise.bodypart = bodypart;
+        // Keep the categories that exist (in their canonical spelling), drop invented ones;
+        // only skip the exercise if none of them are in the DB.
+        const categories = [...new Set((Array.isArray(exercise.categories) ? exercise.categories : []).map(canonCategory).filter(Boolean))];
+        if (!categories.length) return fail(`none of its categories ${JSON.stringify(exercise.categories)} are in the DB`);
+        exercise.categories = categories;
         if (!Array.isArray(exercise.movers) || !exercise.movers.length || exercise.movers.some(m => !validMovers.includes(m))){
             return fail(`invalid muscles ${JSON.stringify(exercise.movers)}`);
         }
