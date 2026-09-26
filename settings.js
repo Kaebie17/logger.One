@@ -312,7 +312,7 @@ function showGenerateExerciseDialog(){
   title.textContent = "Generate new exercises";
 
   const nameLabel = document.createElement("label");
-  nameLabel.textContent = "Exercise names (one per line)";
+  nameLabel.textContent = "Exercise names (one per line or comma separated)";
   const nameInput = document.createElement("textarea");
   nameInput.rows = 4;
   nameInput.placeholder = "Cable Y-Raise\nReverse Nordic Curl\nLandmine Meadows Row";
@@ -335,7 +335,7 @@ function showGenerateExerciseDialog(){
 
   closeBtn.addEventListener("click", () => { dialog.close(); dialog.remove(); });
   generateBtn.addEventListener("click", async () => {
-    const names = nameInput.value.split("\n").map(n => n.trim()).filter(Boolean);
+    const names = nameInput.value.split(/[\n,]/).map(n => n.trim()).filter(Boolean);
     if (!names.length) { statusEl.textContent = "Enter at least one exercise name first."; return; }
     generateBtn.disabled = true;
     statusEl.textContent = names.length > 1 ? `Generating ${names.length} exercises...` : "Generating...";
