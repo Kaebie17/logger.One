@@ -3020,3 +3020,19 @@ svg > path:nth-child(23) {
         font-size: 1.1rem;
         line-height: 1.5;
     }
+
+/* Modals while the on-screen keyboard is open (class set by the block at the
+   end of functions.js): sit at the top of the visible area above the keyboard
+   and never exceed it. Nothing here applies with the keyboard closed. Only
+   dialogs that actually overflow get overflow-y:auto, so ones that fit keep
+   their own overflow (e.g. close buttons sitting half outside the box). */
+html.keyboard-open dialog[open]{
+    top: var(--app-top, 0px) !important;
+    bottom: auto !important;
+    margin-top: 0.5rem !important;
+    margin-bottom: 0.5rem !important;
+    max-height: calc(var(--app-height, 100vh) - 1rem) !important;
+}
+html.keyboard-open dialog[open][data-kb-scroll]{
+    overflow-y: auto !important;
+}

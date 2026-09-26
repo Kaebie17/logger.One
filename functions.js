@@ -1634,3 +1634,29 @@ async function initApp(){
     }
 }
 initApp();
+
+// Modals (<dialog>) while the on-screen keyboard is open: keeps every open
+// dialog inside the visible area above the keyboard. Purely additive -- it
+// only toggles a class on <html> and a data attribute on open dialogs; the
+// matching rules at the end of styles.css apply only under that class, so
+// nothing about how any dialog is created or looks with the keyboard closed
+// changes. Uses the same keyboard-open test as the touchmove guard above.
+(function(){
+    const root = document.documentElement;
+    const update = () => {
+        const vv = window.visualViewport;
+        const keyboardOpen = !!vv && (window.innerHeight - vv.height > 100);
+        root.classList.toggle("keyboard-open", keyboardOpen);
+        document.querySelectorAll("dialog[open]").forEach(d => {
+            d.removeAttribute("data-kb-scroll");
+            if (keyboardOpen && d.scrollHeight > d.clientHeight) d.setAttribute("data-kb-scroll", "");
+        });
+    };
+    window.visualViewport?.addEventListener("resize", update);
+    window.visualViewport?.addEventListener("scroll", update);
+    window.addEventListener("resize", update);
+    window.addEventListener("orientationchange", update);
+    // A dialog opened while the keyboard is already up
+    new MutationObserver(update).observe(document.documentElement, {subtree: true, attributes: true, attributeFilter: ["open"]});
+    update();
+})();
