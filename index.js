@@ -62,7 +62,7 @@ svgcode.addEventListener ("load", async () => {
         let date = new Date();
         date.setDate(date.getDate()-(el.textContent-1)); 
         el.textContent = date.getDate();
-        dailyWorkoutLog.keys().some(e => compareDates(new Date(e), date) ? el.classList.add("indent") : "");    
+        dailyWorkoutLog.keys().some(e => compareDates(parseWorkoutKey(e), date) ? el.classList.add("indent") : "");    
     })
     redZones =  calcRZ();
 })
@@ -94,10 +94,10 @@ liftHighlights.firstElementChild.nextElementSibling.lastElementChild.firstElemen
 liftHighlights.firstElementChild.nextElementSibling.lastElementChild.lastElementChild.textContent = findHighlight(pastMonthWorkouts,"bestlifts")?.[1] || "-";
 function recentWorkouts(object){
     const keys = Array.from(object.keys());
-    const dates = keys.filter(key => new Date(key) > new Date(date.getTime() - 7*24*60*60*1000) )
+    const dates = keys.filter(key => parseWorkoutKey(key) > new Date(date.getTime() - 7*24*60*60*1000) )
     const recentWorkoutDetails = dates.map(date => object.get(date));
     recentWorkoutDetails.forEach(({workoutExercises,...obj},i) => {
-        let dayMultiple = (100-(Math.round((new Date() - new Date(dates[i]))/(24*60*60*1000)))*10)/100;
+        let dayMultiple = (100-(Math.round((new Date() - parseWorkoutKey(dates[i]))/(24*60*60*1000)))*10)/100;
         const movers = Object.values(workoutExercises).map(arr => arr[0][1]);
         const volumes = Object.values(workoutExercises).map(arr => arr[arr.findIndex(e => e[0] === "vol")][1]).map(e => Math.round(e*dayMultiple));
         const totalVol = Math.round(volumes.reduce((a,b)=> a+b,0));
@@ -573,7 +573,7 @@ function scrollMonth(e){
 function monthlyWorkoutDates(){
     let monthnum = months.findIndex(m => m===calendarElem.firstElementChild.children[1].textContent);
     return pastWorkoutsObject.flatMap(([k,{workoutName, ...v}])=> { 
-        let d = new Date(k);
+        let d = parseWorkoutKey(k);
         return d.getMonth() === monthnum ? [d.getDate()] : [] ;
     })
 }
@@ -651,15 +651,15 @@ function findHighlight(array,result){
     if(!array.length) return;
     if (result === "rest")
     {
-        let n = new Date(array[0]?.[0])?.getMonth() === date.getMonth() ? date.getDate() : new Date(date - date.getDate()*24*60*60*1000).getDate() ;
-        let workDates =  array.map(([k,v])=> new Date(k).getDate()).flat()
+        let n = parseWorkoutKey(array[0]?.[0])?.getMonth() === date.getMonth() ? date.getDate() : new Date(date - date.getDate()*24*60*60*1000).getDate() ;
+        let workDates =  array.map(([k,v])=> parseWorkoutKey(k).getDate()).flat()
         let res = new Array(n).fill(0).map((e,i) => i+1);
         res = res.filter(e => !workDates.includes(e));
         return res.length;
     }
     if (result === "deload"){
-        let n = new Date(array[0]?.[0])?.getMonth() === date.getMonth() ? date.getDate() : new Date(date - date.getDate()*24*60*60*1000).getDate() ;
-        let workDates =  array.map(([k,v])=> new Date(k).getDate()).flat()
+        let n = parseWorkoutKey(array[0]?.[0])?.getMonth() === date.getMonth() ? date.getDate() : new Date(date - date.getDate()*24*60*60*1000).getDate() ;
+        let workDates =  array.map(([k,v])=> parseWorkoutKey(k).getDate()).flat()
         let res = new Array(n).fill(0).map((e,i) => i+1);
         res = res.filter(e => !workDates.includes(e));
         let days = [];
@@ -690,9 +690,9 @@ function findHighlight(array,result){
         let volumesPast = dataInterface.getStat("vol",pastMonthWorkouts,arr=>arr,arr=>arr.map(e=>e[1])) ;
         let volumesNow = dataInterface.getStat("vol",currentMonthWorkouts,arr=>arr,arr=>arr.map(e=>e[1]));
 
-        let twoMonthsBeforedurations = twoMonthsBeforeWorkouts.map(([k,v],i)=> (new Date(v["workoutDate"]+ " " +v["workoutEndTime"])-new Date(v["workoutDate"]+ " " +v["workoutStartTime"]))/(1000*60));
-        let durationsPast = pastMonthWorkouts.map(([k,v],i)=> (new Date(v["workoutDate"]+ " " +v["workoutEndTime"])-new Date(v["workoutDate"]+ " " +v["workoutStartTime"]))/(1000*60));
-        let durationsNow = currentMonthWorkouts.map(([k,v],i)=> (new Date(v["workoutDate"]+ " " +v["workoutEndTime"])-new Date(v["workoutDate"]+ " " +v["workoutStartTime"]))/(1000*60));
+        let twoMonthsBeforedurations = twoMonthsBeforeWorkouts.map(([k,v],i)=> (parseLocaleDateTime(v["workoutDate"],v["workoutEndTime"])-parseLocaleDateTime(v["workoutDate"],v["workoutStartTime"]))/(1000*60));
+        let durationsPast = pastMonthWorkouts.map(([k,v],i)=> (parseLocaleDateTime(v["workoutDate"],v["workoutEndTime"])-parseLocaleDateTime(v["workoutDate"],v["workoutStartTime"]))/(1000*60));
+        let durationsNow = currentMonthWorkouts.map(([k,v],i)=> (parseLocaleDateTime(v["workoutDate"],v["workoutEndTime"])-parseLocaleDateTime(v["workoutDate"],v["workoutStartTime"]))/(1000*60));
         let res;
         if (result === "intensity"){
             res = [(volumesNow.reduce((a,b)=>a+b)/volumesNow.length)/(volumesPast.reduce((a,b)=>a+b)/volumesPast.length), (volumesPast.reduce((a,b)=>a+b)/volumesPast.length)/(twoMonthsBeforeVols.reduce((a,b)=>a+b)/twoMonthsBeforeVols.length)]
