@@ -262,6 +262,26 @@ function getSetIndices(tuples){
     return tuples.filter(([k]) => /^setnum\d+$/.test(k)).map(([k]) => k.slice(6)*1).sort((a,b) => a-b);
 }
 
+// Removes one set's tuple entries and shifts every LATER set's keys (and
+// its own stored setnum value) down by one -- mirrors exactly how
+// exercises.js's own removeSet renumbers the full editor, since the rest
+// of the app (setCount/repCount, getStats's per-index lookups) assumes
+// set numbers stay contiguous, not just however they first got assigned.
+const SET_FIELD_RE = /^(setnum|reps|weight|rest|tut|rir)(\d+)$/;
+function removeSetFromTuples(tuples, removeIdx){
+    for (let idx = tuples.length-1; idx >= 0; idx--){
+        const m = tuples[idx][0].match(SET_FIELD_RE);
+        if (m && m[2]*1 === removeIdx) tuples.splice(idx, 1);
+    }
+    tuples.forEach(entry => {
+        const m = entry[0].match(SET_FIELD_RE);
+        if (!m || m[2]*1 <= removeIdx) return;
+        const n = m[2]*1 - 1;
+        entry[0] = `${m[1]}${n}`;
+        if (m[1] === "setnum") entry[1] = `${n}`;
+    });
+}
+
 // Same equipment/settings lookup exercises.js's getStats does (line ~611),
 // just against exerciseDB()'s own equipment array instead of a DOM
 // element's id, since there's no DOM here to read from.
@@ -405,25 +425,57 @@ function openQuickLogPopup(program){
     );
 
     // ---- One page per exercise ----
-    const exercisePages = exerciseKeys.map(key => {
+    // Forward-declared: buildExercisePage's own remove-button handler
+    // needs to swap itself back into `pages` and re-run `showPage`, both
+    // of which only exist once the nav section below is built. Safe --
+    // the button isn't actually clickable until the whole dialog is
+    // shown, long after both are assigned.
+    let pages, showPage, currentIndex;
+
+    // Rebuildable per-exercise page, not just built once -- removing a set
+    // re-runs this instead of patching the DOM in place, since every
+    // remaining set's stepper buttons close over their OWN index (weight3,
+    // reps3, ...); patching around a removed set without rebuilding would
+    // leave later sets' buttons pointing at stale keys.
+    function buildExercisePage(key){
         const tuples = workingLog[key];
         const page = document.createElement("div");
         page.className = "quicklog-page";
         const name = document.createElement("h1");
         name.textContent = exDB[key]?.["name"] || key;
         page.append(name);
+        const setIdx = getSetIndices(tuples);
         // A full-page-per-exercise gives each set room for its own two
         // FULL-WIDTH stepper rows (same width as Start/Duration/Intensity
         // on page 0) instead of cramming a Wt stepper and a Reps stepper
         // side by side on one line, which overflowed the dialog's edge.
-        getSetIndices(tuples).forEach(i => {
+        setIdx.forEach(i => {
             const setGroup = document.createElement("div");
             setGroup.className = "quicklog-set-group";
             const setLabel = document.createElement("p");
             setLabel.className = "quicklog-set-label";
             setLabel.textContent = `Set ${i}`;
+            setGroup.append(setLabel);
+            // Adding is a bigger change (new fields, renumbering) -- this is
+            // just removing, so a plain cross is enough; disabled rather than
+            // hidden when it's the only set, same reasoning exercises.js's
+            // own full-editor remove button already uses (always needs >=1).
+            const removeBtn = document.createElement("button");
+            removeBtn.type = "button";
+            removeBtn.className = "quicklog-set-remove";
+            removeBtn.textContent = "×";
+            removeBtn.disabled = setIdx.length <= 1;
+            removeBtn.addEventListener("click", () => {
+                removeSetFromTuples(tuples, i);
+                recomputeExerciseTuples(tuples, key);
+                const newPage = buildExercisePage(key);
+                const idx = pages.indexOf(page);
+                pages[idx] = newPage;
+                page.replaceWith(newPage);
+                showPage(currentIndex);
+            });
+            setLabel.append(removeBtn);
             setGroup.append(
-                setLabel,
                 buildStepperRow("Weight", `${getTupleValue(tuples, `weight${i}`)}`, (delta) => {
                     const next = Math.max(0, (parseFloat(getTupleValue(tuples, `weight${i}`))||0) + delta*weightStep);
                     setTupleValue(tuples, `weight${i}`, next);
@@ -438,9 +490,10 @@ function openQuickLogPopup(program){
             page.append(setGroup);
         });
         return page;
-    });
+    }
+    const exercisePages = exerciseKeys.map(key => buildExercisePage(key));
 
-    const pages = [detailsPage, ...exercisePages];
+    pages = [detailsPage, ...exercisePages];
     const pageViewport = document.createElement("div");
     pageViewport.className = "quicklog-viewport";
     pageViewport.append(...pages);
@@ -467,8 +520,8 @@ function openQuickLogPopup(program){
     nav.append(prevBtn, dotsRow, nextBtn);
     dialog.append(nav);
 
-    let currentIndex = 0;
-    function showPage(i){
+    currentIndex = 0;
+    showPage = function(i){
         currentIndex = i;
         pages.forEach((p, idx) => { p.hidden = idx !== i; });
         dots.forEach((d, idx) => d.classList.toggle("quicklog-dot-active", idx === i));

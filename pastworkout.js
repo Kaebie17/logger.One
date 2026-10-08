@@ -285,7 +285,11 @@ function displayDetails(n,el,outerEl,inputArray){
     }
 }
 function fillSummary(dataArray,exercise){
-    summaryArea[0].children[0].children[0].textContent = dataArray.filter(([k,v])=> k.includes("rest")).map(([k,v])=>parseFloat(v.replace("Min",""))).reduce((a,b)=>(a+b)/2);
+    // Rest can now be stored as "NSec" (new, under 1 min) or "N.NMin"
+    // (everything else) -- converts a "Sec" value back to its minute
+    // equivalent so it isn't averaged directly against a "Min" one from
+    // the same exercise.
+    summaryArea[0].children[0].children[0].textContent = dataArray.filter(([k,v])=> k.includes("rest")).map(([k,v])=> v.includes("Sec") ? parseFloat(v)/60 : parseFloat(v.replace("Min",""))).reduce((a,b)=>(a+b)/2);
     summaryArea[0].children[1].children[0].textContent = Math.max(...dataArray.filter(([k,v])=> k.includes("weight")).map(([k,v])=>parseFloat(v)));
     summaryArea[0].children[2].children[0].textContent = dataArray.filter(([k,v])=> k.includes("rir")).map(([k,v])=>parseFloat(v)||parseFloat(v.replaceAll(/\w/g,""))||0).reduce((a,b)=>(a+b)/2)||"-";
     summaryArea[0].children[3].children[0].textContent = dataArray.filter(([k,v])=> k.includes("tut")).map(([k,v])=>parseFloat(v)||parseFloat(v.replaceAll(/\w/g,""))||0).reduce((a,b)=>(a+b)/2)||"-";
@@ -648,7 +652,8 @@ function handleEditData(e){
         if(e.target.id.includes("rir") || e.target.id.includes("tut") || e.target.id.includes("rest") ){
             let totalRIR = dataArray.filter(([k,v])=> k.includes("rir")).flatMap(arr => {let val = arr[1]; return val === "-" ? [0] : val*1 ? [val*1] : []}).reduce((a,b)=>(a*1+b*1)/2);
             let totalTUT = dataArray.filter(([k,v])=> k.includes("tut")).flatMap(arr => {let val = arr[1].replace("Sec",""); return val = val==="-" ? [0] : val*1 ? [val*1] : []}).reduce((a,b)=>(a*1+b*1)/2);
-            let totalRest = dataArray.filter(([k,v])=> k.includes("rest")).flatMap(arr => {let val = arr[1].replace("Min",""); return val = val==="-" ? [0] : val*1 ? [val*1] : []}).reduce((a,b)=>(a*1+b*1)/2);
+            // Same Sec/Min normalization as fillSummary above.
+            let totalRest = dataArray.filter(([k,v])=> k.includes("rest")).flatMap(arr => {let raw = arr[1]; let val = raw.includes("Sec") ? parseFloat(raw)/60 : raw.replace("Min",""); return val = val==="-" ? [0] : val*1 ? [val*1] : []}).reduce((a,b)=>(a*1+b*1)/2);
             // Was missing the [arr[0], ...] wrapper the identical map above
             // (repCount/load/vol) has -- this returned bare values instead
             // of [key,value] tuples, so dataArray stopped being an array of

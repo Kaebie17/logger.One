@@ -922,6 +922,29 @@ svg > path:nth-child(23) {
         font-size: 0.85rem;
         opacity: 0.85;
         margin: 0 0 0.5vh 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    /* Removing a set is the simple case (no renumbering/fields for the
+       user to think about, that's handled in JS) -- adding one, or a
+       whole new exercise, is a bigger change and stays on the full
+       editor. Disabled (not hidden) when it's the only set, same
+       reasoning exercises.js's own full-editor remove button already
+       uses -- a quick-logged exercise always needs at least one. */
+    #quicklogprompt .quicklog-set-remove{
+        background: none;
+        border: 1px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        width: 1.6rem;
+        height: 1.6rem;
+        color: white;
+        font-size: 1rem;
+        line-height: 1;
+        opacity: 0.85;
+    }
+    #quicklogprompt .quicklog-set-remove:disabled{
+        opacity: 0.25;
     }
     /* prev arrow | page dots | next-or-save, stuck to the bottom of the
        (now-scrolling) dialog the same way .quicklog-header sticks to the
@@ -1637,6 +1660,16 @@ svg > path:nth-child(23) {
         justify-content: center;
         gap: 0.8vw;
         padding: 1vh 0;
+    }
+    /* Drop set / rest-pause continuation (exercises.js's
+       detectSetContinuation, inferred from the PRECEDING set's own Rest
+       value, no extra field) -- an inset shadow instead of a border so it
+       doesn't add to this row's already fully-budgeted width. */
+    #createexercisespage > #selectionlistdisplay > div > span.dropset-row{
+        box-shadow: inset 3px 0 0 var(--template-color-soft);
+    }
+    #createexercisespage > #selectionlistdisplay > div > span.restpause-row{
+        box-shadow: inset 3px 0 0 #d1543b;
     }
     /* Isometric rows (exercises.js's content(), the isometric-row class)
        keep the exact same underlying field order/count as a dynamic row --

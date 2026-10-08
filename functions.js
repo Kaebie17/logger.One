@@ -421,10 +421,14 @@ function getReferenceWeight(exerciseKey){
 // not a validated model. Deliberately not exposed as settings -- the
 // override mechanism is just picking a different TUT value directly.
 const TUT_TEMPO = 3, TUT_LOADCOEF = 0.3, TUT_GRIND_MULTIPLIER = 3;
-function suggestTUTSeconds(reps, rir, weight, referenceWeight){
+// allGrinding -- rest-pause continuation sets (exercises.js's
+// detectSetContinuation): a sub-15s rest after the previous set is a
+// post-failure extension of the SAME effort, not a fresh set, so EVERY
+// rep in it counts as grinding, not just the last 1-2.
+function suggestTUTSeconds(reps, rir, weight, referenceWeight, allGrinding=false){
     const pctRef = referenceWeight > 0 ? weight/referenceWeight : 0;
     const baseTempo = TUT_TEMPO * (1 + TUT_LOADCOEF*pctRef);
-    const grindingReps = Math.min(reps, rir === 0 ? 2 : (rir === 1 || rir === 2) ? 1 : 0);
+    const grindingReps = allGrinding ? reps : Math.min(reps, rir === 0 ? 2 : (rir === 1 || rir === 2) ? 1 : 0);
     const grindingExtra = grindingReps * baseTempo * (TUT_GRIND_MULTIPLIER - 1);
     return Math.round(reps*baseTempo + grindingExtra);
 }

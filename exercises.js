@@ -437,6 +437,20 @@ const timeOptions = (i,id,name,string,loops,placeholder,step) => {
   return elem;
 }
 
+// Rest, specifically -- 1-second steps for the first minute (fine enough
+// to tell a true 0-rest drop set, a sub-15s rest-pause, and a real short
+// rest apart), then the ORIGINAL 0.5-minute steps unchanged beyond that
+// (nobody needs 1-second precision on a 2-minute rest). The "-" and
+// "X.XMin" options are IDENTICAL to what timeOptions("Min",60,...,2)
+// already produced, so every already-saved rest value still matches an
+// option exactly -- no migration pass needed over existing history.
+const restOptions = (i,parent) => {
+  let option = `<option>Rest</option><option value="-">-</option>`;
+  for (let s=1; s<60; s++) option += `<option value="${s}Sec">${s} Sec</option>`;
+  for (let j=0.5; j<120; j+=0.5) option += `<option value="${j.toFixed(1)}Min">${j.toFixed(1)} Min</option>`;
+  return `<select id="${parent}Rest${i}" name="rest${i}">${option}</select>`;
+}
+
 // Cycles off -> 1/4 -> 1/2 -> 3/4 -> 1x -> off on each tap, instead of the
 // old plain on/off, since many bodyweight-loaded movements (a plank vs a
 // pull-up, an incline vs decline push-up) only put a FRACTION of
@@ -573,12 +587,29 @@ const content = (i,parent) => {
     <p>x<i name="repX${i}">1</i></p>
     <input type="number" name="weight${i}" placeholder="Load" required>
     <span><p><i>BW</i></p><p>x<i name="wtX${i}">1</i></p></span>
-    ${timeOptions(i,parent,"rest"+i,"Min",60,"Rest",2)}
+    ${restOptions(i,parent)}
     ${timeOptions(i,parent,"tut"+i,"Sec",180,"TUT")}
     ${isIso ? effortOptions(i,parent) : timeOptions(i,parent,"rir"+i,"",11,"RIR")}
     <input type="submit" class="remove" id="${i}" name="${parent}" onclick="removeSet(event,name)" value="X" disabled>
   </span>
   `;
+}
+// Same exercise, directly-preceding set's own Rest value tells the app
+// what this set continues from -- no new field, just reading what's
+// already there (same "-" magic value RIR's own failure marker uses).
+// "-" (zero rest) = drop set: weight changed, no recovery. 1-14 seconds =
+// rest-pause: a genuine post-failure extension of the SAME effort, not a
+// fresh set. Anything else = a normal, independent set.
+function detectSetContinuation(exerciseKey, i){
+  if (i <= 0) return null;
+  const prevRest = document.querySelector(`#selectionlistdisplay > #${exerciseKey} [name="rest${i-1}"]`)?.value;
+  if (!prevRest) return null;
+  if (prevRest === "-") return "dropset";
+  if (prevRest.endsWith("Sec")){
+    const secs = parseFloat(prevRest);
+    if (secs > 0 && secs < 15) return "restpause";
+  }
+  return null;
 }
 // Reads this row's own reps/weight against the just-changed RIR value to
 // pre-fill a suggested TUT (functions.js's suggestTUTSeconds) -- skipped
@@ -586,17 +617,46 @@ const content = (i,parent) => {
 // direct user entry, not something to estimate). Only ever sets an
 // initial value into the existing TUT select; freely overridable
 // afterward like any other field.
-const wireTUTSuggestion = (rirSelect, weightInput, repsInput, tutSelect, exerciseKey) => {
+//
+// applyNow=true only for a BRAND NEW set (addData/button.onclick) -- a
+// detected rest-pause continuation then forces this row's own RIR to "-"
+// immediately. false when repopulating an already-saved set (addData's
+// own repopulateValues path), so restoring saved data never silently
+// overwrites the RIR the user actually entered and saved; the drop-set/
+// rest-pause label itself still shows either way, it's just the
+// RIR-forcing that's creation-only. Drop sets get no RIR/TUT adjustment
+// at all (per the user's own call: a drop set's lighter sets are usually
+// rep-target-driven, not RIR-driven, so each entered RIR is trusted as
+// its own independent value) -- label only.
+const wireTUTSuggestion = (rirSelect, weightInput, repsInput, tutSelect, exerciseKey, i, applyNow=false) => {
   if (exerciseDB()[exerciseKey]?.type === "isometric") return;
-  rirSelect.addEventListener("change", (e) => {
+  const lineEl = rirSelect.closest(`#line${i}`);
+  const applyLabel = () => {
+    const continuation = detectSetContinuation(exerciseKey, i);
+    lineEl?.classList.toggle("dropset-row", continuation === "dropset");
+    lineEl?.classList.toggle("restpause-row", continuation === "restpause");
+    return continuation;
+  };
+  const recompute = () => {
+    const isRestPause = applyLabel() === "restpause";
+    if (isRestPause && rirSelect.value !== "-") rirSelect.value = "-";
     const reps = parseFloat(repsInput.value) || 0;
     const weight = parseFloat(weightInput.value) || 0;
-    const rir = e.target.value === "-" ? 0 : parseFloat(e.target.value);
+    const rir = rirSelect.value === "-" ? 0 : parseFloat(rirSelect.value);
     if (!reps || isNaN(rir)) return;
     const ref = getReferenceWeight(exerciseKey);
-    const seconds = Math.min(179, Math.max(1, suggestTUTSeconds(reps, rir, weight, ref)));
+    const seconds = Math.min(179, Math.max(1, suggestTUTSeconds(reps, rir, weight, ref, isRestPause)));
     tutSelect.value = `${seconds.toFixed(1)}Sec`;
-  });
+  };
+  if (applyNow) recompute();
+  else applyLabel(); // repopulate path -- show the label without touching RIR/TUT
+  // A later edit to the PRECEDING set's own rest value can retroactively
+  // turn this set into a rest-pause (or back out of one), whichever order
+  // the two fields get filled in.
+  document.querySelector(`#selectionlistdisplay > #${exerciseKey} [name="rest${i-1}"]`)?.addEventListener("change", recompute);
+  repsInput.addEventListener("change", recompute);
+  weightInput.addEventListener("change", recompute);
+  rirSelect.addEventListener("change", recompute);
 };
 const addData = async (event) => {
   event.stopPropagation();
@@ -616,7 +676,7 @@ const addData = async (event) => {
     button.previousElementSibling.children[4].firstElementChild.addEventListener("click",(e)=>bodyweight(e,template.id,i))
     button.previousElementSibling.children[4].lastElementChild.addEventListener("click",(e)=>typeMultiple(e));
     autoAssignMultiple(button.previousElementSibling.children[4].lastElementChild.lastElementChild, button.previousElementSibling.children[2].lastElementChild,template.id);
-    wireTUTSuggestion(button.previousElementSibling.children[7], button.previousElementSibling.children[3], button.previousElementSibling.children[1], button.previousElementSibling.children[6], template.id);
+    wireTUTSuggestion(button.previousElementSibling.children[7], button.previousElementSibling.children[3], button.previousElementSibling.children[1], button.previousElementSibling.children[6], template.id, i, true);
   }
   button.onclick = (e)=>{
     const referenceNode = e.target.parentElement ;
@@ -628,7 +688,7 @@ const addData = async (event) => {
     button.previousElementSibling.children[4].firstElementChild.addEventListener("click",(e)=>bodyweight(e,template.id,childNum))
     button.previousElementSibling.children[4].lastElementChild.addEventListener("click",(e)=>typeMultiple(e));
     autoAssignMultiple(button.previousElementSibling.children[4].lastElementChild.lastElementChild, button.previousElementSibling.children[2].lastElementChild,template.id);
-    wireTUTSuggestion(button.previousElementSibling.children[7], button.previousElementSibling.children[3], button.previousElementSibling.children[1], button.previousElementSibling.children[6], template.id);
+    wireTUTSuggestion(button.previousElementSibling.children[7], button.previousElementSibling.children[3], button.previousElementSibling.children[1], button.previousElementSibling.children[6], template.id, childNum, true);
     // button.previousElementSibling.children[4].firstElementChild.addEventListener("click",(e)=>bodyweight(e,template.id,childNum))
     // if (childNum > 1){button.previousElementSibling.lastElementChild.disabled = false}
     const nextdecendents = decendents(referenceNode.querySelector(`#line${(childNum)}`),0,`setnum${(childNum)}`);   
@@ -811,8 +871,18 @@ function getStats(array,exports,lineElms,isIsometric=false){
 }
 
 function getValuesfromInputs(arr){
-  arr = arr.map(([a,b]) => b==="-" ? [a,"0"] : [a,b]).flatMap(([a,b]) => {
-    b = testRegExp((regx,text) => text.match(regx)[0],/^\d+.?\d+(?=\w)/g,{falseVal:b})(b||0) 
+  arr = arr.map(([a,b]) => b==="-" ? [a,"0"] : [a,b])
+    // Rest moved to 1-second steps under a minute (restOptions above), but
+    // this function is shared with weight/reps/TUT too and has no idea
+    // which field it's looking at beyond the key name -- without this, a
+    // "47Sec" rest value gets averaged directly against an old "2.0Min"
+    // one from the same exercise, blending two different units into a
+    // meaningless number. Only rest keys with a "Sec" value get converted
+    // back to their minute equivalent; TUT's own "Sec" values (a
+    // completely different field that was never in minutes) are untouched.
+    .map(([a,b]) => (a.includes("rest") && typeof b === "string" && b.endsWith("Sec")) ? [a, `${(parseFloat(b)/60).toFixed(2)}Min`] : [a,b])
+    .flatMap(([a,b]) => {
+    b = testRegExp((regx,text) => text.match(regx)[0],/^\d+.?\d+(?=\w)/g,{falseVal:b})(b||0)
     return [parseFloat(b)]
   })
   return arr;
@@ -840,7 +910,7 @@ function repopulateValues(arr,elem,refElem){
   refElem.previousElementSibling.children[2].addEventListener("click",(e)=>typeMultiple(e));
   refElem.previousElementSibling.children[4].firstElementChild.addEventListener("click",(e)=>bodyweight(e,elem.id,0))
   refElem.previousElementSibling.children[4].lastElementChild.addEventListener("click",(e)=>typeMultiple(e));
-  wireTUTSuggestion(refElem.previousElementSibling.children[7], refElem.previousElementSibling.children[3], refElem.previousElementSibling.children[1], refElem.previousElementSibling.children[6], elem.id);
+  wireTUTSuggestion(refElem.previousElementSibling.children[7], refElem.previousElementSibling.children[3], refElem.previousElementSibling.children[1], refElem.previousElementSibling.children[6], elem.id, 0);
   // autoAssignMultiple(refElem.previousElementSibling.children[4].lastElementChild.lastElementChild, refElem.previousElementSibling.children[2].lastElementChild, elem.id);
   refElem.previousElementSibling.children[2].lastElementChild.textContent = repX;
   refElem.previousElementSibling.children[4].lastElementChild.lastElementChild.textContent = wtX;
@@ -850,7 +920,7 @@ function repopulateValues(arr,elem,refElem){
     refElem.previousElementSibling.children[2].addEventListener("click",(e)=>typeMultiple(e));
     refElem.previousElementSibling.children[4].firstElementChild.addEventListener("click",(e)=>bodyweight(e,elem.id,i))
     refElem.previousElementSibling.children[4].lastElementChild.addEventListener("click",(e)=>typeMultiple(e));
-    wireTUTSuggestion(refElem.previousElementSibling.children[7], refElem.previousElementSibling.children[3], refElem.previousElementSibling.children[1], refElem.previousElementSibling.children[6], elem.id);
+    wireTUTSuggestion(refElem.previousElementSibling.children[7], refElem.previousElementSibling.children[3], refElem.previousElementSibling.children[1], refElem.previousElementSibling.children[6], elem.id, i);
     // autoAssignMultiple(refElem.previousElementSibling.children[4].lastElementChild.lastElementChild, refElem.previousElementSibling.children[2].lastElementChild, elem.id);
     refElem.previousElementSibling.children[2].lastElementChild.textContent = repX;
     refElem.previousElementSibling.children[4].lastElementChild.lastElementChild.textContent = wtX;
