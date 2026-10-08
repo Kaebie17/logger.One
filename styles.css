@@ -345,7 +345,11 @@ svg > path:nth-child(23) {
            inside a normal browser tab the browser's own UI already occupies
            that space. */
         /* Add padding for the iOS home indicator bar when keyboard is closed */
-        padding-top: env(safe-area-inset-top, 0px);
+        /* Trying extra clearance below the bare safe-area value -- the
+           status bar's translucent/blurred strip may feather a bit past
+           the exact safe-area boundary, which is what put the small
+           version tag right at its edge. */
+        padding-top: calc(env(safe-area-inset-top, 0px) + 1.2vh);
         background-image: linear-gradient(-60deg, var(--template-color-black), var(--template-color-mid), var(--template-color-soft));
     }
     #header > h1{
