@@ -645,7 +645,7 @@ const wireTUTSuggestion = (rirSelect, weightInput, repsInput, tutSelect, exercis
     const rir = rirSelect.value === "-" ? 0 : parseFloat(rirSelect.value);
     if (!reps || isNaN(rir)) return;
     const ref = getReferenceWeight(exerciseKey);
-    const seconds = Math.min(179, Math.max(1, suggestTUTSeconds(reps, rir, weight, ref, isRestPause)));
+    const seconds = Math.min(179, Math.max(1, suggestTUTSeconds(reps, rir, weight, ref, exerciseKey, isRestPause)));
     tutSelect.value = `${seconds.toFixed(1)}Sec`;
   };
   if (applyNow) recompute();

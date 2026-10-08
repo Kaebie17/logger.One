@@ -420,14 +420,31 @@ function getReferenceWeight(exerciseKey){
 // constant is derived from a citation -- this is a starting heuristic,
 // not a validated model. Deliberately not exposed as settings -- the
 // override mechanism is just picking a different TUT value directly.
-const TUT_TEMPO = 3, TUT_LOADCOEF = 0.3, TUT_GRIND_MULTIPLIER = 3;
+// Base tempo by range of motion, not by muscle group alone -- mover
+// muscle SIZE (SMALL_MUSCLES below, already used for soreness decay)
+// correctly separates short-ROM isolation moves (lateral raise, calf
+// raise) from everything else, but can't tell a machine-constrained
+// large-muscle move (lat pulldown) from its full-bodyweight-ROM
+// counterpart (pull-up) -- both move "lats". A small, named list of
+// genuinely long-ROM movement PATTERNS, matched against the exercise's
+// own key, catches those; everything else large defaults to the middle
+// tier. Not a validated model -- same caveat as the constants below.
+const TUT_TEMPO_SHORT = 2.5, TUT_TEMPO_MEDIUM = 3, TUT_TEMPO_LONG = 4;
+const LONG_ROM_PATTERNS = /squat|deadlift|rdl|romanian|pull.?up|chin.?up|lunge|hip_thrust|good_morning|step.?up|pistol|nordic/i;
+function baseTempoForExercise(exerciseKey){
+    const primaryMover = exerciseDB()[exerciseKey]?.movers?.[0];
+    if (SMALL_MUSCLES.has(primaryMover)) return TUT_TEMPO_SHORT;
+    if (LONG_ROM_PATTERNS.test(exerciseKey)) return TUT_TEMPO_LONG;
+    return TUT_TEMPO_MEDIUM;
+}
+const TUT_LOADCOEF = 0.3, TUT_GRIND_MULTIPLIER = 3;
 // allGrinding -- rest-pause continuation sets (exercises.js's
 // detectSetContinuation): a sub-15s rest after the previous set is a
 // post-failure extension of the SAME effort, not a fresh set, so EVERY
 // rep in it counts as grinding, not just the last 1-2.
-function suggestTUTSeconds(reps, rir, weight, referenceWeight, allGrinding=false){
+function suggestTUTSeconds(reps, rir, weight, referenceWeight, exerciseKey, allGrinding=false){
     const pctRef = referenceWeight > 0 ? weight/referenceWeight : 0;
-    const baseTempo = TUT_TEMPO * (1 + TUT_LOADCOEF*pctRef);
+    const baseTempo = baseTempoForExercise(exerciseKey) * (1 + TUT_LOADCOEF*pctRef);
     const grindingReps = allGrinding ? reps : Math.min(reps, rir === 0 ? 2 : (rir === 1 || rir === 2) ? 1 : 0);
     const grindingExtra = grindingReps * baseTempo * (TUT_GRIND_MULTIPLIER - 1);
     return Math.round(reps*baseTempo + grindingExtra);
