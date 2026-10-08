@@ -227,14 +227,9 @@ async function handleTemplateItemClick(event){
     }
 }
 
-// Full page flow (clock-face time pickers, full exercise editor) -- still
-// the answer whenever the quick popup's premise (no new exercise/set)
-// doesn't hold. This is exactly what handleTemplateItemClick used to do
-// unconditionally before the popup existed.
-function openFullEditor(program){
-    const loc = new URL("logworkout.html", document.location);
-    loc.searchParams.set("temp", program);
-    document.location = loc;
+// YYYY-MM-DD for <input type="date">, matching logworkout.js's own formatDate.
+function toIsoDate(d){
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 }
 
 function appendZero2(val){
@@ -335,8 +330,10 @@ function buildStepperRow(label, initialDisplay, onStep){
 
 // The "just tweak a couple of weights and log it" fast path -- for the
 // common case where a template's exercises/sets don't need to change at
-// all. openFullEditor (the existing logworkout.html?temp= flow) is one tap
-// away for whenever that's not true.
+// all. Full Editor is one tap away for whenever that's not true, and hands
+// off everything already set here (start/duration/intensity, and any
+// weight/reps already tweaked) instead of discarding it -- see editBtn's
+// listener below.
 //
 // One page per logical step (Start/Duration/Intensity, then one exercise
 // per page) instead of a single long scroll -- the program name and the
@@ -474,7 +471,31 @@ function openQuickLogPopup(program){
 
     const closeDialog = () => { dialog.close(); dialog.remove(); };
     closeBtn.addEventListener("click", closeDialog);
-    editBtn.addEventListener("click", () => { closeDialog(); openFullEditor(program); });
+    // Was closeDialog() + redirect to logworkout.html?temp=<program> --
+    // that re-reads the SAVED template fresh and defaults the time to
+    // right now, discarding whatever was just set on this popup (start/
+    // duration/intensity, and any weight/reps already tweaked here but not
+    // yet Saved). Handing off through the exact sessionStorage shape the
+    // exercises.html -> logworkout.html?eData round trip already uses
+    // instead -- that path already populates the date pickers, clock hands
+    // and intensity slider correctly from a passed-in state, rather than
+    // resetting them, so this reuses it instead of writing a second one.
+    editBtn.addEventListener("click", () => {
+        exerciseKeys.forEach(key => recomputeExerciseTuples(workingLog[key], key));
+        const startDateObj = new Date(); startDateObj.setHours(0,0,0,0); startDateObj.setMinutes(startMinutes);
+        const endDateObj = new Date(); endDateObj.setHours(0,0,0,0); endDateObj.setMinutes(startMinutes + durationMinutes);
+        sessionStorage.program = program;
+        sessionStorage.intensity = `${intensity}`;
+        sessionStorage.finalLog = JSON.stringify({
+            ...workingLog,
+            start: `${startDateObj.toLocaleDateString()}, ${formatTime12(startMinutes)}|${toIsoDate(startDateObj)}`,
+            end: `${endDateObj.toLocaleDateString()}, ${formatTime12(startMinutes + durationMinutes)}|${toIsoDate(endDateObj)}`,
+        });
+        closeDialog();
+        const loc = new URL("logworkout.html", document.location);
+        loc.searchParams.set("eData", "true");
+        document.location = loc;
+    });
     nextBtn.addEventListener("click", async () => {
         if (currentIndex < pages.length - 1){ showPage(currentIndex + 1); return; }
 
