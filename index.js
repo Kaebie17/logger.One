@@ -374,11 +374,22 @@ function openQuickLogPopup(program){
     let startMinutes = Math.round((now.getHours()*60 + now.getMinutes())/5)*5;
     let durationMinutes = 45;
     let intensity = 5;
+    // Days in the past -- 0 is today. Floored at 0 (no logging into the
+    // future); no ceiling, same as backdating on the full page.
+    let daysAgo = 0;
+    const selectedDate = () => { const d = new Date(); d.setDate(d.getDate() - daysAgo); return d; };
+    const formatDaysAgo = (n) => n === 0 ? "Today" : n === 1 ? "Yesterday" : selectedDate().toLocaleDateString();
 
-    // ---- Page 0: Start/Duration/Intensity ----
+    // ---- Page 0: Date/Start/Duration/Intensity ----
     const detailsPage = document.createElement("div");
     detailsPage.className = "quicklog-page";
     detailsPage.append(
+        // + moves later (toward today), - moves further into the past --
+        // opposite of daysAgo's own direction, which counts backward from today.
+        buildStepperRow("Date", formatDaysAgo(daysAgo), (delta) => {
+            daysAgo = Math.max(0, daysAgo - delta);
+            return formatDaysAgo(daysAgo);
+        }),
         buildStepperRow("Start", formatTime12(startMinutes), (delta) => {
             startMinutes = startMinutes + delta*5;
             return formatTime12(startMinutes);
@@ -482,8 +493,8 @@ function openQuickLogPopup(program){
     // resetting them, so this reuses it instead of writing a second one.
     editBtn.addEventListener("click", () => {
         exerciseKeys.forEach(key => recomputeExerciseTuples(workingLog[key], key));
-        const startDateObj = new Date(); startDateObj.setHours(0,0,0,0); startDateObj.setMinutes(startMinutes);
-        const endDateObj = new Date(); endDateObj.setHours(0,0,0,0); endDateObj.setMinutes(startMinutes + durationMinutes);
+        const startDateObj = selectedDate(); startDateObj.setHours(0,0,0,0); startDateObj.setMinutes(startMinutes);
+        const endDateObj = selectedDate(); endDateObj.setHours(0,0,0,0); endDateObj.setMinutes(startMinutes + durationMinutes);
         sessionStorage.program = program;
         sessionStorage.intensity = `${intensity}`;
         sessionStorage.finalLog = JSON.stringify({
@@ -514,10 +525,11 @@ function openQuickLogPopup(program){
         // as if it were a tuple array) for any workout logged this way.
         const workoutExercises = Object.fromEntries(exerciseKeys.map(key => [key, workingLog[key]]));
 
-        // Log today's workout, same shape logworkout.js's saveWorkoutFunction
-        // produces -- workoutSystemicFatigue is "" for the same reason it
-        // always is on a same-day save (see updateSystemicFatigueAvailability).
-        const workoutDate = new Date().toLocaleDateString();
+        // Same shape logworkout.js's saveWorkoutFunction produces --
+        // workoutSystemicFatigue is "" regardless of date since this popup
+        // has no fatigue slider at all (see updateSystemicFatigueAvailability
+        // for why that's only ever rated the day after, same-day or not).
+        const workoutDate = selectedDate().toLocaleDateString();
         const workoutStartTime = formatTime12(startMinutes);
         const workoutEndTime = formatTime12(startMinutes + durationMinutes);
         const key = workoutDate + " " + workoutStartTime;
@@ -533,11 +545,9 @@ function openQuickLogPopup(program){
             workoutUnit: unit,
         });
         await window.LoggerDB.saveWorkoutLog(Array.from(entryMap));
-        // workoutDate here is always today's (line above), so this always
-        // contributes -- unlike logworkout.js's saveWorkoutFunction, which
-        // also handles deliberately backdated "log past workout" saves and
-        // gates on that.
-        await applyWorkoutToMuscleSoreness(workoutExercises);
+        // Same today-vs-backdated gate logworkout.js's saveWorkoutFunction
+        // uses -- a backdated entry shouldn't spike CURRENT muscle soreness.
+        if (daysAgo === 0) await applyWorkoutToMuscleSoreness(workoutExercises);
 
         closeDialog();
         document.location.reload();
