@@ -253,7 +253,16 @@ function showVersionTag(version) {
   const tag = document.createElement("span");
   tag.id = "app-version-tag";
   tag.textContent = version;
-  tag.style.cssText = 'height:fit-content;padding-top:1vh; font-size:9px; color:rgb(250, 250, 250); pointer-events:none; font-family:monospace;';
+  // align-self:flex-end -- #header is a flex ROW with no stretch override
+  // for this element (it has a fixed small height, so align-items:stretch
+  // doesn't apply to it), which left it pinned to the very TOP of the
+  // header's row -- exactly the strip iOS draws its translucent/blurred
+  // status bar over (apple-mobile-web-app-status-bar-style:
+  // black-translucent + viewport-fit=cover), independent of any app CSS.
+  // The tall "logger.One" h1 next to it mostly extends below that strip so
+  // it wasn't noticeably affected; this tiny tag was entirely inside it.
+  // Bottom-aligning it in the row moves it well clear.
+  tag.style.cssText = 'align-self:flex-end; margin-bottom:0.5vh; height:fit-content; font-size:9px; color:rgb(250, 250, 250); pointer-events:none; font-family:monospace;';
   document.body.children['header'].appendChild(tag);
 }
 function requestVersionTag() {
