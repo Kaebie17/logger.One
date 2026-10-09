@@ -621,6 +621,26 @@ function detectSetContinuation(exerciseKey, i){
   }
   return null;
 }
+// A drop set/rest-pause is a two-(or-more-)set UNIT -- the set whose own
+// short/zero rest value is what starts the pattern needs the same outline
+// as whatever continues it, not just the latter. Clears and recomputes
+// every set's classification from scratch on each call (rather than
+// toggling one pair at a time) since editing a rest value anywhere in an
+// exercise can change which sets before AND after it belong together.
+function classifySetContinuations(exerciseKey){
+  const exerciseEl = document.getElementById(exerciseKey);
+  if (!exerciseEl) return;
+  const lines = [...exerciseEl.children].filter(el => el.id?.startsWith("line"));
+  lines.forEach(el => el.classList.remove("dropset-row","restpause-row"));
+  for (let i = 1; i < lines.length; i++){
+    const continuation = detectSetContinuation(exerciseKey, i);
+    if (continuation === "dropset" || continuation === "restpause"){
+      const cls = continuation === "dropset" ? "dropset-row" : "restpause-row";
+      lines[i-1].classList.add(cls);
+      lines[i].classList.add(cls);
+    }
+  }
+}
 // Matches the box-shadow colors in styles.css's .dropset-row/.restpause-row/
 // .warmup-row rules -- kept alongside them here so the legend text can
 // only ever show the types that are actually present among this
@@ -668,8 +688,7 @@ const wireTUTSuggestion = (rirSelect, weightInput, repsInput, tutSelect, exercis
   const lineEl = rirSelect.closest(`#line${i}`);
   const applyLabel = () => {
     const continuation = detectSetContinuation(exerciseKey, i);
-    lineEl?.classList.toggle("dropset-row", continuation === "dropset");
-    lineEl?.classList.toggle("restpause-row", continuation === "restpause");
+    classifySetContinuations(exerciseKey);
     lineEl?.classList.toggle("warmup-row", rirSelect.value === "warmup");
     updateSetTypeLegend(exerciseKey);
     return continuation;
@@ -817,7 +836,13 @@ const removeSet = (event, parent) => {
       elchild.id? elchild.id = elchild.id.replace(/\d+$/,elchild.id.match(/\d+$/g)[0]-1) : "";
       elchild.name? elchild.name = elchild.name.replace(/\d+$/,elchild.name.match(/\d+$/g)?.[0]-1||"") : "";
     })
-  })        
+  })
+  // Removing a set can change which remaining sets are a drop-set/
+  // rest-pause trigger or continuation of each other (indices shifted,
+  // or the pair itself got removed) -- re-derive the outlines/legend
+  // instead of leaving whatever classes happened to survive the removal.
+  classifySetContinuations(parent);
+  updateSetTypeLegend(parent);
 }
 
 function removeSelectedExercise(event){
