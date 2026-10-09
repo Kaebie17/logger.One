@@ -1671,6 +1671,29 @@ svg > path:nth-child(23) {
     #createexercisespage > #selectionlistdisplay > div > span.restpause-row{
         box-shadow: inset 3px 0 0 #d1543b;
     }
+    /* Warmup (RIR select's own "Warmup" value, exercises.js's rirOptions) --
+       same inset-shadow treatment, its own color so it doesn't read as a
+       drop set or rest-pause at a glance. */
+    #createexercisespage > #selectionlistdisplay > div > span.warmup-row{
+        box-shadow: inset 3px 0 0 #d9a73b;
+    }
+    /* Legend for the three outline colors above -- only ever lists the
+       types actually present in THIS exercise's own sets (exercises.js's
+       updateSetTypeLegend), so a normal exercise with no special sets
+       shows nothing here. Each entry gets the exact same inset-shadow
+       swatch as its row, inline, so the color->meaning mapping is
+       immediate rather than requiring a separate legend key. */
+    #createexercisespage > #selectionlistdisplay > div > p.set-type-legend{
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.8vw;
+        font-size: 2.8vw;
+        color: var(--template-color-soft);
+        margin: 0.4vh 0;
+    }
+    #createexercisespage > #selectionlistdisplay > div > p.set-type-legend > span{
+        padding-left: 1.5vw;
+    }
     /* Isometric rows (exercises.js's content(), the isometric-row class)
        keep the exact same underlying field order/count as a dynamic row --
        getStats's equipment-weight lookup and repopulateValues/addData's

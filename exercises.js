@@ -439,15 +439,17 @@ const timeOptions = (i,id,name,string,loops,placeholder,step) => {
 
 // Rest, specifically -- 1-second steps for the first minute (fine enough
 // to tell a true 0-rest drop set, a sub-15s rest-pause, and a real short
-// rest apart), then the ORIGINAL 0.5-minute steps unchanged beyond that
-// (nobody needs 1-second precision on a 2-minute rest). The "-" and
-// "X.XMin" options are IDENTICAL to what timeOptions("Min",60,...,2)
-// already produced, so every already-saved rest value still matches an
-// option exactly -- no migration pass needed over existing history.
+// rest apart), then the ORIGINAL 0.5-minute steps beyond that (nobody
+// needs 1-second precision on a 2-minute rest). The Min loop now starts
+// at 1.0, not 0.5 -- "0.5 Min" is just 30 seconds, already covered by the
+// 1-59 Sec range above it, so keeping it too just duplicated one value in
+// two unit systems. A set saved as "0.5Min" from before the 1-second
+// granularity existed is normalized to "30Sec" when repopulated
+// (repopulateValues below) so it still lands on a real option.
 const restOptions = (i,parent) => {
   let option = `<option>Rest</option><option value="-">-</option>`;
   for (let s=1; s<60; s++) option += `<option value="${s}Sec">${s} Sec</option>`;
-  for (let j=0.5; j<120; j+=0.5) option += `<option value="${j.toFixed(1)}Min">${j.toFixed(1)} Min</option>`;
+  for (let j=1.0; j<120; j+=0.5) option += `<option value="${j.toFixed(1)}Min">${j.toFixed(1)} Min</option>`;
   return `<select id="${parent}Rest${i}" name="rest${i}">${option}</select>`;
 }
 
@@ -570,6 +572,14 @@ const autoAssignMultiple = (el1,el2,refElem) => {
 // Easy earns less (sustaining it a long time at low effort shouldn't be
 // over-credited just for lasting).
 const effortOptions = (i,parent) => `<select id="${parent}Effort${i}" name="rir${i}"><option>Effort</option><option value="2">Hard</option><option value="4">Moderate</option><option value="6">Easy</option></select>`;
+// RIR capped at 1-5 (plus "-" for a true failure set) -- reps-in-reserve
+// past 5 isn't a meaningfully effortful working set, it's a warmup, so
+// that's now its own distinct value instead of a number on the same
+// scale. "warmup" is a sentinel like "-" is for failure: getValuesfromInputs
+// excludes it from avgRIR (a warmup set shouldn't drag a real working
+// average toward "easy"), and wireTUTSuggestion skips the TUT fatigue
+// estimate for it entirely, same as it already does for isometric rows.
+const rirOptions = (i,parent) => `<select id="${parent}RIR${i}" name="rir${i}"><option>RIR</option><option value="-">-</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="warmup">Warmup</option></select>`;
 // Isometric branch keeps the EXACT same 8-child order/count as the dynamic
 // template (setnum, reps, repX, weight, BW-span, rest, tut, rir/effort,
 // remove) -- getStats below finds its equipment-weight carrier by
@@ -589,7 +599,7 @@ const content = (i,parent) => {
     <span><p><i>BW</i></p><p>x<i name="wtX${i}">1</i></p></span>
     ${restOptions(i,parent)}
     ${timeOptions(i,parent,"tut"+i,"Sec",180,"TUT")}
-    ${isIso ? effortOptions(i,parent) : timeOptions(i,parent,"rir"+i,"",11,"RIR")}
+    ${isIso ? effortOptions(i,parent) : rirOptions(i,parent)}
     <input type="submit" class="remove" id="${i}" name="${parent}" onclick="removeSet(event,name)" value="X" disabled>
   </span>
   `;
@@ -610,6 +620,31 @@ function detectSetContinuation(exerciseKey, i){
     if (secs > 0 && secs < 15) return "restpause";
   }
   return null;
+}
+// Matches the box-shadow colors in styles.css's .dropset-row/.restpause-row/
+// .warmup-row rules -- kept alongside them here so the legend text can
+// only ever show the types that are actually present among this
+// exercise's own set rows, not a static always-on key that's often
+// irrelevant. Superset isn't listed -- it has no detection/labeling
+// mechanism yet (still pending, needs a grouping UI in exercise
+// selection), so there's nothing real to legend yet.
+const SET_TYPE_LEGEND = [
+  ["dropset-row", "var(--template-color-soft)", "Drop set"],
+  ["restpause-row", "#d1543b", "Rest-pause"],
+  ["warmup-row", "#d9a73b", "Warmup"],
+];
+function updateSetTypeLegend(exerciseKey){
+  const exerciseEl = document.getElementById(exerciseKey);
+  if (!exerciseEl) return;
+  const present = SET_TYPE_LEGEND.filter(([cls]) => exerciseEl.querySelector(`.${cls}`));
+  let legend = exerciseEl.querySelector(".set-type-legend");
+  if (!present.length){ legend?.remove(); return; }
+  if (!legend){
+    legend = document.createElement("p");
+    legend.className = "set-type-legend";
+    exerciseEl.prepend(legend);
+  }
+  legend.innerHTML = present.map(([,color,label]) => `<span style="box-shadow: inset 3px 0 0 ${color};">${label}</span>`).join("");
 }
 // Reads this row's own reps/weight against the just-changed RIR value to
 // pre-fill a suggested TUT (functions.js's suggestTUTSeconds) -- skipped
@@ -635,6 +670,8 @@ const wireTUTSuggestion = (rirSelect, weightInput, repsInput, tutSelect, exercis
     const continuation = detectSetContinuation(exerciseKey, i);
     lineEl?.classList.toggle("dropset-row", continuation === "dropset");
     lineEl?.classList.toggle("restpause-row", continuation === "restpause");
+    lineEl?.classList.toggle("warmup-row", rirSelect.value === "warmup");
+    updateSetTypeLegend(exerciseKey);
     return continuation;
   };
   const recompute = () => {
@@ -882,6 +919,10 @@ function getValuesfromInputs(arr){
     // completely different field that was never in minutes) are untouched.
     .map(([a,b]) => (a.includes("rest") && typeof b === "string" && b.endsWith("Sec")) ? [a, `${(parseFloat(b)/60).toFixed(2)}Min`] : [a,b])
     .flatMap(([a,b]) => {
+    // A warmup set's RIR isn't a real effort value -- drop it from the
+    // average entirely rather than letting it parse to NaN and poison the
+    // whole exercise's avgRIR into "error".
+    if (a.includes("rir") && b === "warmup") return [];
     b = testRegExp((regx,text) => text.match(regx)[0],/^\d+.?\d+(?=\w)/g,{falseVal:b})(b||0)
     return [parseFloat(b)]
   })
@@ -889,6 +930,7 @@ function getValuesfromInputs(arr){
 }
 
 function reducer(arr,operation=""){
+  if (!arr.length) return "-"; // e.g. every set of this exercise was a warmup
   if (arr.some(e => !/^\d/.test(e) )) {return "error"};
   if (operation === "average") return arr.reduce((a,b)=>(a+b))/arr.length;
   else return arr.reduce((a,b)=>a+b);
@@ -914,7 +956,7 @@ function repopulateValues(arr,elem,refElem){
   // autoAssignMultiple(refElem.previousElementSibling.children[4].lastElementChild.lastElementChild, refElem.previousElementSibling.children[2].lastElementChild, elem.id);
   refElem.previousElementSibling.children[2].lastElementChild.textContent = repX;
   refElem.previousElementSibling.children[4].lastElementChild.lastElementChild.textContent = wtX;
-  children.forEach(el => el.value = arr.find(([n,v]) => n===el.name)[1]);
+  children.forEach(el => el.value = normalizeLegacyRestValue(el.name, arr.find(([n,v]) => n===el.name)[1]));
   for (let i = 1; i<sets.length; i++){
     refElem.insertAdjacentHTML("beforebegin",content(i,elem.id));
     refElem.previousElementSibling.children[2].addEventListener("click",(e)=>typeMultiple(e));
@@ -927,9 +969,15 @@ function repopulateValues(arr,elem,refElem){
     let children = decendents(elem.querySelector(`#line${i}`),0,`setnum${i}`,"span","p")[0];
     let remSymbol = children.pop();
     remSymbol.disabled = false;
-    children.forEach(el => el.value = arr.find(([n,v]) => n===el.name)[1]);
+    children.forEach(el => el.value = normalizeLegacyRestValue(el.name, arr.find(([n,v]) => n===el.name)[1]));
   }
 }
+// "0.5Min" was a real, legitimately-saved rest value before the 1-second
+// granularity existed -- restOptions no longer has that option (see its
+// own comment), so an old set saved with it would silently fail to match
+// any option and repopulate blank. 30Sec is the exact same duration under
+// the new dropdown, so that's what old data gets mapped onto here.
+const normalizeLegacyRestValue = (name,value) => (name.includes("rest") && value === "0.5Min") ? "30Sec" : value;
 
 function handleSearch(e){
   if (!/[\w]/.test(e.key) && !e.value) return;
