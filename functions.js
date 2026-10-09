@@ -438,14 +438,15 @@ function baseTempoForExercise(exerciseKey){
     return TUT_TEMPO_MEDIUM;
 }
 const TUT_LOADCOEF = 0.3, TUT_GRIND_MULTIPLIER = 3;
-// allGrinding -- rest-pause continuation sets (exercises.js's
-// detectSetContinuation): a sub-15s rest after the previous set is a
-// post-failure extension of the SAME effort, not a fresh set, so EVERY
-// rep in it counts as grinding, not just the last 1-2.
-function suggestTUTSeconds(reps, rir, weight, referenceWeight, exerciseKey, allGrinding=false){
+// Rest-pause sets never reach this function at all (exercises.js's
+// wireTUTSuggestion skips the suggestion entirely for them, to avoid
+// overwriting the "-" TUT that's what makes them self-classify as a
+// rest-pause in the first place) -- so every call here is a normal,
+// independent set, and only the last 1-2 reps count as grinding.
+function suggestTUTSeconds(reps, rir, weight, referenceWeight, exerciseKey){
     const pctRef = referenceWeight > 0 ? weight/referenceWeight : 0;
     const baseTempo = baseTempoForExercise(exerciseKey) * (1 + TUT_LOADCOEF*pctRef);
-    const grindingReps = allGrinding ? reps : Math.min(reps, rir === 0 ? 2 : (rir === 1 || rir === 2) ? 1 : 0);
+    const grindingReps = Math.min(reps, rir === 0 ? 2 : (rir === 1 || rir === 2) ? 1 : 0);
     const grindingExtra = grindingReps * baseTempo * (TUT_GRIND_MULTIPLIER - 1);
     return Math.round(reps*baseTempo + grindingExtra);
 }

@@ -291,11 +291,7 @@ function fillSummary(dataArray,exercise){
     // the same exercise.
     summaryArea[0].children[0].children[0].textContent = dataArray.filter(([k,v])=> k.includes("rest")).map(([k,v])=> v.includes("Sec") ? parseFloat(v)/60 : parseFloat(v.replace("Min",""))).reduce((a,b)=>(a+b)/2);
     summaryArea[0].children[1].children[0].textContent = Math.max(...dataArray.filter(([k,v])=> k.includes("weight")).map(([k,v])=>parseFloat(v)));
-    // A warmup set's rir value is the literal string "warmup", not a
-    // number -- excluded here same as it is in exercises.js's own
-    // averaging, so it doesn't silently count as RIR 0 (a failure set).
-    const rirVals = dataArray.filter(([k,v])=> k.includes("rir") && v!=="warmup");
-    summaryArea[0].children[2].children[0].textContent = rirVals.length ? rirVals.map(([k,v])=>parseFloat(v)||parseFloat(v.replaceAll(/\w/g,""))||0).reduce((a,b)=>(a+b)/2) : "-";
+    summaryArea[0].children[2].children[0].textContent = dataArray.filter(([k,v])=> k.includes("rir")).map(([k,v])=>parseFloat(v)||parseFloat(v.replaceAll(/\w/g,""))||0).reduce((a,b)=>(a+b)/2)||"-";
     summaryArea[0].children[3].children[0].textContent = dataArray.filter(([k,v])=> k.includes("tut")).map(([k,v])=>parseFloat(v)||parseFloat(v.replaceAll(/\w/g,""))||0).reduce((a,b)=>(a+b)/2)||"-";
     summaryArea[1].children[0].children[0].textContent = dataArray.find(([k,v])=> k.includes("setCount"))[1]||"-";
     summaryArea[1].children[1].children[0].textContent = dataArray.find(([k,v])=> k.includes("repCount"))[1]||"-";
