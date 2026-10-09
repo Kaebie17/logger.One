@@ -1661,15 +1661,21 @@ svg > path:nth-child(23) {
         gap: 0.8vw;
         padding: 1vh 0;
     }
-    /* Drop set / rest-pause continuation (exercises.js's
-       detectSetContinuation, inferred from the PRECEDING set's own Rest
-       value, no extra field) -- an inset shadow instead of a border so it
-       doesn't add to this row's already fully-budgeted width. */
-    #createexercisespage > #selectionlistdisplay > div > span.dropset-row{
-        box-shadow: inset 3px 0 0 var(--template-color-soft);
+    /* Drop set / rest-pause (exercises.js's classifySetType, read from
+       THIS set's own rest+RIR values only) -- fills the set-number box's
+       own background instead of outlining the whole row, so it reads as
+       "this SET is special" without touching the row's already
+       fully-budgeted width. pastworkout.js's history view uses the exact
+       same two classes/colors on its own read-only set-number display. */
+    #createexercisespage > #selectionlistdisplay > div > span > input.dropset-cell,
+    #pastworkout output.dropset-cell{
+        background-color: var(--template-color-soft) !important;
+        color: white;
     }
-    #createexercisespage > #selectionlistdisplay > div > span.restpause-row{
-        box-shadow: inset 3px 0 0 #d1543b;
+    #createexercisespage > #selectionlistdisplay > div > span > input.restpause-cell,
+    #pastworkout output.restpause-cell{
+        background-color: #d1543b !important;
+        color: white;
     }
     /* Isometric rows (exercises.js's content(), the isometric-row class)
        keep the exact same underlying field order/count as a dynamic row --

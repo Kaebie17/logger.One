@@ -438,16 +438,56 @@ function baseTempoForExercise(exerciseKey){
     return TUT_TEMPO_MEDIUM;
 }
 const TUT_LOADCOEF = 0.3, TUT_GRIND_MULTIPLIER = 3;
-// allGrinding -- rest-pause continuation sets (exercises.js's
-// detectSetContinuation): a sub-15s rest after the previous set is a
-// post-failure extension of the SAME effort, not a fresh set, so EVERY
-// rep in it counts as grinding, not just the last 1-2.
+// allGrinding -- a rest-pause set (classifySetType below): a sub-15s rest
+// AND an own RIR of "-" means this is a post-failure extension of the
+// SAME effort, not a fresh set, so EVERY rep in it counts as grinding,
+// not just the last 1-2.
 function suggestTUTSeconds(reps, rir, weight, referenceWeight, exerciseKey, allGrinding=false){
     const pctRef = referenceWeight > 0 ? weight/referenceWeight : 0;
     const baseTempo = baseTempoForExercise(exerciseKey) * (1 + TUT_LOADCOEF*pctRef);
     const grindingReps = allGrinding ? reps : Math.min(reps, rir === 0 ? 2 : (rir === 1 || rir === 2) ? 1 : 0);
     const grindingExtra = grindingReps * baseTempo * (TUT_GRIND_MULTIPLIER - 1);
     return Math.round(reps*baseTempo + grindingExtra);
+}
+// Self-contained -- a set is classified from its OWN rest and RIR values
+// only, never a neighboring set's. "-" (zero rest) on this set = drop
+// set: weight dropped, no recovery before continuing. A short 1-14
+// second rest on this set AND this set's own RIR being "-" (failure) =
+// rest-pause: a genuine post-failure extension of the same effort, not a
+// fresh set. Anything else = a normal, independent set. Shared by
+// exercises.js (the live editor) and pastworkout.js (history), so both
+// color the same set the same way.
+function classifySetType(restValue, rirValue){
+    if (restValue === "-") return "dropset";
+    if (restValue?.endsWith("Sec")){
+        const secs = parseFloat(restValue);
+        if (secs > 0 && secs < 15 && rirValue === "-") return "restpause";
+    }
+    return null;
+}
+// RIR this high or above isn't a real working set -- excluded from
+// volume/averages entirely (excludeWarmupSets below) rather than just
+// visually labeled, since a warmup set dragging those numbers around
+// would misrepresent the actual working session.
+const WARMUP_RIR_THRESHOLD = 5;
+function isWarmupSet(rirValue){
+    return rirValue !== "-" && parseFloat(rirValue) >= WARMUP_RIR_THRESHOLD;
+}
+// Drops EVERY field belonging to a warmup-flagged set (its setnum, reps,
+// weight, rest, tut -- not just its rir) before any stat sees it, so it
+// contributes to nothing: not totalSets, not totalReps/Vol, not any
+// average. Never called for isometric exercises -- Effort's 2/4/6 values
+// live in this same "rir" key but are a completely different scale, not
+// a real RIR.
+function excludeWarmupSets(array){
+    const warmupIndices = new Set(
+        array.filter(([k,v]) => /^rir\d+$/.test(k) && isWarmupSet(v)).map(([k]) => k.match(/\d+$/)[0])
+    );
+    if (!warmupIndices.size) return array;
+    return array.filter(([k]) => {
+        const idx = k.match(/\d+$/)?.[0];
+        return idx === undefined || !warmupIndices.has(idx);
+    });
 }
 
 // Converts an exercise's display name to its exerciseDB key -- the same

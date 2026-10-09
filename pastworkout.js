@@ -271,7 +271,15 @@ function displayDetails(n,el,outerEl,inputArray){
         let clone = outerEl.cloneNode(true);
         clone.id = i;
         sortedArr = copyArr.filter(([key,v])=> key.includes(i) || key.includes("Multiple")).sort((a,b) => {let i = propNames.findIndex(e => a[0].includes(e)) ; let j = propNames.findIndex(e => b[0].includes(e)); return i-j} );
-        // debugger
+        // Same classification as exercises.js's live editor (functions.js's
+        // classifySetType, read from THIS set's own rest+rir) -- colors the
+        // set-number cell the same way it showed while logging. Skipped for
+        // isometric exercises, same as the live editor -- Effort's 2/4/6
+        // values live in this same "rir" key but aren't a real RIR.
+        const isIso = exerciseDB()[targetExercise]?.type === "isometric";
+        const restVal = sortedArr.find(([k])=>k.startsWith("rest"))?.[1];
+        const rirVal = sortedArr.find(([k])=>k.startsWith("rir"))?.[1];
+        const rowType = isIso ? null : classifySetType(restVal, rirVal);
         sortedArr.forEach((arr,k) => {
             let val = arr[1];
             let cloneOutput = el.cloneNode(true);
@@ -279,20 +287,33 @@ function displayDetails(n,el,outerEl,inputArray){
             if (k!==0){cloneOutput.addEventListener("touchend",handleEditData)}
             val = val.includes("Min")? val.replace("Min","") : val.includes("TUT") ? "-" : val;
             cloneOutput.value = val;
+            if (k===0){
+                cloneOutput.classList.toggle("dropset-cell", rowType === "dropset");
+                cloneOutput.classList.toggle("restpause-cell", rowType === "restpause");
+            }
             clone.append(cloneOutput)
         })
         logDetails.append(clone);
     }
 }
 function fillSummary(dataArray,exercise){
+    // Same warmup exclusion as exercises.js's getStats (functions.js's
+    // excludeWarmupSets) -- a warmup set's rest/weight/rir/tut shouldn't
+    // skew these on-screen averages any more than they skewed the
+    // originally-saved ones.
+    if (exerciseDB()[exercise]?.type !== "isometric") dataArray = excludeWarmupSets(dataArray);
     // Rest can now be stored as "NSec" (new, under 1 min) or "N.NMin"
     // (everything else) -- converts a "Sec" value back to its minute
     // equivalent so it isn't averaged directly against a "Min" one from
     // the same exercise.
-    summaryArea[0].children[0].children[0].textContent = dataArray.filter(([k,v])=> k.includes("rest")).map(([k,v])=> v.includes("Sec") ? parseFloat(v)/60 : parseFloat(v.replace("Min",""))).reduce((a,b)=>(a+b)/2);
-    summaryArea[0].children[1].children[0].textContent = Math.max(...dataArray.filter(([k,v])=> k.includes("weight")).map(([k,v])=>parseFloat(v)));
-    summaryArea[0].children[2].children[0].textContent = dataArray.filter(([k,v])=> k.includes("rir")).map(([k,v])=>parseFloat(v)||parseFloat(v.replaceAll(/\w/g,""))||0).reduce((a,b)=>(a+b)/2)||"-";
-    summaryArea[0].children[3].children[0].textContent = dataArray.filter(([k,v])=> k.includes("tut")).map(([k,v])=>parseFloat(v)||parseFloat(v.replaceAll(/\w/g,""))||0).reduce((a,b)=>(a+b)/2)||"-";
+    const restVals = dataArray.filter(([k,v])=> k.includes("rest")).map(([k,v])=> v.includes("Sec") ? parseFloat(v)/60 : parseFloat(v.replace("Min","")));
+    summaryArea[0].children[0].children[0].textContent = restVals.length ? restVals.reduce((a,b)=>(a+b)/2) : "-";
+    const weightVals = dataArray.filter(([k,v])=> k.includes("weight")).map(([k,v])=>parseFloat(v));
+    summaryArea[0].children[1].children[0].textContent = weightVals.length ? Math.max(...weightVals) : "-";
+    const rirVals = dataArray.filter(([k,v])=> k.includes("rir")).map(([k,v])=>parseFloat(v)||parseFloat(v.replaceAll(/\w/g,""))||0);
+    summaryArea[0].children[2].children[0].textContent = rirVals.length ? rirVals.reduce((a,b)=>(a+b)/2)||"-" : "-";
+    const tutVals = dataArray.filter(([k,v])=> k.includes("tut")).map(([k,v])=>parseFloat(v)||parseFloat(v.replaceAll(/\w/g,""))||0);
+    summaryArea[0].children[3].children[0].textContent = tutVals.length ? tutVals.reduce((a,b)=>(a+b)/2)||"-" : "-";
     summaryArea[1].children[0].children[0].textContent = dataArray.find(([k,v])=> k.includes("setCount"))[1]||"-";
     summaryArea[1].children[1].children[0].textContent = dataArray.find(([k,v])=> k.includes("repCount"))[1]||"-";
     summaryArea[1].children[2].children[0].textContent = dataArray.find(([k,v])=> k.includes("vol"))[1]||"-";;
@@ -624,36 +645,45 @@ function handleEditData(e){
         // so an isometric exercise needs the recompute to also fire when
         // those fields are the one just edited here.
         const isIso = exerciseDB()[targetExercise]?.type === "isometric";
+        // Warmup sets (functions.js's excludeWarmupSets) feed none of the
+        // recomputed totals below -- same exclusion exercises.js's getStats
+        // and fillSummary above both apply. dataArray itself stays whole
+        // (it's what actually gets saved a few lines down); only the
+        // numbers computed FROM it are read off this filtered copy instead.
+        const statsInput = isIso ? dataArray : excludeWarmupSets(dataArray);
         if(e.target.id.includes("weight") || e.target.id.includes("reps") || e.target.id.includes("Multiple") || (isIso && (e.target.id.includes("tut") || e.target.id.includes("rir")))){
             let eqwt = targetExercise.includes("dumbbell") ? dWt : targetExercise.includes("barbell") ? bWt : 0;
             let rx = dataArray.find(arr => arr[0]==="repMultiple")[1]*1;
             let wx = dataArray.find(arr => arr[0]==="wtMultiple")[1]*1
             if (isIso){
-                const setIdx = dataArray.filter(([k]) => /^setnum\d+$/.test(k)).map(([k]) => k.slice(6)*1);
-                const setWeights = setIdx.map(i => (dataArray.find(([k])=>k===`weight${i}`)?.[1]*1)||0);
-                const setReps = setIdx.map(i => (dataArray.find(([k])=>k===`reps${i}`)?.[1]*1)||0);
+                const setIdx = statsInput.filter(([k]) => /^setnum\d+$/.test(k)).map(([k]) => k.slice(6)*1);
+                const setWeights = setIdx.map(i => (statsInput.find(([k])=>k===`weight${i}`)?.[1]*1)||0);
+                const setReps = setIdx.map(i => (statsInput.find(([k])=>k===`reps${i}`)?.[1]*1)||0);
                 const setTUTs = setIdx.map(i => {
-                    let v = (dataArray.find(([k])=>k===`tut${i}`)?.[1]||"").toString().replace("Sec","");
+                    let v = (statsInput.find(([k])=>k===`tut${i}`)?.[1]||"").toString().replace("Sec","");
                     return v==="-" ? 0 : (v*1||0);
                 });
-                const setEfforts = setIdx.map(i => (dataArray.find(([k])=>k===`rir${i}`)?.[1]*1)||0);
+                const setEfforts = setIdx.map(i => (statsInput.find(([k])=>k===`rir${i}`)?.[1]*1)||0);
                 const {totalWeight, totalVol} = computeIsometricVolume(setWeights, setReps, setTUTs, setEfforts, rx, wx, eqwt);
                 const totalReps = setReps.reduce((a,b)=>a+b,0)*rx;
                 dataArray = dataArray.map(arr => [arr[0], arr[0]==="repCount" ? arr[1] = totalReps : arr[0]==="load" ? arr[1] = totalWeight : arr[0]==="vol" ? arr[1] = totalVol : arr[1]]);
             } else {
-                let repsValArr = dataArray.filter(([k,v])=> k.includes("reps")).map(arr => arr[1]*rx)
-                let totalReps = repsValArr.reduce((a,b)=>a*1+b*1);
-                let weightValArr = dataArray.filter(([k,v])=> k.includes("weight")).map(arr => (arr[1]*1+eqwt)*wx)
-                let totalLoad = weightValArr.reduce((a,b)=>a*1+b*1);
-                let volTotal = repsValArr.crossMult(weightValArr);
+                let repsValArr = statsInput.filter(([k,v])=> k.includes("reps")).map(arr => arr[1]*rx)
+                let totalReps = repsValArr.length ? repsValArr.reduce((a,b)=>a*1+b*1) : 0;
+                let weightValArr = statsInput.filter(([k,v])=> k.includes("weight")).map(arr => (arr[1]*1+eqwt)*wx)
+                let totalLoad = weightValArr.length ? weightValArr.reduce((a,b)=>a*1+b*1) : 0;
+                let volTotal = repsValArr.length ? repsValArr.crossMult(weightValArr) : 0;
                 dataArray = dataArray.map(arr => [arr[0], arr[0]==="repCount" ? arr[1] = totalReps : arr[0]==="load" ? arr[1] = totalLoad : arr[0]==="vol" ? arr[1] = volTotal : arr[1]]);
             }
         }
         if(e.target.id.includes("rir") || e.target.id.includes("tut") || e.target.id.includes("rest") ){
-            let totalRIR = dataArray.filter(([k,v])=> k.includes("rir")).flatMap(arr => {let val = arr[1]; return val === "-" ? [0] : val*1 ? [val*1] : []}).reduce((a,b)=>(a*1+b*1)/2);
-            let totalTUT = dataArray.filter(([k,v])=> k.includes("tut")).flatMap(arr => {let val = arr[1].replace("Sec",""); return val = val==="-" ? [0] : val*1 ? [val*1] : []}).reduce((a,b)=>(a*1+b*1)/2);
+            const rirPairs = statsInput.filter(([k,v])=> k.includes("rir")).flatMap(arr => {let val = arr[1]; return val === "-" ? [0] : val*1 ? [val*1] : []});
+            let totalRIR = rirPairs.length ? rirPairs.reduce((a,b)=>(a*1+b*1)/2) : "-";
+            const tutPairs = statsInput.filter(([k,v])=> k.includes("tut")).flatMap(arr => {let val = arr[1].replace("Sec",""); return val = val==="-" ? [0] : val*1 ? [val*1] : []});
+            let totalTUT = tutPairs.length ? tutPairs.reduce((a,b)=>(a*1+b*1)/2) : "-";
             // Same Sec/Min normalization as fillSummary above.
-            let totalRest = dataArray.filter(([k,v])=> k.includes("rest")).flatMap(arr => {let raw = arr[1]; let val = raw.includes("Sec") ? parseFloat(raw)/60 : raw.replace("Min",""); return val = val==="-" ? [0] : val*1 ? [val*1] : []}).reduce((a,b)=>(a*1+b*1)/2);
+            const restPairs = statsInput.filter(([k,v])=> k.includes("rest")).flatMap(arr => {let raw = arr[1]; let val = raw.includes("Sec") ? parseFloat(raw)/60 : raw.replace("Min",""); return val = val==="-" ? [0] : val*1 ? [val*1] : []});
+            let totalRest = restPairs.length ? restPairs.reduce((a,b)=>(a*1+b*1)/2) : "-";
             // Was missing the [arr[0], ...] wrapper the identical map above
             // (repCount/load/vol) has -- this returned bare values instead
             // of [key,value] tuples, so dataArray stopped being an array of

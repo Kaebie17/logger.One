@@ -594,23 +594,10 @@ const content = (i,parent) => {
   </span>
   `;
 }
-// Same exercise, directly-preceding set's own Rest value tells the app
-// what this set continues from -- no new field, just reading what's
-// already there (same "-" magic value RIR's own failure marker uses).
-// "-" (zero rest) = drop set: weight changed, no recovery. 1-14 seconds =
-// rest-pause: a genuine post-failure extension of the SAME effort, not a
-// fresh set. Anything else = a normal, independent set.
-function detectSetContinuation(exerciseKey, i){
-  if (i <= 0) return null;
-  const prevRest = document.querySelector(`#selectionlistdisplay > #${exerciseKey} [name="rest${i-1}"]`)?.value;
-  if (!prevRest) return null;
-  if (prevRest === "-") return "dropset";
-  if (prevRest.endsWith("Sec")){
-    const secs = parseFloat(prevRest);
-    if (secs > 0 && secs < 15) return "restpause";
-  }
-  return null;
-}
+// classifySetType/isWarmupSet/excludeWarmupSets live in functions.js --
+// shared with pastworkout.js's history view, which needs the exact same
+// classification to color its own read-only set-number display the same
+// way and to keep its own averages consistent with these.
 // Reads this row's own reps/weight against the just-changed RIR value to
 // pre-fill a suggested TUT (functions.js's suggestTUTSeconds) -- skipped
 // entirely for isometric exercises (Effort isn't RIR, and TUT there is a
@@ -618,28 +605,28 @@ function detectSetContinuation(exerciseKey, i){
 // initial value into the existing TUT select; freely overridable
 // afterward like any other field.
 //
-// applyNow=true only for a BRAND NEW set (addData/button.onclick) -- a
-// detected rest-pause continuation then forces this row's own RIR to "-"
-// immediately. false when repopulating an already-saved set (addData's
-// own repopulateValues path), so restoring saved data never silently
-// overwrites the RIR the user actually entered and saved; the drop-set/
-// rest-pause label itself still shows either way, it's just the
-// RIR-forcing that's creation-only. Drop sets get no RIR/TUT adjustment
-// at all (per the user's own call: a drop set's lighter sets are usually
-// rep-target-driven, not RIR-driven, so each entered RIR is trusted as
-// its own independent value) -- label only.
+// applyNow=true only for a BRAND NEW set (addData/button.onclick); false
+// when repopulating an already-saved set (addData's own repopulateValues
+// path), so restoring saved data never silently overwrites the TUT the
+// user actually entered and saved -- the drop-set/rest-pause coloring
+// itself still shows either way, it's just the TUT auto-fill that's
+// creation-only. Drop sets get no RIR/TUT adjustment at all (per the
+// user's own call: a drop set's lighter sets are usually rep-target-
+// driven, not RIR-driven, so each entered RIR is trusted as its own
+// independent value) -- label only.
 const wireTUTSuggestion = (rirSelect, weightInput, repsInput, tutSelect, exerciseKey, i, applyNow=false) => {
   if (exerciseDB()[exerciseKey]?.type === "isometric") return;
   const lineEl = rirSelect.closest(`#line${i}`);
+  const setnumEl = lineEl?.querySelector(`[name="setnum${i}"]`);
+  const restSelect = document.querySelector(`#selectionlistdisplay > #${exerciseKey} [name="rest${i}"]`);
   const applyLabel = () => {
-    const continuation = detectSetContinuation(exerciseKey, i);
-    lineEl?.classList.toggle("dropset-row", continuation === "dropset");
-    lineEl?.classList.toggle("restpause-row", continuation === "restpause");
-    return continuation;
+    const type = classifySetType(restSelect?.value, rirSelect.value);
+    setnumEl?.classList.toggle("dropset-cell", type === "dropset");
+    setnumEl?.classList.toggle("restpause-cell", type === "restpause");
+    return type;
   };
   const recompute = () => {
     const isRestPause = applyLabel() === "restpause";
-    if (isRestPause && rirSelect.value !== "-") rirSelect.value = "-";
     const reps = parseFloat(repsInput.value) || 0;
     const weight = parseFloat(weightInput.value) || 0;
     const rir = rirSelect.value === "-" ? 0 : parseFloat(rirSelect.value);
@@ -649,11 +636,8 @@ const wireTUTSuggestion = (rirSelect, weightInput, repsInput, tutSelect, exercis
     tutSelect.value = `${seconds.toFixed(1)}Sec`;
   };
   if (applyNow) recompute();
-  else applyLabel(); // repopulate path -- show the label without touching RIR/TUT
-  // A later edit to the PRECEDING set's own rest value can retroactively
-  // turn this set into a rest-pause (or back out of one), whichever order
-  // the two fields get filled in.
-  document.querySelector(`#selectionlistdisplay > #${exerciseKey} [name="rest${i-1}"]`)?.addEventListener("change", recompute);
+  else applyLabel(); // repopulate path -- show the coloring without touching TUT
+  restSelect?.addEventListener("change", applyLabel);
   repsInput.addEventListener("change", recompute);
   weightInput.addEventListener("change", recompute);
   rirSelect.addEventListener("change", recompute);
@@ -829,6 +813,7 @@ function calculateField(AoA,filter,mainF,transform){
 
 
 function getStats(array,exports,lineElms,isIsometric=false){
+  if (!isIsometric) array = excludeWarmupSets(array);
   let repMultiple = lineElms[2].lastElementChild.textContent;
   let weightMultiple = lineElms[4].lastElementChild.lastElementChild.textContent;
   const savedSettingsFallback = '{"bweight":"0 kgs","dweight":"0 kgs"}';
@@ -889,6 +874,10 @@ function getValuesfromInputs(arr){
 }
 
 function reducer(arr,operation=""){
+  // Reachable now that a whole exercise's sets can all be excluded as
+  // warmup (excludeWarmupSets above) -- reduce with no seed throws on an
+  // empty array otherwise.
+  if (!arr.length) return operation === "average" ? "-" : 0;
   if (arr.some(e => !/^\d/.test(e) )) {return "error"};
   if (operation === "average") return arr.reduce((a,b)=>(a+b))/arr.length;
   else return arr.reduce((a,b)=>a+b);
