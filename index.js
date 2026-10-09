@@ -322,6 +322,23 @@ function recomputeExerciseTuples(tuples, exerciseKey){
     setTupleValue(tuples, "repCount", setReps.reduce((a,b) => a+b, 0) * repMultiple);
 }
 
+// Wraps a plain onStep(dir) in escalating step size, for the two steppers
+// (Start, Duration) where the default fixed step can mean dozens of taps
+// to reach a time hours away. Every 5 consecutive clicks IN THE SAME
+// DIRECTION doubles the step (5 -> 10 -> 20 -> 40 -> 60, capped at
+// maxStep); clicking the OPPOSITE direction resets back to the base step
+// for that new direction, matching a normal stepper's feel rather than
+// staying fast once you've overshot.
+function makeEscalatingStepper(baseStep, maxStep, applyFn){
+    let lastDir = 0, streak = 0;
+    return (dir) => {
+        streak = (dir === lastDir) ? streak + 1 : 1;
+        lastDir = dir;
+        const tier = Math.floor((streak-1) / 5);
+        const step = Math.min(baseStep * (2 ** tier), maxStep);
+        return applyFn(dir * step);
+    };
+}
 // A small "label  −  value  +" row shared by every stepper in the popup.
 // onStep(delta) mutates whatever backing value this row represents and
 // returns the new display string -- this function only owns the DOM.
@@ -410,14 +427,14 @@ function openQuickLogPopup(program){
             daysAgo = Math.max(0, daysAgo - delta);
             return formatDaysAgo(daysAgo);
         }),
-        buildStepperRow("Start", formatTime12(startMinutes), (delta) => {
-            startMinutes = startMinutes + delta*5;
+        buildStepperRow("Start", formatTime12(startMinutes), makeEscalatingStepper(5, 60, (actualDelta) => {
+            startMinutes = startMinutes + actualDelta;
             return formatTime12(startMinutes);
-        }),
-        buildStepperRow("Duration", `${durationMinutes} min`, (delta) => {
-            durationMinutes = Math.max(5, durationMinutes + delta*5);
+        })),
+        buildStepperRow("Duration", `${durationMinutes} min`, makeEscalatingStepper(5, 60, (actualDelta) => {
+            durationMinutes = Math.max(5, durationMinutes + actualDelta);
             return `${durationMinutes} min`;
-        }),
+        })),
         buildStepperRow("Intensity", `${intensity}`, (delta) => {
             intensity = Math.max(0, Math.min(10, intensity + delta));
             return `${intensity}`;
@@ -430,7 +447,7 @@ function openQuickLogPopup(program){
     // of which only exist once the nav section below is built. Safe --
     // the button isn't actually clickable until the whole dialog is
     // shown, long after both are assigned.
-    let pages, showPage, currentIndex;
+    let pages, showPage, currentIndex, dots;
 
     // Rebuildable per-exercise page, not just built once -- removing a set
     // re-runs this instead of patching the DOM in place, since every
@@ -457,15 +474,44 @@ function openQuickLogPopup(program){
             setLabel.textContent = `Set ${i}`;
             setGroup.append(setLabel);
             // Adding is a bigger change (new fields, renumbering) -- this is
-            // just removing, so a plain cross is enough; disabled rather than
-            // hidden when it's the only set, same reasoning exercises.js's
-            // own full-editor remove button already uses (always needs >=1).
+            // just removing, so a plain cross is enough. Removing the ONLY
+            // set no longer just sits there disabled -- that was blocking
+            // the one thing someone opening this exercise's page is most
+            // likely trying to do: decide they don't want it logged at all.
+            // It now removes the whole exercise instead (after confirming),
+            // same as if it had never been in the template for this log.
+            // Still disabled when it's the only REMAINING exercise, same
+            // reasoning exercises.js's own full-editor remove button already
+            // uses for sets -- a workout always needs at least one exercise.
             const removeBtn = document.createElement("button");
             removeBtn.type = "button";
             removeBtn.className = "quicklog-set-remove";
             removeBtn.textContent = "×";
-            removeBtn.disabled = setIdx.length <= 1;
+            removeBtn.disabled = setIdx.length <= 1 && exerciseKeys.length <= 1;
             removeBtn.addEventListener("click", () => {
+                if (setIdx.length <= 1){
+                    // exerciseKeys.length is checked fresh here rather than
+                    // trusting removeBtn.disabled -- that flag was only
+                    // computed once at this page's build time, so it can go
+                    // stale if ANOTHER exercise page removed itself since
+                    // (leaving this one as the last remaining without this
+                    // button ever being told to disable itself).
+                    if (exerciseKeys.length <= 1){
+                        alert("A workout needs at least one exercise.");
+                        return;
+                    }
+                    const name = exDB[key]?.["name"] || key;
+                    if (!confirm(`Remove ${name} from this workout?`)) return;
+                    delete workingLog[key];
+                    exerciseKeys.splice(exerciseKeys.indexOf(key), 1);
+                    const pageIdx = pages.indexOf(page);
+                    pages.splice(pageIdx, 1);
+                    dots[pageIdx].remove();
+                    dots.splice(pageIdx, 1);
+                    page.remove();
+                    showPage(Math.min(currentIndex, pages.length - 1));
+                    return;
+                }
                 removeSetFromTuples(tuples, i);
                 recomputeExerciseTuples(tuples, key);
                 const newPage = buildExercisePage(key);
@@ -506,7 +552,7 @@ function openQuickLogPopup(program){
     prevBtn.type = "button";
     prevBtn.className = "quicklog-nav-btn";
     prevBtn.textContent = "‹";
-    const dots = pages.map(() => {
+    dots = pages.map(() => {
         const dot = document.createElement("span");
         dot.className = "quicklog-dot";
         return dot;
