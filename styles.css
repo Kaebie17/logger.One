@@ -1677,6 +1677,15 @@ svg > path:nth-child(23) {
         background-color: #d1543b !important;
         color: white;
     }
+    /* Warmup (RIR 5+, functions.js's isWarmupSet) -- independent of
+       dropset/restpause above, so its own color. Excluded from every
+       stat (excludeWarmupSets), same exclusion history's own recompute
+       applies. */
+    #createexercisespage > #selectionlistdisplay > div > span > input.warmup-cell,
+    #pastworkout output.warmup-cell{
+        background-color: #d9a73b !important;
+        color: black;
+    }
     /* Isometric rows (exercises.js's content(), the isometric-row class)
        keep the exact same underlying field order/count as a dynamic row --
        getStats's equipment-weight lookup and repopulateValues/addData's

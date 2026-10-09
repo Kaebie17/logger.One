@@ -280,6 +280,7 @@ function displayDetails(n,el,outerEl,inputArray){
         const restVal = sortedArr.find(([k])=>k.startsWith("rest"))?.[1];
         const rirVal = sortedArr.find(([k])=>k.startsWith("rir"))?.[1];
         const rowType = isIso ? null : classifySetType(restVal, rirVal);
+        const rowIsWarmup = !isIso && isWarmupSet(rirVal);
         sortedArr.forEach((arr,k) => {
             let val = arr[1];
             let cloneOutput = el.cloneNode(true);
@@ -290,6 +291,7 @@ function displayDetails(n,el,outerEl,inputArray){
             if (k===0){
                 cloneOutput.classList.toggle("dropset-cell", rowType === "dropset");
                 cloneOutput.classList.toggle("restpause-cell", rowType === "restpause");
+                cloneOutput.classList.toggle("warmup-cell", rowIsWarmup);
             }
             clone.append(cloneOutput)
         })

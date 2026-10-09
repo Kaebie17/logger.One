@@ -623,6 +623,10 @@ const wireTUTSuggestion = (rirSelect, weightInput, repsInput, tutSelect, exercis
     const type = classifySetType(restSelect?.value, rirSelect.value);
     setnumEl?.classList.toggle("dropset-cell", type === "dropset");
     setnumEl?.classList.toggle("restpause-cell", type === "restpause");
+    // Independent of dropset/restpause -- a set can be flagged warmup
+    // (RIR 5+, excluded from every stat in getStats) regardless of its
+    // own rest value.
+    setnumEl?.classList.toggle("warmup-cell", isWarmupSet(rirSelect.value));
     return type;
   };
   const recompute = () => {
