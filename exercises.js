@@ -220,18 +220,6 @@ const doneSelectionFunction = (event) => {
       elm.before(container);
       container.append(elm);
       container.append(delBtn);
-      // Created once here (not inside addData's own per-set markup, and
-      // never inserted/removed afterward) specifically so updateSetTypeLegend
-      // only ever has to update ITS content/visibility in place -- never
-      // mutate addData's own template div, whose child COUNT and
-      // firstElementChild several existing functions (the "Add Set" button's
-      // onclick, repopulateValues) depend on staying exactly [line0..lineN,
-      // button] with nothing extra.
-      const legend = document.createElement("p");
-      legend.className = "set-type-legend";
-      legend.id = `${elm.id}_legend`;
-      legend.style.display = "none";
-      container.after(legend);
       [...elm.shadowRoot.children].forEach(el => {el.id ? el.onclick = "" : el.childElementCount? el.firstElementChild.onclick = "": ""; });
       elm.addEventListener("click", addData) ;
       elm.addEventListener("pointerdown", dragAction) ;
@@ -451,17 +439,15 @@ const timeOptions = (i,id,name,string,loops,placeholder,step) => {
 
 // Rest, specifically -- 1-second steps for the first minute (fine enough
 // to tell a true 0-rest drop set, a sub-15s rest-pause, and a real short
-// rest apart), then the ORIGINAL 0.5-minute steps beyond that (nobody
-// needs 1-second precision on a 2-minute rest). The Min loop now starts
-// at 1.0, not 0.5 -- "0.5 Min" is just 30 seconds, already covered by the
-// 1-59 Sec range above it, so keeping it too just duplicated one value in
-// two unit systems. A set saved as "0.5Min" from before the 1-second
-// granularity existed is normalized to "30Sec" when repopulated
-// (repopulateValues below) so it still lands on a real option.
+// rest apart), then the ORIGINAL 0.5-minute steps unchanged beyond that
+// (nobody needs 1-second precision on a 2-minute rest). The "-" and
+// "X.XMin" options are IDENTICAL to what timeOptions("Min",60,...,2)
+// already produced, so every already-saved rest value still matches an
+// option exactly -- no migration pass needed over existing history.
 const restOptions = (i,parent) => {
   let option = `<option>Rest</option><option value="-">-</option>`;
   for (let s=1; s<60; s++) option += `<option value="${s}Sec">${s} Sec</option>`;
-  for (let j=1.0; j<120; j+=0.5) option += `<option value="${j.toFixed(1)}Min">${j.toFixed(1)} Min</option>`;
+  for (let j=0.5; j<120; j+=0.5) option += `<option value="${j.toFixed(1)}Min">${j.toFixed(1)} Min</option>`;
   return `<select id="${parent}Rest${i}" name="rest${i}">${option}</select>`;
 }
 
@@ -584,12 +570,6 @@ const autoAssignMultiple = (el1,el2,refElem) => {
 // Easy earns less (sustaining it a long time at low effort shouldn't be
 // over-credited just for lasting).
 const effortOptions = (i,parent) => `<select id="${parent}Effort${i}" name="rir${i}"><option>Effort</option><option value="2">Hard</option><option value="4">Moderate</option><option value="6">Easy</option></select>`;
-// RIR capped at 1-5 (plus "-" for a true failure set) -- reps-in-reserve
-// past 5 isn't a meaningfully effortful working set. Stays strictly
-// numeric (no separate "Warmup" value living inside this field) --
-// warmup is its own flag, kept apart from RIR entirely (see the warmup
-// toggle in content() below).
-const rirOptions = (i,parent) => `<select id="${parent}RIR${i}" name="rir${i}"><option>RIR</option><option value="-">-</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select>`;
 // Isometric branch keeps the EXACT same 8-child order/count as the dynamic
 // template (setnum, reps, repX, weight, BW-span, rest, tut, rir/effort,
 // remove) -- getStats below finds its equipment-weight carrier by
@@ -609,44 +589,27 @@ const content = (i,parent) => {
     <span><p><i>BW</i></p><p>x<i name="wtX${i}">1</i></p></span>
     ${restOptions(i,parent)}
     ${timeOptions(i,parent,"tut"+i,"Sec",180,"TUT")}
-    ${isIso ? effortOptions(i,parent) : rirOptions(i,parent)}
+    ${isIso ? effortOptions(i,parent) : timeOptions(i,parent,"rir"+i,"",11,"RIR")}
     <input type="submit" class="remove" id="${i}" name="${parent}" onclick="removeSet(event,name)" value="X" disabled>
   </span>
   `;
 }
-// Self-contained -- a set is classified from its OWN rest and TUT values
-// only, never a neighboring set's. "-" (zero rest) on this set = drop
-// set: weight dropped, no recovery before continuing. A short 1-14
-// second rest on this set AND this set's own TUT also being "-" (0) =
-// rest-pause: a genuine post-failure extension logged with almost no
-// time under tension and almost no rest before moving on. Anything else
-// = a normal, independent set.
-function classifySet(restValue, tutValue){
-  if (restValue === "-") return "dropset";
-  if (restValue?.endsWith("Sec")){
-    const secs = parseFloat(restValue);
-    if (secs > 0 && secs < 15 && tutValue === "-") return "restpause";
+// Same exercise, directly-preceding set's own Rest value tells the app
+// what this set continues from -- no new field, just reading what's
+// already there (same "-" magic value RIR's own failure marker uses).
+// "-" (zero rest) = drop set: weight changed, no recovery. 1-14 seconds =
+// rest-pause: a genuine post-failure extension of the SAME effort, not a
+// fresh set. Anything else = a normal, independent set.
+function detectSetContinuation(exerciseKey, i){
+  if (i <= 0) return null;
+  const prevRest = document.querySelector(`#selectionlistdisplay > #${exerciseKey} [name="rest${i-1}"]`)?.value;
+  if (!prevRest) return null;
+  if (prevRest === "-") return "dropset";
+  if (prevRest.endsWith("Sec")){
+    const secs = parseFloat(prevRest);
+    if (secs > 0 && secs < 15) return "restpause";
   }
   return null;
-}
-// Matches the box-shadow colors in styles.css's .dropset-row/.restpause-row
-// rules -- kept alongside them here so the legend text can only ever show
-// the types actually present among this exercise's own set rows, not a
-// static always-on key that's often irrelevant. Superset isn't listed --
-// it has no detection/labeling mechanism yet (still pending, needs a
-// grouping UI in exercise selection), so there's nothing real to legend
-// yet.
-const SET_TYPE_LEGEND = [
-  ["dropset-row", "var(--template-color-soft)", "Drop set"],
-  ["restpause-row", "#d1543b", "Rest-pause"],
-];
-function updateSetTypeLegend(exerciseKey){
-  const legend = document.getElementById(`${exerciseKey}_legend`);
-  if (!legend) return;
-  const exerciseEl = document.getElementById(exerciseKey);
-  const present = SET_TYPE_LEGEND.filter(([cls]) => exerciseEl?.querySelector(`.${cls}`));
-  legend.innerHTML = present.map(([,color,label]) => `<span style="box-shadow: inset 3px 0 0 ${color};">${label}</span>`).join("");
-  legend.style.display = present.length ? "" : "none";
 }
 // Reads this row's own reps/weight against the just-changed RIR value to
 // pre-fill a suggested TUT (functions.js's suggestTUTSeconds) -- skipped
@@ -656,45 +619,41 @@ function updateSetTypeLegend(exerciseKey){
 // afterward like any other field.
 //
 // applyNow=true only for a BRAND NEW set (addData/button.onclick) -- a
-// self-classified rest-pause then forces this row's own RIR to "-"
-// immediately, and skips the TUT suggestion entirely so it doesn't
-// overwrite the "-" TUT the user deliberately entered to mark it as one.
-// false when repopulating an already-saved set (addData's own
-// repopulateValues path), so restoring saved data never silently
+// detected rest-pause continuation then forces this row's own RIR to "-"
+// immediately. false when repopulating an already-saved set (addData's
+// own repopulateValues path), so restoring saved data never silently
 // overwrites the RIR the user actually entered and saved; the drop-set/
 // rest-pause label itself still shows either way, it's just the
-// RIR-forcing/TUT-skip that's creation-only. Drop sets get no RIR/TUT
-// adjustment at all (per the user's own call: a drop set's lighter sets
-// are usually rep-target-driven, not RIR-driven, so each entered RIR is
-// trusted as its own independent value) -- label only.
-const wireTUTSuggestion = (rirSelect, weightInput, repsInput, tutSelect, restSelect, exerciseKey, i, applyNow=false) => {
+// RIR-forcing that's creation-only. Drop sets get no RIR/TUT adjustment
+// at all (per the user's own call: a drop set's lighter sets are usually
+// rep-target-driven, not RIR-driven, so each entered RIR is trusted as
+// its own independent value) -- label only.
+const wireTUTSuggestion = (rirSelect, weightInput, repsInput, tutSelect, exerciseKey, i, applyNow=false) => {
   if (exerciseDB()[exerciseKey]?.type === "isometric") return;
   const lineEl = rirSelect.closest(`#line${i}`);
   const applyLabel = () => {
-    const type = classifySet(restSelect.value, tutSelect.value);
-    lineEl?.classList.toggle("dropset-row", type === "dropset");
-    lineEl?.classList.toggle("restpause-row", type === "restpause");
-    updateSetTypeLegend(exerciseKey);
-    return type;
+    const continuation = detectSetContinuation(exerciseKey, i);
+    lineEl?.classList.toggle("dropset-row", continuation === "dropset");
+    lineEl?.classList.toggle("restpause-row", continuation === "restpause");
+    return continuation;
   };
   const recompute = () => {
     const isRestPause = applyLabel() === "restpause";
-    if (isRestPause){
-      if (rirSelect.value !== "-") rirSelect.value = "-";
-      return; // own TUT is already "-" (that's what made it a rest-pause) -- don't suggest over it
-    }
+    if (isRestPause && rirSelect.value !== "-") rirSelect.value = "-";
     const reps = parseFloat(repsInput.value) || 0;
     const weight = parseFloat(weightInput.value) || 0;
     const rir = rirSelect.value === "-" ? 0 : parseFloat(rirSelect.value);
     if (!reps || isNaN(rir)) return;
     const ref = getReferenceWeight(exerciseKey);
-    const seconds = Math.min(179, Math.max(1, suggestTUTSeconds(reps, rir, weight, ref, exerciseKey)));
+    const seconds = Math.min(179, Math.max(1, suggestTUTSeconds(reps, rir, weight, ref, exerciseKey, isRestPause)));
     tutSelect.value = `${seconds.toFixed(1)}Sec`;
   };
   if (applyNow) recompute();
   else applyLabel(); // repopulate path -- show the label without touching RIR/TUT
-  restSelect.addEventListener("change", applyLabel);
-  tutSelect.addEventListener("change", applyLabel);
+  // A later edit to the PRECEDING set's own rest value can retroactively
+  // turn this set into a rest-pause (or back out of one), whichever order
+  // the two fields get filled in.
+  document.querySelector(`#selectionlistdisplay > #${exerciseKey} [name="rest${i-1}"]`)?.addEventListener("change", recompute);
   repsInput.addEventListener("change", recompute);
   weightInput.addEventListener("change", recompute);
   rirSelect.addEventListener("change", recompute);
@@ -717,7 +676,7 @@ const addData = async (event) => {
     button.previousElementSibling.children[4].firstElementChild.addEventListener("click",(e)=>bodyweight(e,template.id,i))
     button.previousElementSibling.children[4].lastElementChild.addEventListener("click",(e)=>typeMultiple(e));
     autoAssignMultiple(button.previousElementSibling.children[4].lastElementChild.lastElementChild, button.previousElementSibling.children[2].lastElementChild,template.id);
-    wireTUTSuggestion(button.previousElementSibling.children[7], button.previousElementSibling.children[3], button.previousElementSibling.children[1], button.previousElementSibling.children[6], button.previousElementSibling.children[5], template.id, i, true);
+    wireTUTSuggestion(button.previousElementSibling.children[7], button.previousElementSibling.children[3], button.previousElementSibling.children[1], button.previousElementSibling.children[6], template.id, i, true);
   }
   button.onclick = (e)=>{
     const referenceNode = e.target.parentElement ;
@@ -729,7 +688,7 @@ const addData = async (event) => {
     button.previousElementSibling.children[4].firstElementChild.addEventListener("click",(e)=>bodyweight(e,template.id,childNum))
     button.previousElementSibling.children[4].lastElementChild.addEventListener("click",(e)=>typeMultiple(e));
     autoAssignMultiple(button.previousElementSibling.children[4].lastElementChild.lastElementChild, button.previousElementSibling.children[2].lastElementChild,template.id);
-    wireTUTSuggestion(button.previousElementSibling.children[7], button.previousElementSibling.children[3], button.previousElementSibling.children[1], button.previousElementSibling.children[6], button.previousElementSibling.children[5], template.id, childNum, true);
+    wireTUTSuggestion(button.previousElementSibling.children[7], button.previousElementSibling.children[3], button.previousElementSibling.children[1], button.previousElementSibling.children[6], template.id, childNum, true);
     // button.previousElementSibling.children[4].firstElementChild.addEventListener("click",(e)=>bodyweight(e,template.id,childNum))
     // if (childNum > 1){button.previousElementSibling.lastElementChild.disabled = false}
     const nextdecendents = decendents(referenceNode.querySelector(`#line${(childNum)}`),0,`setnum${(childNum)}`);   
@@ -821,19 +780,13 @@ const removeSet = (event, parent) => {
       elchild.id? elchild.id = elchild.id.replace(/\d+$/,elchild.id.match(/\d+$/g)[0]-1) : "";
       elchild.name? elchild.name = elchild.name.replace(/\d+$/,elchild.name.match(/\d+$/g)?.[0]-1||"") : "";
     })
-  })
-  // Classification is self-contained per set (its own rest+TUT), so
-  // renumbering doesn't change any remaining set's own classification --
-  // but removing a set can remove the only one of a given type, so the
-  // legend still needs a refresh.
-  updateSetTypeLegend(parent);
+  })        
 }
 
 function removeSelectedExercise(event){
   const id = event.target.previousElementSibling.id;
-  const container = document.querySelector(`#selectionlistdisplay #${id}_container`)
+  const container = document.querySelector(`#selectionlistdisplay #${id}_container`) 
   const userInputArea = document.querySelectorAll(`#selectionlistdisplay #${id}`)?.[1];
-  document.getElementById(`${id}_legend`)?.remove();
   container.remove();
   CustomOptionElement.selectedOptionArr = CustomOptionElement.selectedOptionArr.filter(name => nameToId(name) !== id);
   sessionStorage.restoreSelection = JSON.stringify(JSON.parse(sessionStorage.restoreSelection).filter(name => nameToId(name) !== id))
@@ -957,32 +910,26 @@ function repopulateValues(arr,elem,refElem){
   refElem.previousElementSibling.children[2].addEventListener("click",(e)=>typeMultiple(e));
   refElem.previousElementSibling.children[4].firstElementChild.addEventListener("click",(e)=>bodyweight(e,elem.id,0))
   refElem.previousElementSibling.children[4].lastElementChild.addEventListener("click",(e)=>typeMultiple(e));
-  wireTUTSuggestion(refElem.previousElementSibling.children[7], refElem.previousElementSibling.children[3], refElem.previousElementSibling.children[1], refElem.previousElementSibling.children[6], refElem.previousElementSibling.children[5], elem.id, 0);
+  wireTUTSuggestion(refElem.previousElementSibling.children[7], refElem.previousElementSibling.children[3], refElem.previousElementSibling.children[1], refElem.previousElementSibling.children[6], elem.id, 0);
   // autoAssignMultiple(refElem.previousElementSibling.children[4].lastElementChild.lastElementChild, refElem.previousElementSibling.children[2].lastElementChild, elem.id);
   refElem.previousElementSibling.children[2].lastElementChild.textContent = repX;
   refElem.previousElementSibling.children[4].lastElementChild.lastElementChild.textContent = wtX;
-  children.forEach(el => el.value = normalizeLegacyRestValue(el.name, arr.find(([n,v]) => n===el.name)[1]));
+  children.forEach(el => el.value = arr.find(([n,v]) => n===el.name)[1]);
   for (let i = 1; i<sets.length; i++){
     refElem.insertAdjacentHTML("beforebegin",content(i,elem.id));
     refElem.previousElementSibling.children[2].addEventListener("click",(e)=>typeMultiple(e));
     refElem.previousElementSibling.children[4].firstElementChild.addEventListener("click",(e)=>bodyweight(e,elem.id,i))
     refElem.previousElementSibling.children[4].lastElementChild.addEventListener("click",(e)=>typeMultiple(e));
-    wireTUTSuggestion(refElem.previousElementSibling.children[7], refElem.previousElementSibling.children[3], refElem.previousElementSibling.children[1], refElem.previousElementSibling.children[6], refElem.previousElementSibling.children[5], elem.id, i);
+    wireTUTSuggestion(refElem.previousElementSibling.children[7], refElem.previousElementSibling.children[3], refElem.previousElementSibling.children[1], refElem.previousElementSibling.children[6], elem.id, i);
     // autoAssignMultiple(refElem.previousElementSibling.children[4].lastElementChild.lastElementChild, refElem.previousElementSibling.children[2].lastElementChild, elem.id);
     refElem.previousElementSibling.children[2].lastElementChild.textContent = repX;
     refElem.previousElementSibling.children[4].lastElementChild.lastElementChild.textContent = wtX;
     let children = decendents(elem.querySelector(`#line${i}`),0,`setnum${i}`,"span","p")[0];
     let remSymbol = children.pop();
     remSymbol.disabled = false;
-    children.forEach(el => el.value = normalizeLegacyRestValue(el.name, arr.find(([n,v]) => n===el.name)[1]));
+    children.forEach(el => el.value = arr.find(([n,v]) => n===el.name)[1]);
   }
 }
-// "0.5Min" was a real, legitimately-saved rest value before the 1-second
-// granularity existed -- restOptions no longer has that option (see its
-// own comment), so an old set saved with it would silently fail to match
-// any option and repopulate blank. 30Sec is the exact same duration under
-// the new dropdown, so that's what old data gets mapped onto here.
-const normalizeLegacyRestValue = (name,value) => (name.includes("rest") && value === "0.5Min") ? "30Sec" : value;
 
 function handleSearch(e){
   if (!/[\w]/.test(e.key) && !e.value) return;

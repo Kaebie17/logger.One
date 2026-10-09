@@ -1661,36 +1661,15 @@ svg > path:nth-child(23) {
         gap: 0.8vw;
         padding: 1vh 0;
     }
-    /* Drop set / rest-pause (exercises.js's classifySet, read from THIS
-       set's own rest+TUT values only) -- an inset shadow instead of a
-       border so it doesn't add to this row's already fully-budgeted
-       width. */
+    /* Drop set / rest-pause continuation (exercises.js's
+       detectSetContinuation, inferred from the PRECEDING set's own Rest
+       value, no extra field) -- an inset shadow instead of a border so it
+       doesn't add to this row's already fully-budgeted width. */
     #createexercisespage > #selectionlistdisplay > div > span.dropset-row{
         box-shadow: inset 3px 0 0 var(--template-color-soft);
     }
     #createexercisespage > #selectionlistdisplay > div > span.restpause-row{
         box-shadow: inset 3px 0 0 #d1543b;
-    }
-    /* Legend for the two outline colors above -- only ever lists the types
-       actually present in THIS exercise's own sets (exercises.js's
-       updateSetTypeLegend), so a normal exercise with no special sets
-       shows nothing here. A standalone element next to (not inside)
-       addData's own per-exercise sets div, created once at selection time
-       and only ever updated in place afterward -- never touches that div's
-       own children, which several existing functions depend on staying
-       exactly [line0..lineN, Add Set button]. Each entry gets the exact
-       same inset-shadow swatch as its row, inline, so the color->meaning
-       mapping is immediate rather than requiring a separate legend key. */
-    #createexercisespage > #selectionlistdisplay > p.set-type-legend{
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.8vw;
-        font-size: 2.8vw;
-        color: var(--template-color-soft);
-        margin: 0.4vh 0;
-    }
-    #createexercisespage > #selectionlistdisplay > p.set-type-legend > span{
-        padding-left: 1.5vw;
     }
     /* Isometric rows (exercises.js's content(), the isometric-row class)
        keep the exact same underlying field order/count as a dynamic row --
