@@ -614,6 +614,25 @@ const content = (i,parent) => {
 // user's own call: a drop set's lighter sets are usually rep-target-
 // driven, not RIR-driven, so each entered RIR is trusted as its own
 // independent value) -- label only.
+// A drop-set/rest-pause judgment should only ever reason about real
+// working sets -- a warmup's position in the raw array shouldn't count.
+// Warmup sets show "W" in place of a number; every OTHER set is
+// renumbered 0,1,2... counting only itself, independent of where it
+// actually sits in the underlying array. Re-run fresh over every line
+// each time (not toggled incrementally), since a warmup flag changing
+// anywhere shifts every number after it.
+function renumberSetDisplay(exerciseKey){
+  const exerciseEl = document.getElementById(exerciseKey);
+  if (!exerciseEl) return;
+  const lines = [...exerciseEl.children].filter(el => el.id?.startsWith("line"));
+  let displayIdx = 0;
+  lines.forEach(lineEl => {
+    const setnumEl = lineEl.querySelector('input[type="text"]');
+    const rirEl = lineEl.querySelector('select[name^="rir"]');
+    if (!setnumEl || !rirEl) return;
+    setnumEl.value = isWarmupSet(rirEl.value) ? "W" : displayIdx++;
+  });
+}
 const wireTUTSuggestion = (rirSelect, weightInput, repsInput, tutSelect, exerciseKey, i, applyNow=false) => {
   if (exerciseDB()[exerciseKey]?.type === "isometric") return;
   const lineEl = rirSelect.closest(`#line${i}`);
@@ -627,6 +646,7 @@ const wireTUTSuggestion = (rirSelect, weightInput, repsInput, tutSelect, exercis
     // (RIR 5+, excluded from every stat in getStats) regardless of its
     // own rest value.
     setnumEl?.classList.toggle("warmup-cell", isWarmupSet(rirSelect.value));
+    renumberSetDisplay(exerciseKey);
     return type;
   };
   const recompute = () => {
@@ -750,9 +770,11 @@ const removeSet = (event, parent) => {
     el.name? el.name = el.name.replace(/\d+$/,el.name.match(/\d+$/g)[0]-1) : "";
     el.id? el.id = el.id.replace(/\d+$/,el.id.match(/\d+$/g)[0]-1) : "";
     Array.from(el.children).forEach (elchild => {
-      if(elchild.name?.includes("setnum")){
-        elchild.value = parseInt(elchild.value) - 1;
-      }
+      // setnum's displayed value is no longer a plain decrement -- it's
+      // either "W" or a warmup-aware recount (renumberSetDisplay below),
+      // so this element's own name/id still get shifted like every other
+      // field, but its VALUE is left alone here and overwritten fresh
+      // after the loop.
       if (elchild.childElementCount){
         let child = elchild.lastElementChild;
         if (child.localName === "p" || child.localName === "i") {
@@ -768,7 +790,8 @@ const removeSet = (event, parent) => {
       elchild.id? elchild.id = elchild.id.replace(/\d+$/,elchild.id.match(/\d+$/g)[0]-1) : "";
       elchild.name? elchild.name = elchild.name.replace(/\d+$/,elchild.name.match(/\d+$/g)?.[0]-1||"") : "";
     })
-  })        
+  })
+  renumberSetDisplay(parent);
 }
 
 function removeSelectedExercise(event){
@@ -903,17 +926,22 @@ function repopulateValues(arr,elem,refElem){
   refElem.previousElementSibling.children[2].addEventListener("click",(e)=>typeMultiple(e));
   refElem.previousElementSibling.children[4].firstElementChild.addEventListener("click",(e)=>bodyweight(e,elem.id,0))
   refElem.previousElementSibling.children[4].lastElementChild.addEventListener("click",(e)=>typeMultiple(e));
-  wireTUTSuggestion(refElem.previousElementSibling.children[7], refElem.previousElementSibling.children[3], refElem.previousElementSibling.children[1], refElem.previousElementSibling.children[6], elem.id, 0);
   // autoAssignMultiple(refElem.previousElementSibling.children[4].lastElementChild.lastElementChild, refElem.previousElementSibling.children[2].lastElementChild, elem.id);
   refElem.previousElementSibling.children[2].lastElementChild.textContent = repX;
   refElem.previousElementSibling.children[4].lastElementChild.lastElementChild.textContent = wtX;
   children.forEach(el => el.value = arr.find(([n,v]) => n===el.name)[1]);
+  // wireTUTSuggestion AFTER the real saved values are set above, not
+  // before -- its own classification read (applyLabel) runs synchronously
+  // at call time, so calling it while rest/rir still held their blank
+  // placeholder meant a repopulated set's drop-set/rest-pause/warmup
+  // coloring never showed until some later live edit happened to trigger
+  // a change event.
+  wireTUTSuggestion(refElem.previousElementSibling.children[7], refElem.previousElementSibling.children[3], refElem.previousElementSibling.children[1], refElem.previousElementSibling.children[6], elem.id, 0);
   for (let i = 1; i<sets.length; i++){
     refElem.insertAdjacentHTML("beforebegin",content(i,elem.id));
     refElem.previousElementSibling.children[2].addEventListener("click",(e)=>typeMultiple(e));
     refElem.previousElementSibling.children[4].firstElementChild.addEventListener("click",(e)=>bodyweight(e,elem.id,i))
     refElem.previousElementSibling.children[4].lastElementChild.addEventListener("click",(e)=>typeMultiple(e));
-    wireTUTSuggestion(refElem.previousElementSibling.children[7], refElem.previousElementSibling.children[3], refElem.previousElementSibling.children[1], refElem.previousElementSibling.children[6], elem.id, i);
     // autoAssignMultiple(refElem.previousElementSibling.children[4].lastElementChild.lastElementChild, refElem.previousElementSibling.children[2].lastElementChild, elem.id);
     refElem.previousElementSibling.children[2].lastElementChild.textContent = repX;
     refElem.previousElementSibling.children[4].lastElementChild.lastElementChild.textContent = wtX;
@@ -921,6 +949,7 @@ function repopulateValues(arr,elem,refElem){
     let remSymbol = children.pop();
     remSymbol.disabled = false;
     children.forEach(el => el.value = arr.find(([n,v]) => n===el.name)[1]);
+    wireTUTSuggestion(refElem.previousElementSibling.children[7], refElem.previousElementSibling.children[3], refElem.previousElementSibling.children[1], refElem.previousElementSibling.children[6], elem.id, i);
   }
 }
 

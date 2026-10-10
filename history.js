@@ -100,7 +100,10 @@ function extractData(object){
   let ar = [];
   exerciseDataValues.filter(([k,v])=>k==="targets").flatMap(([k,v])=> v ).forEach(v => !ar.includes(v)? ar.push(v) : "") ;
   const targets = ar.join(", ");
-  const sets = exerciseDataValues.filter(([k,v])=>k.includes("setnum")).flatMap(([k,v])=> parseFloat(v)).reduce((a,b)=>a+b);
+  // Same fix as pastworkout.js's extractData -- a count of entries, not a
+  // sum of their values (which would have summed indices like 0+1+2+3=6
+  // instead of 4, and broken outright on a warmup set's "W").
+  const sets = exerciseDataValues.filter(([k,v])=>k.includes("setnum")).length;
   const reps = exerciseDataValues.filter(([k,v])=>k.includes("reps")).flatMap(([k,v])=> parseFloat(v)).reduce((a,b)=>a+b);
   const vol = exerciseDataValues.filter(([k,v])=>k.includes("vol")).flatMap(([k,v])=> parseFloat(v)).reduce((a,b)=>a+b);
   const max = Math.max(...exerciseDataValues.filter(([k,v])=>k.includes("weight")).flatMap(([k,v])=> parseFloat(v)));

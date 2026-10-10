@@ -67,7 +67,12 @@ const extractData = () => {
   const intensity = finalLog[key]["workoutIntensity"];
   const fatigue = Object.keys(exerciseData).map(e => exerciseDB()[e]["fatigue"]).reduce((a,b) => a+b);
   const targets = ar.join(", ");
-  const sets = exerciseDataValues.filter(([k,v])=>k.includes("setnum")).flatMap(([k,v])=> parseFloat(v)).reduce((a,b)=>a+b);
+  // Was summing setnum0..N's VALUES (0+1+2+3=6 for a 4-set exercise,
+  // not the 4 it should be) -- a plain count of the entries is what
+  // "number of sets" actually means, and unlike summing values, it's
+  // unaffected by a warmup set's setnum now displaying "W" instead of a
+  // number (parseFloat("W") would have poisoned the sum into NaN).
+  const sets = exerciseDataValues.filter(([k,v])=>k.includes("setnum")).length;
   const reps = exerciseDataValues.filter(([k,v])=>k.includes("reps")).flatMap(([k,v])=> parseFloat(v)).reduce((a,b)=>a+b);
   const vol = exerciseDataValues.filter(([k,v])=>k.includes("vol")).flatMap(([k,v])=> parseFloat(v)).reduce((a,b)=>a+b);
   const max = Math.max(...exerciseDataValues.filter(([k,v])=>k.includes("weight")).flatMap(([k,v])=> parseFloat(v)));

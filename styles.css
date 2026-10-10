@@ -1597,8 +1597,8 @@ svg > path:nth-child(23) {
            always matches whatever room the header/footer actually leave. */
         flex: 1;
         min-height: 0;
-        width: 98vw;
-        overflow-y: scroll;
+        /* width: 98vw;
+        overflow-y: scroll; */
         padding: 1vw;
         background-image: linear-gradient(-90deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
     }
@@ -1731,13 +1731,13 @@ svg > path:nth-child(23) {
         font-style: normal;
     }
     #createexercisespage > #selectionlistdisplay > div > span > input{
-        width: 14vw;
+        width: 10vw;
         min-width: 3rem;
         flex-shrink: 1;
         height: 4vh;
         min-height: 1.8rem;
         text-align: center;
-        font-size: 0.75rem;
+        /* font-size: 0.75rem; */
         padding: 0 0.3vw;
         border-radius: 0.4vh;
     }
@@ -1755,6 +1755,9 @@ svg > path:nth-child(23) {
         font-size: 0.6rem;
         padding: 0 0.2vw;
         border-radius: 0.4vh;
+    }
+    #createexercisespage > #selectionlistdisplay > div > span > select[name^="rir"]{
+        width: 10vw;
     }
     #createexercisespage > #selectionlistdisplay > div > span > select:focus{
         font-size: 0.9rem;
