@@ -252,7 +252,7 @@ const saveExercisesFunction = (event) => {
     }
     dataNodeObj.forEach(dataEl => {
       const value = []
-      let decendentObj = decendents(dataEl,1,"button","remove");  
+      let decendentObj = decendents(dataEl,1,"button","remove");
       const key = dataEl.id;
       value.push(["targets", exercises[key]["movers"]])
       decendentObj[1].forEach(el => {
@@ -478,87 +478,24 @@ const typeMultiple = (e) => {
   let targetEl = e.target.nodeName === "I" ? e.target : e.target.firstElementChild;     
   targetEl.textContent = targetEl.textContent === "1" ? "2" : "1" ;  
 }
-// Was reading exerciseDB()[refElem]["type"] as if it were an array like
-// ["reps"]/["weight"]/["reps","weight"] -- that field is actually always
-// the plain string "bilateral"/"unilateral"/"isometric" (the movement
-// pattern, not a multiplier hint), so type.length/type[0] never matched
-// any branch and this silently did nothing for every exercise, ever.
-//
-// "bilateral"/"unilateral" alone can't answer the real question either --
-// it describes the MOVEMENT (e.g. a Bulgarian split squat's legs are
-// unilateral) not how many separate implements are held. A dumbbell
-// exercise needs one of three defaults:
-//  - WEIGHT_DOUBLES: two separate same-size implements moving together
-//    (bench press, rows, shrugs, most presses/flyes/curls -- including
-//    lower-body work like lunges/split squats/calf raises where a
-//    dumbbell is simply held in each hand for load, regardless of the
-//    legs' own unilateral pattern). The entered weight is one implement's
-//    load; total load is double that.
-//  - REPS_DOUBLES: one implement, done as two sequential halves of the
-//    same logged set -- explicit "single arm"/"one arm" work, and
-//    exercises conventionally trained one side at a time (kroc row,
-//    kettlebell clean/snatch, bottom-up KB press). The entered reps are
-//    one side's count; total reps performed is double that.
-//  - Neither (default, including every barbell/machine/cable/bodyweight
-//    exercise): one implement held with both hands together (goblet
-//    squats, pullovers, kettlebell swings/deadlifts/good mornings,
-//    farmer's-walk-style single-carry variants), or "alternating"-named
-//    work where the natural convention is to log the true combined rep
-//    count directly (alternating curls), or single-leg contralateral
-//    loading (one dumbbell/kettlebell, opposite the working leg).
-// Judged by name/equipment/bodypart against real exercise convention,
-// exercise by exercise -- not a generic regex, since the same equipment
-// and "type" combination genuinely means different things per exercise
-// (e.g. dumbbell_pullover vs dumbbell_bench_press_flat: same equipment,
-// same "bilateral" type, opposite answer).
-const WEIGHT_DOUBLES_EXERCISES = new Set([
-  "dumbbell_bench_press_flat","incline_dumbbell_bench_press","decline_dumbbell_bench_press",
-  "dumbbell_flyes_flat","incline_dumbbell_flyes","decline_dumbbell_flyes","close_grip_dumbbell_press",
-  "dumbbell_floor_press","standing_dumbbell_flyes","kneeling_dumbbell_flyes","kettlebell_floor_press",
-  "kettlebell_bench_press","kettlebell_flyes","dumbbell_hex_press","guillotine_press_dumbbell",
-  "dumbbell_row_bent_over_double_arm","chest_supported_dumbbell_row","seal_row_dumbbell",
-  "dumbbell_reverse_fly_incline_bench","dumbbell_shrugs_incline","dumbbell_deadlift_conventional",
-  "power_shrugs","seated_dumbbell_row","dumbbell_shrugs_seated","dumbbell_power_shrugs",
-  "dumbbell_dead_stop_row","dumbbell_floor_pull","dumbbell_shrugs_overhead","dumbbell_rack_pull",
-  "straight_leg_deadlift_dumbbell","dumbbell_rear_delt_row","dumbbell_squat","dumbbell_lunges",
-  "dumbbell_sumo_deadlift","dumbbell_romanian_deadlift","dumbbell_standing_calf_raise",
-  "single_leg_dumbbell_calf_raise","farmers_walk_tiptoes","incline_dumbbell_curl","spider_curl",
-  "dumbbell_preacher_curl","bayesian_curl","overhead_dumbbell_extension_two_arm","dumbbell_kickback",
-  "lying_dumbbell_extension","dumbbell_floor_press_close_grip","tate_press","dumbbell_shoulder_press_seated",
-  "dumbbell_lateral_raise","dumbbell_front_raise","arnold_press","bent_over_dumbbell_reverse_fly",
-  "dumbbell_high_pull","cuban_press","dumbbell_shrugs","high_incline_dumbbell_press",
-  "arnold_dumbbell_press_standing","dumbbell_upright_row","incline_bench_prone_dumbbell_rear_delt_raise",
-  "farmers_walk","zottman_curl","dumbbell_wrist_curl","dumbbell_reverse_wrist_curl","farmers_hold",
-  "squeeze_press_dumbbell","stability_ball_dumbbell_press","dumbbell_bulgarian_split_squat",
-]);
-const REPS_DOUBLES_EXERCISES = new Set([
-  "single_arm_dumbbell_press_flat","single_arm_incline_dumbbell_press","single_arm_decline_dumbbell_press",
-  "single_arm_kettlebell_press","dumbbell_row_bent_over_single_arm","dumbbell_pullover_single_arm",
-  "one_arm_deadlift_kettlebell","kettlebell_row_bent_over","kroc_row","kettlebell_clean","dumbbell_snatch",
-  "pendulum_row","kettlebell_single_arm_row_bent_over","kettlebell_dead_stop_row","concentration_curl",
-  "single_arm_overhead_dumbbell_extension","kettlebell_overhead_press_single_arm","bottom_up_kettlebell_press",
-  "dumbbell_supination_pronation","poliquin_raise",
-  // Same "one implement/station, logged as one side then the other within
-  // the same set" reasoning as above, extended past dumbbell/kettlebell --
-  // this applies to any single-arm/single-leg work on a cable, machine, or
-  // landmine just as much, since it's about how a SET is logged, not what
-  // equipment it's on. NOT included here: one_arm_pullup_progression,
-  // one_arm_chinup, one_arm_push_up -- these are bodyweight skill/strength
-  // movements conventionally trained and logged per-arm as their own goal,
-  // not as "do the right arm then the left, that's one set" the way a
-  // loaded row/press/curl/extension is.
-  "single_arm_cable_crossover","single_arm_cable_press","single_arm_lat_pulldown","one_arm_landmine_row",
-  "standing_cable_row_single_arm","single_arm_barbell_row","single_leg_press","single_leg_squat_to_bench",
-  "eccentric_calf_raise_single_leg","single_arm_cable_pushdown","single_arm_landmine_press",
-  "single_arm_cable_fly_low_to_high","single_arm_cable_fly_high_to_low","seated_leg_curl_single_leg",
-  "lying_leg_curl_single_leg","leg_extension_single_leg",
-  // Not explicitly named "single arm", but inherently single-arm by how
-  // the landmine setup works (there's only one end of the bar to grip).
-  "meadows_row","landmine_press","landmine_press_chest_variation",
-]);
+// Whether an exercise defaults its weight multiplier or its rep
+// multiplier to 2 lives on the exercise's OWN database entry now
+// (exerciseDB()[refElem].loadMultiplier, "weight"|"reps"|absent) instead
+// of two hardcoded Sets of exercise keys maintained separately here --
+// that data belongs next to the exercise's other metadata (bodypart,
+// categories, movers), not duplicated in UI logic. See exercisesDB.js.
+// Only ever runs ONCE, when a set/exercise is first created (addData's
+// new-exercise branch, button.onclick's new-set branch) -- never on
+// repopulating already-saved data, so it can never clobber a value the
+// user already saved, including one they manually flipped via
+// typeMultiple. That one-shot timing is also why there's no separate
+// "manual lock" needed here the way set-type classification has: nothing
+// ever re-runs this after the user's own click, so a manual flip already
+// wins by construction.
 const autoAssignMultiple = (el1,el2,refElem) => {
-  if (WEIGHT_DOUBLES_EXERCISES.has(refElem)) el1.textContent = "2";
-  else if (REPS_DOUBLES_EXERCISES.has(refElem)) el2.textContent = "2";
+  const loadMultiplier = exerciseDB()[refElem]?.loadMultiplier;
+  if (loadMultiplier === "weight") el1.textContent = "2";
+  else if (loadMultiplier === "reps") el2.textContent = "2";
 }
 // RIR's replacement for isometric exercises -- keeps name="rir${i}", the
 // EXACT same tuple key dynamic RIR uses, so getStats, pastworkout.js, and
@@ -582,7 +519,7 @@ const content = (i,parent) => {
   const isIso = exerciseDB()[parent]?.type === "isometric";
   return `
   <span id="line${i}"${isIso ? ' class="isometric-row"' : ""}>
-    <input type="text" name="setnum${i}" value = ${i} disabled>
+    <input type="submit" class="setnum-btn" name="setnum${i}" value="${i}" onclick="cycleSetTypeState(event,'${parent}')">
     <input type="number" name="reps${i}" placeholder="${isIso ? "Holds" : "Reps"}" required>
     <p>x<i name="repX${i}">1</i></p>
     <input type="number" name="weight${i}" placeholder="Load" required>
@@ -590,20 +527,413 @@ const content = (i,parent) => {
     ${restOptions(i,parent)}
     ${timeOptions(i,parent,"tut"+i,"Sec",180,"TUT")}
     ${isIso ? effortOptions(i,parent) : timeOptions(i,parent,"rir"+i,"",11,"RIR")}
+    <input type="hidden" name="superset${i}" value="">
     <input type="submit" class="remove" id="${i}" name="${parent}" onclick="removeSet(event,name)" value="X" disabled>
   </span>
   `;
 }
-// classifySetType/isWarmupSet/excludeWarmupSets live in functions.js --
-// shared with pastworkout.js's history view, which needs the exact same
-// classification to color its own read-only set-number display the same
-// way and to keep its own averages consistent with these.
+// classifySetType/isWarmupSet/excludeWarmupSets/mergeRestPauseSets live in
+// functions.js -- shared with pastworkout.js's history view, which needs
+// the exact same classification to color its own read-only set-number
+// display the same way and to keep its own averages/volume consistent
+// with these. In THIS file, they're only ever used for AUTO-classifying
+// from Rest/RIR/superset data (seedSetTypeFromData below) -- a manual
+// edit of those fields, or a set being repopulated from already-saved
+// data, where there's no click to say what was meant. A button click
+// already knows the answer directly (cycleSetTypeState), so it never
+// routes through these to figure out what it just did.
+function seedSetTypeFromData(restValue, rirValue, supersetValue){
+  if (supersetValue) return "superset";
+  if (isWarmupSet(rirValue)) return "warmup";
+  return classifySetType(restValue, rirValue) || "normal";
+}
+// A rest-pause set isn't a separate set at all (it's the SAME set
+// continued after a near-zero pause -- see mergeRestPauseSets), so it
+// shows the SAME NUMBER as the real set it continues, but its OWN
+// dedicated color regardless of what that real set's own color is --
+// copying the real set's color too would mean no color at all whenever
+// that set is just a plain normal set (the common case), which would
+// make a rest-pause invisible instead of standing out like the other
+// three types do. A warmup's position in the raw array shouldn't count
+// toward numbering either -- it shows "W" instead. Every OTHER set is
+// renumbered 0,1,2... counting only itself, independent of where it
+// actually sits in the underlying array. Re-run fresh over every line
+// each time (not toggled incrementally), since any one set's type
+// changing can shift every number after it and change what a later
+// rest-pause set is continuing.
+// A rest-pause set is only meaningful as the continuation of a REAL
+// (non-warmup) working set before it -- there's nothing for it to
+// continue if it IS the first real set in the exercise. A warmup before
+// it doesn't count as that real predecessor either (see renumberSets --
+// warmups never become prevLabel), so this walks every line up to i and
+// only returns false once it actually finds a non-warmup one.
+function isFirstWorkingSet(exerciseEl, i){
+  if (!exerciseEl) return true;
+  const lines = [...exerciseEl.children].filter(el => el.id?.startsWith("line"));
+  for (const lineEl of lines){
+    const setnumEl = lineEl.children[0];
+    if (!setnumEl) continue;
+    const lineIdx = setnumEl.name.match(/\d+$/)?.[0];
+    if (Number(lineIdx) === Number(i)) return true; // reached this set with no real predecessor found yet
+    if ((setnumEl.dataset.setType || "normal") !== "warmup") return false; // a real set precedes it
+  }
+  return true;
+}
+// Puts the right class directly on the given setnum element for the
+// given type -- nothing else, no querying, no other element involved.
+// Called right at the point something already knows both the element
+// and the type (a click, or an auto-classified field edit), instead of
+// being decided by a separate pass over the whole exercise.
+function colorSetnum(el, type){
+  el.classList.remove("dropset-cell","restpause-cell","warmup-cell","superset-cell");
+  if (type === "dropset") el.classList.add("dropset-cell");
+  else if (type === "restpause") el.classList.add("restpause-cell");
+  else if (type === "warmup") el.classList.add("warmup-cell");
+  else if (type === "superset") el.classList.add("superset-cell");
+}
+// Numbering only -- color is never decided here (colorSetnum, called
+// directly wherever a type is actually assigned, already handled it).
+// This still has to look at every set, because a warmup's position
+// shouldn't count and a rest-pause set shows whatever real set precedes
+// it -- both are inherently about the set's neighbors, not itself, so
+// there's no way around a full pass for THIS part specifically.
+function renumberSets(exerciseEl){
+  if (!exerciseEl) return;
+  const lines = [...exerciseEl.children].filter(el => el.id?.startsWith("line"));
+  let displayIdx = 0;
+  let prevLabel = "0";
+  lines.forEach(lineEl => {
+    // Indexed, not querySelector -- content()'s own fixed child order
+    // (setnum,reps,repX,weight,BWspan,rest,tut,rir,superset,remove),
+    // same lookup every other function here already relies on.
+    const setnumEl = lineEl.children[0];
+    if (!setnumEl) return;
+    const type = setnumEl.dataset.setType || "normal";
+    if (type === "restpause"){
+      setnumEl.value = prevLabel;
+    } else if (type === "warmup"){
+      setnumEl.value = "W";
+    } else {
+      const label = String(displayIdx++);
+      setnumEl.value = label;
+      prevLabel = label;
+    }
+  });
+}
+// Undoes a superset pairing on BOTH sides -- the paired (non-main)
+// exercise's Rest selector and setnum button were disabled specifically
+// because they were following this set's pairing, so they need to come
+// back when that pairing goes away, not stay locked forever. Reads the
+// pairing off the SAME superset{i} hidden field applySupersetPair wrote,
+// so there's one source of truth for "what is this paired with" in both
+// directions.
+// Indexed lookup -- content()'s fixed child order again (setnum=0,
+// rest=5, rir=7, superset=8), same pattern renumberSets/cycleSetTypeState
+// use. Takes the exercise's own ELEMENT directly, never its key -- see
+// findExerciseEl below for why.
+function getSetLine(exerciseEl, i){
+  return exerciseEl?.children[Number(i)];
+}
+// The exercise's sets div shares its id with the custom-option-element
+// sitting above it in the selection list (loadOptions assigns BOTH the
+// same nameToId'd key) -- document.getElementById(key) would silently
+// return whichever one comes first in the DOM, which is the
+// custom-option-element (it's nested in a container inserted before
+// this div), NOT the div actually holding the line/set rows. Every
+// function here that used to look an exercise up by bare key alone was
+// finding the wrong element and quietly doing nothing to it -- that's
+// the real reason numbering/first-working-set checks weren't working.
+// Scoped to a DIRECT child of #selectionlistdisplay instead -- only the
+// sets div qualifies; the custom-option-element is a grandchild, nested
+// inside its own _container. Needed only where there's genuinely no
+// element reference on hand already (a key parsed out of saved data) --
+// everywhere else, derive the element directly from whatever was
+// clicked/edited (btn.parentElement.parentElement) instead of calling
+// this at all.
+function findExerciseEl(key){
+  return document.querySelector(`#selectionlistdisplay > #${key}`);
+}
+function unpairSuperset(exerciseEl, i){
+  const thisLine = getSetLine(exerciseEl, i);
+  const thisSuperset = thisLine?.children[8];
+  if (!thisSuperset?.value) return;
+  const [otherKey, j] = thisSuperset.value.split(":");
+  const otherEl = findExerciseEl(otherKey); // only a key is stored, no element reference to reuse here
+  const otherLine = getSetLine(otherEl, j);
+  const otherSuperset = otherLine?.children[8];
+  const otherRest = otherLine?.children[5];
+  const otherSetnum = otherLine?.children[0];
+  if (otherSuperset) otherSuperset.value = "";
+  if (otherRest){
+    otherRest.disabled = false;
+    otherRest.value = "Rest";
+    otherRest.dispatchEvent(new Event("change"));
+  }
+  if (otherSetnum){
+    otherSetnum.disabled = false;
+    otherSetnum.dataset.setType = "normal";
+    otherSetnum.dataset.typeSource = "auto"; // back to normal auto-tracking now that it's unpaired
+    colorSetnum(otherSetnum, "normal");
+  }
+  thisSuperset.value = "";
+  renumberSets(otherEl);
+}
+// Writes the pairing onto BOTH sides symmetrically (so either exercise's
+// own data can tell what it's paired with) and disables + forces "-" on
+// the PAIRED exercise's Rest -- never this one's, since this is the
+// exercise the popup was opened FROM, and openSupersetPopup's own design
+// keeps IT as the "main" side that retains a live Rest selector (that's
+// where the real rest after both exercises' sets gets logged). The
+// paired exercise's own setnum button is also disabled, so a stray tap
+// over there can't silently desync its visual state from this pairing
+// (cycling it would otherwise flip it to Warmup and strip the color
+// while the hidden field still claimed it was paired).
+function applySupersetPair(exerciseEl, i, otherEl, j){
+  const thisLine = getSetLine(exerciseEl, i);
+  const otherLine = getSetLine(otherEl, j);
+  const thisSuperset = thisLine?.children[8];
+  const otherSuperset = otherLine?.children[8];
+  const otherRest = otherLine?.children[5];
+  const otherSetnum = otherLine?.children[0];
+  if (!thisSuperset || !otherSuperset || !otherRest) return;
+  // The STORED reference still has to be the key string (that's what's
+  // actually saved/read back later) -- exerciseEl.id/otherEl.id already
+  // IS that key, so there's no need to also carry the string separately.
+  thisSuperset.value = `${otherEl.id}:${j}`;
+  otherSuperset.value = `${exerciseEl.id}:${i}`;
+  otherRest.value = "-";
+  otherRest.disabled = true;
+  if (otherSetnum){
+    otherSetnum.disabled = true;
+    otherSetnum.dataset.setType = "superset";
+    otherSetnum.dataset.typeSource = "manual"; // locked while paired; unpairSuperset is what releases it
+    colorSetnum(otherSetnum, "superset");
+  }
+}
+function pairSingleSet(exerciseEl, i, otherEl, j){
+  applySupersetPair(exerciseEl, i, otherEl, j);
+  renumberSets(exerciseEl);
+  renumberSets(otherEl);
+}
+// "An option in the corner to select alternating sets... corresponding
+// sets for each exercise" -- pairs set 0 with set 0, set 1 with set 1,
+// and so on, up to however many sets the SHORTER exercise has (nothing
+// to pair a leftover set against on the longer one).
+function pairAlternatingSets(exerciseEl, otherEl){
+  const thisCount = [...exerciseEl.children].filter(el => el.id?.startsWith("line")).length;
+  const otherCount = [...otherEl.children].filter(el => el.id?.startsWith("line")).length;
+  const count = Math.min(thisCount, otherCount);
+  for (let s=0; s<count; s++){
+    applySupersetPair(exerciseEl, s, otherEl, s);
+    const btn = getSetLine(exerciseEl, s)?.children[0];
+    if (btn){
+      // So re-tapping any of THIS exercise's own paired sets continues
+      // the cycle from the right place instead of "normal".
+      btn.dataset.setType = "superset";
+      btn.dataset.typeSource = "manual";
+      colorSetnum(btn, "superset");
+    }
+  }
+  renumberSets(exerciseEl);
+  renumberSets(otherEl);
+}
+// The real superset UI: pick another exercise already open in this same
+// workout, then either pair just the one set that was tapped or every
+// corresponding set at once (pairAlternatingSets). Only lists exercises
+// that are actually expanded (have at least one set row) -- nothing to
+// pair against otherwise. Cancelling (or there being nothing to pair
+// with at all) moves the button ON to "Normal", the next stop after
+// Superset in the cycle -- NOT back to whatever it was before this tap.
+// Reverting to the previous state would mean the next tap lands on
+// Superset again, which can fail the exact same way, forever -- any
+// failure here has to advance the cycle, not repeat the state that led
+// to it, or the button gets stuck unable to reach Normal at all.
+function openSupersetPopup(exerciseKey, i, btn){
+  const exerciseEl = btn.parentElement.parentElement; // the clicked element's own row's parent -- not a key lookup
+  const otherDivs = [...document.querySelectorAll('#selectionlistdisplay > div')]
+    .filter(div => div.id !== exerciseKey && div.querySelector('span[id^="line"]'));
+  const skipToNormal = () => {
+    const lineEl = btn.parentElement;
+    const restSelect = lineEl.children[5];
+    const rirSelect = lineEl.children[7];
+    btn.dataset.setType = "normal";
+    btn.dataset.typeSource = "auto";
+    colorSetnum(btn, "normal");
+    restSelect.value = "Rest";
+    rirSelect.value = "RIR";
+    renumberSets(exerciseEl);
+    restSelect.dispatchEvent(new Event("change"));
+  };
+  if (!otherDivs.length){
+    alert("No other exercise is open in this workout yet to pair with.");
+    skipToNormal();
+    return;
+  }
+  const dialog = document.createElement("dialog");
+  dialog.id = "supersetprompt";
+  const title = document.createElement("p");
+  title.textContent = "Pair with another exercise";
+  dialog.append(title);
+  const exerciseSelect = document.createElement("select");
+  otherDivs.forEach(div => {
+    const opt = document.createElement("option");
+    opt.value = div.id;
+    opt.textContent = exerciseDB()[div.id]?.name || div.id;
+    exerciseSelect.append(opt);
+  });
+  dialog.append(exerciseSelect);
+  const altLabel = document.createElement("label");
+  const altCheckbox = document.createElement("input");
+  altCheckbox.type = "checkbox";
+  altLabel.append(altCheckbox, document.createTextNode(" Alternating sets (pair every corresponding set)"));
+  dialog.append(altLabel);
+  const setSelect = document.createElement("select");
+  dialog.append(setSelect);
+  const populateSetOptions = () => {
+    const otherSetCount = document.querySelectorAll(`#${exerciseSelect.value} > span[id^="line"]`).length;
+    setSelect.replaceChildren();
+    for (let s=0; s<otherSetCount; s++){
+      const opt = document.createElement("option");
+      opt.value = s;
+      opt.textContent = `Set ${s}`;
+      setSelect.append(opt);
+    }
+  };
+  populateSetOptions();
+  exerciseSelect.addEventListener("change", populateSetOptions);
+  altCheckbox.addEventListener("change", () => { setSelect.disabled = altCheckbox.checked; });
+  const pairBtn = document.createElement("button");
+  pairBtn.type = "button";
+  pairBtn.textContent = "Pair";
+  pairBtn.addEventListener("click", () => {
+    const otherEl = findExerciseEl(exerciseSelect.value); // only a key here -- it's a dropdown selection, not a clicked element
+    if (altCheckbox.checked) pairAlternatingSets(exerciseEl, otherEl);
+    else pairSingleSet(exerciseEl, i, otherEl, parseInt(setSelect.value));
+    dialog.close();
+    dialog.remove();
+  });
+  const cancelBtn = document.createElement("button");
+  cancelBtn.type = "button";
+  cancelBtn.textContent = "Cancel";
+  cancelBtn.addEventListener("click", () => {
+    skipToNormal();
+    dialog.close();
+    dialog.remove();
+  });
+  const actions = document.createElement("div");
+  actions.className = "supersetprompt-actions";
+  actions.append(pairBtn, cancelBtn);
+  dialog.append(actions);
+  document.body.append(dialog);
+  dialog.showModal();
+}
+// Cycles through Warmup -> Drop set -> Rest-pause -> Superset -> Normal
+// each tap. The click already says exactly what was meant, so everything
+// about THIS element -- its dataset.setType, its own color, its own
+// Rest/RIR -- is assigned directly, right here, on the clicked element
+// (btn) and its own parent row's children. No other function decides
+// any of that. renumberSets is called afterward only for the NUMBER
+// (which genuinely needs the whole exercise, since it depends on
+// whichever other sets are warmup/rest-pause) -- it never touches color.
+const SET_TYPE_CYCLE = ["normal","warmup","dropset","restpause","superset"];
+function cycleSetTypeState(event, exerciseKey){
+  event.stopPropagation();
+  if (exerciseDB()[exerciseKey]?.type === "isometric") return; // Effort/TUT-first rows don't participate
+  const btn = event.target;
+  const lineEl = btn.parentElement;
+  const exerciseEl = lineEl.parentElement; // the clicked element's own row's parent -- not a key lookup (see findExerciseEl for why that matters)
+  const i = btn.name.match(/\d+$/)[0];
+  // Indexed, not closest()+querySelector -- same fixed child order
+  // content() always generates (setnum,reps,repX,weight,BWspan,rest,tut,
+  // rir,superset,remove); btn's own direct parent IS the row.
+  const restSelect = lineEl.children[5];
+  const rirSelect = lineEl.children[7];
+  const current = btn.dataset.setType || "normal";
+  let next = SET_TYPE_CYCLE[(SET_TYPE_CYCLE.indexOf(current)+1) % SET_TYPE_CYCLE.length];
+  // Rest-pause is invalid for the first working set in the exercise --
+  // skip straight past it to Superset instead of landing on a state
+  // that doesn't mean anything here (same "any failure skips forward,
+  // never stays put" rule Superset's own popup failure already follows).
+  if (next === "restpause" && isFirstWorkingSet(exerciseEl, i)){
+    next = SET_TYPE_CYCLE[(SET_TYPE_CYCLE.indexOf(next)+1) % SET_TYPE_CYCLE.length];
+  }
+  if (current === "superset") unpairSuperset(exerciseEl, i);
+  switch (next){
+    case "warmup":
+      // Reset to the neutral placeholder first, THEN this case's own
+      // value -- otherwise a value left over from the PREVIOUS tap (e.g.
+      // Rest still at "-" from one click ago, when this tap moves to
+      // Warmup) would make a later manual Rest/RIR edit's own
+      // auto-classify pass disagree with what's being set here.
+      restSelect.value = "Rest";
+      // Lowest value that actually satisfies isWarmupSet's own rule
+      // (RIR >= WARMUP_RIR_THRESHOLD, currently 5) -- not an arbitrary
+      // pick above it.
+      rirSelect.value = `${WARMUP_RIR_THRESHOLD}.0`;
+      btn.dataset.setType = "warmup";
+      btn.dataset.typeSource = "manual";
+      colorSetnum(btn, "warmup");
+      break;
+    case "dropset":
+      rirSelect.value = "RIR";
+      restSelect.value = "-";
+      btn.dataset.setType = "dropset";
+      btn.dataset.typeSource = "manual";
+      colorSetnum(btn, "dropset");
+      break;
+    case "restpause":
+      // Lowest value that satisfies classifySetType's own rule for this
+      // (0 < secs < 15) -- "0" itself is the dropset sentinel "-", so 1
+      // is the actual floor.
+      restSelect.value = "1Sec";
+      rirSelect.value = "-";
+      btn.dataset.setType = "restpause";
+      btn.dataset.typeSource = "manual";
+      colorSetnum(btn, "restpause");
+      break;
+    case "superset":
+      // Superset defines no Rest/RIR value of its own -- unlike the other
+      // three, it must NOT touch either field. This is the exercise the
+      // popup was opened FROM, and it stays the "main" side that keeps a
+      // live, user-entered Rest value (that's where the real rest after
+      // BOTH exercises' sets gets logged) -- resetting it here would wipe
+      // out whatever the user had already typed for no reason.
+      btn.dataset.setType = "superset";
+      btn.dataset.typeSource = "manual";
+      colorSetnum(btn, "superset");
+      // Pairing itself happens asynchronously (the popup); if it fails
+      // or is cancelled, openSupersetPopup moves this on to "normal"
+      // itself rather than leaving it stuck on "superset" with nothing
+      // actually paired -- see its own skipToNormal.
+      openSupersetPopup(exerciseKey, i, btn);
+      break;
+    default: // normal
+      restSelect.value = "Rest";
+      rirSelect.value = "RIR";
+      btn.dataset.setType = "normal";
+      // No special classification to protect, so this releases the lock
+      // instead of setting it -- a direct Rest/RIR edit after this point
+      // can still auto-classify the set normally, same as if it had
+      // never been clicked.
+      btn.dataset.typeSource = "auto";
+      colorSetnum(btn, "normal");
+  }
+  renumberSets(exerciseEl); // numbering only -- needs the whole exercise, color above didn't
+  restSelect.dispatchEvent(new Event("change"));
+  rirSelect.dispatchEvent(new Event("change"));
+}
 // Reads this row's own reps/weight against the just-changed RIR value to
 // pre-fill a suggested TUT (functions.js's suggestTUTSeconds) -- skipped
 // entirely for isometric exercises (Effort isn't RIR, and TUT there is a
 // direct user entry, not something to estimate). Only ever sets an
 // initial value into the existing TUT select; freely overridable
 // afterward like any other field.
+//
+// autoClassify (seedSetTypeFromData) is the AUTO path -- it runs once
+// when a set is repopulated from saved data, and again on any direct
+// Rest/RIR edit, since in both cases there's no button click to say
+// what was meant. It is NOT how cycleSetTypeState's own clicks get
+// their color -- those write dataset.setType directly, see there.
 //
 // applyNow=true only for a BRAND NEW set (addData/button.onclick); false
 // when repopulating an already-saved set (addData's own repopulateValues
@@ -614,43 +944,40 @@ const content = (i,parent) => {
 // user's own call: a drop set's lighter sets are usually rep-target-
 // driven, not RIR-driven, so each entered RIR is trusted as its own
 // independent value) -- label only.
-// A drop-set/rest-pause judgment should only ever reason about real
-// working sets -- a warmup's position in the raw array shouldn't count.
-// Warmup sets show "W" in place of a number; every OTHER set is
-// renumbered 0,1,2... counting only itself, independent of where it
-// actually sits in the underlying array. Re-run fresh over every line
-// each time (not toggled incrementally), since a warmup flag changing
-// anywhere shifts every number after it.
-function renumberSetDisplay(exerciseKey){
-  const exerciseEl = document.getElementById(exerciseKey);
-  if (!exerciseEl) return;
-  const lines = [...exerciseEl.children].filter(el => el.id?.startsWith("line"));
-  let displayIdx = 0;
-  lines.forEach(lineEl => {
-    const setnumEl = lineEl.querySelector('input[type="text"]');
-    const rirEl = lineEl.querySelector('select[name^="rir"]');
-    if (!setnumEl || !rirEl) return;
-    setnumEl.value = isWarmupSet(rirEl.value) ? "W" : displayIdx++;
-  });
-}
 const wireTUTSuggestion = (rirSelect, weightInput, repsInput, tutSelect, exerciseKey, i, applyNow=false) => {
   if (exerciseDB()[exerciseKey]?.type === "isometric") return;
-  const lineEl = rirSelect.closest(`#line${i}`);
-  const setnumEl = lineEl?.querySelector(`[name="setnum${i}"]`);
-  const restSelect = document.querySelector(`#selectionlistdisplay > #${exerciseKey} [name="rest${i}"]`);
-  const applyLabel = () => {
-    const type = classifySetType(restSelect?.value, rirSelect.value);
-    setnumEl?.classList.toggle("dropset-cell", type === "dropset");
-    setnumEl?.classList.toggle("restpause-cell", type === "restpause");
-    // Independent of dropset/restpause -- a set can be flagged warmup
-    // (RIR 5+, excluded from every stat in getStats) regardless of its
-    // own rest value.
-    setnumEl?.classList.toggle("warmup-cell", isWarmupSet(rirSelect.value));
-    renumberSetDisplay(exerciseKey);
-    return type;
+  const lineEl = rirSelect.parentElement;
+  const exerciseEl = lineEl.parentElement; // the row's own parent -- not a key lookup (see findExerciseEl for why that matters)
+  const setnumEl = lineEl.children[0];
+  const restSelect = lineEl.children[5];
+  const supersetField = lineEl.children[8];
+  // A manual button click (cycleSetTypeState) is a deliberate choice and
+  // stays put -- a LATER edit to Rest/RIR (typing 16 min into Rest on a
+  // set the user already clicked to Rest-pause, say) doesn't get to
+  // silently re-judge and override it, even though that 16 min plainly
+  // isn't a rest-pause value by the auto rule. User input supersedes our
+  // judgement here. Only sets still on "auto" (never clicked, or seeded
+  // fresh from saved data) get re-derived on every field change.
+  const autoClassify = () => {
+    // A locked set's OWN type never changes here, and nothing else in
+    // the exercise changed either -- no renumberSets call belongs on
+    // this branch, it would just recompute numbers that are already
+    // correct.
+    if (setnumEl.dataset.typeSource === "manual") return;
+    let type = seedSetTypeFromData(restSelect.value, rirSelect.value, supersetField.value);
+    // Same rule as cycleSetTypeState's own click path -- a direct Rest/RIR
+    // edit that happens to match the rest-pause pattern still can't mean
+    // anything for the first working set, since there's nothing before it
+    // to continue.
+    if (type === "restpause" && isFirstWorkingSet(exerciseEl, i)) type = "normal";
+    setnumEl.dataset.setType = type;
+    setnumEl.dataset.typeSource = "auto";
+    colorSetnum(setnumEl, type); // direct -- this row's own element, right here
+    renumberSets(exerciseEl);
   };
   const recompute = () => {
-    const isRestPause = applyLabel() === "restpause";
+    autoClassify();
+    const isRestPause = setnumEl.dataset.setType === "restpause";
     const reps = parseFloat(repsInput.value) || 0;
     const weight = parseFloat(weightInput.value) || 0;
     const rir = rirSelect.value === "-" ? 0 : parseFloat(rirSelect.value);
@@ -660,8 +987,8 @@ const wireTUTSuggestion = (rirSelect, weightInput, repsInput, tutSelect, exercis
     tutSelect.value = `${seconds.toFixed(1)}Sec`;
   };
   if (applyNow) recompute();
-  else applyLabel(); // repopulate path -- show the coloring without touching TUT
-  restSelect?.addEventListener("change", applyLabel);
+  else autoClassify(); // repopulate path -- classify from saved data without touching TUT
+  restSelect.addEventListener("change", autoClassify);
   repsInput.addEventListener("change", recompute);
   weightInput.addEventListener("change", recompute);
   rirSelect.addEventListener("change", recompute);
@@ -699,8 +1026,16 @@ const addData = async (event) => {
     wireTUTSuggestion(button.previousElementSibling.children[7], button.previousElementSibling.children[3], button.previousElementSibling.children[1], button.previousElementSibling.children[6], template.id, childNum, true);
     // button.previousElementSibling.children[4].firstElementChild.addEventListener("click",(e)=>bodyweight(e,template.id,childNum))
     // if (childNum > 1){button.previousElementSibling.lastElementChild.disabled = false}
-    const nextdecendents = decendents(referenceNode.querySelector(`#line${(childNum)}`),0,`setnum${(childNum)}`);   
+    const nextdecendents = decendents(referenceNode.querySelector(`#line${(childNum)}`),0,`setnum${(childNum)}`);
     nextdecendents[0].forEach((el,i) => {let pastEl = firstdecendents[0][i]; if (!pastEl){el.disabled=false} else {if (pastEl.disabled){el.disabled=true} ; pastEl.value ? el.value = pastEl.value : el.lastElementChild?.textContent?.length === 1 ?  el.lastElementChild.textContent =  pastEl.lastElementChild.textContent : el.lastElementChild?.textContent?.length > 1 ?  el.lastElementChild.lastElementChild.textContent =  pastEl.lastElementChild.lastElementChild.textContent : ""}} );
+    // The copy-forward loop above blindly copies the first set's own
+    // value into whatever lands at the same position in a new set --
+    // which, now that superset{i} sits where this loop expects a plain
+    // field, would make a brand new set silently inherit the FIRST set's
+    // superset pairing. A new set is never paired with anything until the
+    // user explicitly cycles it there.
+    const newSupersetField = referenceNode.querySelector(`[name="superset${childNum}"]`);
+    if (newSupersetField) newSupersetField.value = "";
   };
   button.textContent = "Add Set"
   let container = document.getElementById(`${event.target.id}_container`);
@@ -771,10 +1106,10 @@ const removeSet = (event, parent) => {
     el.id? el.id = el.id.replace(/\d+$/,el.id.match(/\d+$/g)[0]-1) : "";
     Array.from(el.children).forEach (elchild => {
       // setnum's displayed value is no longer a plain decrement -- it's
-      // either "W" or a warmup-aware recount (renumberSetDisplay below),
-      // so this element's own name/id still get shifted like every other
-      // field, but its VALUE is left alone here and overwritten fresh
-      // after the loop.
+      // "W", a rest-pause's copied-over number, or a recount that skips
+      // both (renumberSets below), so this element's own name/id still
+      // get shifted like every other field, but its VALUE is left alone
+      // here and overwritten fresh after the loop.
       if (elchild.childElementCount){
         let child = elchild.lastElementChild;
         if (child.localName === "p" || child.localName === "i") {
@@ -791,7 +1126,12 @@ const removeSet = (event, parent) => {
       elchild.name? elchild.name = elchild.name.replace(/\d+$/,elchild.name.match(/\d+$/g)?.[0]-1||"") : "";
     })
   })
-  renumberSetDisplay(parent);
+  // elm (the removed row's own remove button) is detached by now, so its
+  // own .parentElement chain is gone -- findExerciseEl looks the exercise
+  // div up by key instead, safe here since this selector (unlike a bare
+  // getElementById) requires the match to be a direct child of
+  // #selectionlistdisplay, which only the exercise's own sets div is.
+  renumberSets(findExerciseEl(parent)); // color's untouched by a removal -- only numbering needs recomputing here
 }
 
 function removeSelectedExercise(event){
@@ -840,7 +1180,10 @@ function calculateField(AoA,filter,mainF,transform){
 
 
 function getStats(array,exports,lineElms,isIsometric=false){
-  if (!isIsometric) array = excludeWarmupSets(array);
+  if (!isIsometric){
+    array = mergeRestPauseSets(array);
+    array = excludeWarmupSets(array);
+  }
   let repMultiple = lineElms[2].lastElementChild.textContent;
   let weightMultiple = lineElms[4].lastElementChild.lastElementChild.textContent;
   const savedSettingsFallback = '{"bweight":"0 kgs","dweight":"0 kgs"}';
@@ -929,7 +1272,10 @@ function repopulateValues(arr,elem,refElem){
   // autoAssignMultiple(refElem.previousElementSibling.children[4].lastElementChild.lastElementChild, refElem.previousElementSibling.children[2].lastElementChild, elem.id);
   refElem.previousElementSibling.children[2].lastElementChild.textContent = repX;
   refElem.previousElementSibling.children[4].lastElementChild.lastElementChild.textContent = wtX;
-  children.forEach(el => el.value = arr.find(([n,v]) => n===el.name)[1]);
+  // ?.[1] ?? "" -- a workout saved before the superset hidden field
+  // existed has no "superset0" entry at all; a bare [1] on find()'s
+  // undefined would throw and break opening every pre-existing workout.
+  children.forEach(el => el.value = arr.find(([n,v]) => n===el.name)?.[1] ?? "");
   // wireTUTSuggestion AFTER the real saved values are set above, not
   // before -- its own classification read (applyLabel) runs synchronously
   // at call time, so calling it while rest/rir still held their blank
@@ -948,7 +1294,7 @@ function repopulateValues(arr,elem,refElem){
     let children = decendents(elem.querySelector(`#line${i}`),0,`setnum${i}`,"span","p")[0];
     let remSymbol = children.pop();
     remSymbol.disabled = false;
-    children.forEach(el => el.value = arr.find(([n,v]) => n===el.name)[1]);
+    children.forEach(el => el.value = arr.find(([n,v]) => n===el.name)?.[1] ?? "");
     wireTUTSuggestion(refElem.previousElementSibling.children[7], refElem.previousElementSibling.children[3], refElem.previousElementSibling.children[1], refElem.previousElementSibling.children[6], elem.id, i);
   }
 }

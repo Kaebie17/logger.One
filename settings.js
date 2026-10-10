@@ -15,6 +15,7 @@ const fullRestoreBtn = document.getElementById("fullrestoredata");
 const dataManagementBtn = document.getElementById("datamanagementbtn");
 const dataManagementDialog = document.getElementById("datamanagementprompt");
 const generateExercise = document.getElementById("generateexercise");
+const alignExercisesBtn = document.getElementById("alignexercisesbtn");
 const redirectHome = document.querySelector("#header > h1");
 const savedSettings = {};
 // Unguarded before this: if localStorage.savedSettings existed but was
@@ -301,6 +302,44 @@ async function handleGenerateExercise(){
   showGenerateExerciseDialog();
 }
 
+// Shows/hides #alignexercisesbtn based on whether any custom exercise is
+// stamped with an older schema version than current (or never stamped at
+// all -- generated before this versioning existed). Called once at load
+// and again after every alignment attempt, so the button disappears the
+// moment everything's actually caught up instead of needing a page reload.
+function updateAlignButtonVisibility(){
+  alignExercisesBtn.hidden = getStaleCustomExercises().length === 0;
+}
+updateAlignButtonVisibility();
+
+// One AI call for the WHOLE stale batch, not one per exercise or one per
+// field -- the button itself only shows up when there's something to do,
+// so clicking it always means "there's at least one". Never silently
+// swallows a partial failure: the count of what actually got aligned vs
+// what's still stale is always reported, with each remaining exercise's
+// own reason, so the user knows it'll need either a retry or manual
+// attention rather than assuming a single "done" meant everything worked.
+async function handleAlignExercises(){
+  const staleCount = getStaleCustomExercises().length;
+  if (!staleCount) return; // button's visibility already guards this; defensive only
+  if (!confirm(`Align ${staleCount} custom exercise${staleCount===1?"":"s"} with the latest exercise schema? This uses one AI request.`)) return;
+  if (!(await ensureAIConfig())) return;
+  alignExercisesBtn.disabled = true;
+  const originalLabel = alignExercisesBtn.textContent;
+  alignExercisesBtn.textContent = "Aligning...";
+  try {
+    const { aligned, remaining, failures } = await alignCustomExercisesWithAI();
+    let message = `${aligned} of ${aligned + remaining} aligned.`;
+    if (remaining) message += `\n\n${remaining} still need attention:\n${failures.join("\n")}`;
+    alert(message);
+  } catch (e) {
+    alert(`Alignment failed: ${e.message}`);
+  }
+  alignExercisesBtn.disabled = false;
+  alignExercisesBtn.textContent = originalLabel;
+  updateAlignButtonVisibility();
+}
+
 function showGenerateExerciseDialog(){
   if (document.getElementById("generateexerciseprompt")) return;
   const dialog = document.createElement("dialog");
@@ -457,6 +496,7 @@ fullRestoreBtn.addEventListener("click", handleFullRestore)
 logMeasurementsBtn.addEventListener("click", openMeasurementsDialog)
 dataManagementBtn.addEventListener("click", openDataManagementDialog)
 generateExercise.addEventListener("click", handleGenerateExercise)
+alignExercisesBtn.addEventListener("click", handleAlignExercises)
 
 function home() {
   document.location = "./index.html";

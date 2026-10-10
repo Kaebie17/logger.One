@@ -1597,8 +1597,8 @@ svg > path:nth-child(23) {
            always matches whatever room the header/footer actually leave. */
         flex: 1;
         min-height: 0;
-        /* width: 98vw;
-        overflow-y: scroll; */
+        /* width: 98vw; */
+        overflow-y: scroll;
         padding: 1vw;
         background-image: linear-gradient(-90deg,var(--template-color-mid), var(--template-color-light), var(--template-color-soft), var(--template-color-mid));
     }
@@ -1690,6 +1690,104 @@ svg > path:nth-child(23) {
         background-color: #d9a73b !important;
         color: black;
     }
+    /* Superset -- paired with another exercise's set (exercises.js's
+       cycleSetTypeState/openSupersetPopup/applySupersetPair), tracked via
+       the button's own dataset plus the superset{i} hidden field, not
+       Rest/RIR (there's no single-field rule for it the way the other
+       three have). */
+    #createexercisespage > #selectionlistdisplay > div > span > input.superset-cell,
+    #pastworkout output.superset-cell{
+        background-color: #8a5fd1 !important;
+        color: white;
+    }
+    /* exercises.js's openSupersetPopup builds this dialog dynamically with
+       no classes of its own -- styled by tag/structure instead of a class
+       hook, since there's nothing else on the page it could collide with.
+       Previously had no layout at all beyond the lone checkbox fix below,
+       which is why it looked like unstyled browser defaults. */
+    #supersetprompt{
+        background-color: var(--template-color-mid);
+        color: white;
+        border: none;
+        border-radius: 0.8rem;
+        padding: 1.6rem;
+        width: 80vw;
+        max-width: 22rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    #supersetprompt::backdrop{
+        background-color: rgba(0,0,0,0.6);
+    }
+    #supersetprompt > p{
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin: 0;
+        text-align: center;
+    }
+    #supersetprompt select{
+        width: 100%;
+        background-color: var(--template-color-black);
+        color: white;
+        border: 1px solid var(--template-color-soft);
+        border-radius: 0.4rem;
+        padding: 0.6rem;
+        font-size: 1rem;
+    }
+    #supersetprompt select:disabled{
+        opacity: 0.4;
+    }
+    #supersetprompt label{
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-size: 0.95rem;
+    }
+    #supersetprompt .supersetprompt-actions{
+        display: flex;
+        gap: 0.8rem;
+        margin-top: 0.4rem;
+    }
+    #supersetprompt .supersetprompt-actions > button{
+        flex: 1;
+        padding: 0.7rem;
+        border-radius: 0.4rem;
+        border: none;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+    #supersetprompt .supersetprompt-actions > button:first-child{
+        background-color: var(--template-color-soft);
+        color: white;
+    }
+    #supersetprompt .supersetprompt-actions > button:last-child{
+        background-color: transparent;
+        color: white;
+        border: 1px solid white;
+    }
+    /* Same checkbox fix as settingspage's ai-preview-card-header -- the
+       global appearance:none reset strips native checkboxes to nothing. */
+    #supersetprompt input[type="checkbox"]{
+        width: 1.6rem;
+        height: 1.6rem;
+        flex-shrink: 0;
+        border: 2px solid white;
+        border-radius: 0.35rem;
+        background-color: transparent;
+        display: grid;
+        place-content: center;
+        vertical-align: middle;
+    }
+    #supersetprompt input[type="checkbox"]:checked{
+        background-color: var(--template-color-soft);
+    }
+    #supersetprompt input[type="checkbox"]:checked::after{
+        content: "✓";
+        color: white;
+        font-size: 1.1rem;
+        line-height: 1;
+    }
     /* Isometric rows (exercises.js's content(), the isometric-row class)
        keep the exact same underlying field order/count as a dynamic row --
        getStats's equipment-weight lookup and repopulateValues/addData's
@@ -1700,13 +1798,23 @@ svg > path:nth-child(23) {
     #createexercisespage > #selectionlistdisplay > div > span.isometric-row > select[name^="tut"]{
         order: -1;
     }
-    #createexercisespage > #selectionlistdisplay > div > span > input:first-child{
+    /* The set-number cell is now type="submit" (exercises.js's content()/
+       cycleSetTypeState) instead of a plain disabled text input -- same
+       element kind the remove button next to it already uses, just
+       tappable now to cycle Warmup/Drop set/Rest-pause/Superset/Normal.
+       background/color set explicitly since appearance:none (the shared
+       button/input/select reset above) strips the native control chrome
+       this used to fall back on. */
+    #createexercisespage > #selectionlistdisplay > div > span > input.setnum-btn{
         width: 5vw;
         min-width: 1.1rem;
         flex-shrink: 0;
         padding: 0;
         text-align: center;
         font-size: 0.7rem;
+        border: none;
+        background-color: var(--template-color-mid);
+        color: white;
     }
     #createexercisespage > #selectionlistdisplay > div > span > span {
         display: flex;

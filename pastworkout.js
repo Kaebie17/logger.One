@@ -270,12 +270,30 @@ function addlabels(el,outerEl){
 function displayDetails(n,el,outerEl,inputArray){
     let copyArr = inputArray
     copyArr = copyArr.some(arr => arr[0]==="repMultiple") ? copyArr : copyArr.concat([["repMultiple","1"]]);
-    copyArr = copyArr.some(arr => arr[0]==="wtMultiple") ? copyArr : copyArr.concat([["wtMultiple","1"]]);   
-    let start = inputArray[1][0][6]*1;  
-    for (let i=start; i<n+start; i++){
+    copyArr = copyArr.some(arr => arr[0]==="wtMultiple") ? copyArr : copyArr.concat([["wtMultiple","1"]]);
+    // n (the saved "setCount") is exercises.js's getStats own MERGED,
+    // warmup-excluded total -- NOT the number of physical rows actually
+    // saved. A warmup set, or a rest-pause set merged into the one it
+    // continues, still has its own full row of saved fields; it just
+    // contributes nothing extra to that count. Looping i from 0 to n-1
+    // assumed those were the same thing, so as soon as ANY set in the
+    // exercise was warmup/rest-pause, the count fell below the real
+    // number of rows and every row from where they diverge onward
+    // (often ALL of them, if the warmup was set 0) never got rendered at
+    // all. Finding the actual setnum{i} indices that exist in the data
+    // instead of counting up to n fixes that regardless of how many got
+    // excluded from the count.
+    const indices = inputArray.filter(([k])=> /^setnum\d+$/.test(k)).map(([k])=> Number(k.match(/\d+$/)[0])).sort((a,b)=>a-b);
+    for (const i of indices){
         let clone = outerEl.cloneNode(true);
         clone.id = i;
-        sortedArr = copyArr.filter(([key,v])=> key.includes(i) || key.includes("Multiple")).sort((a,b) => {let i = propNames.findIndex(e => a[0].includes(e)) ; let j = propNames.findIndex(e => b[0].includes(e)); return i-j} );
+        // "superset{i}" (exercises.js's hidden pairing field, saved on
+        // every set whether paired or not) isn't in propNames and has no
+        // display column -- findIndex returning -1 for it used to sort
+        // it to the very front, ahead of setnum, which shifted every
+        // other field here one column to the right (reps showing under
+        // "Sets", weight under "Reps", and so on). Excluded outright.
+        sortedArr = copyArr.filter(([key,v])=> (key.includes(i) || key.includes("Multiple")) && !key.startsWith("superset")).sort((a,b) => {let i = propNames.findIndex(e => a[0].includes(e)) ; let j = propNames.findIndex(e => b[0].includes(e)); return i-j} );
         // Same classification as exercises.js's live editor (functions.js's
         // classifySetType, read from THIS set's own rest+rir) -- colors the
         // set-number cell the same way it showed while logging. Skipped for
@@ -284,7 +302,13 @@ function displayDetails(n,el,outerEl,inputArray){
         const isIso = exerciseDB()[targetExercise]?.type === "isometric";
         const restVal = sortedArr.find(([k])=>k.startsWith("rest"))?.[1];
         const rirVal = sortedArr.find(([k])=>k.startsWith("rir"))?.[1];
-        const rowType = isIso ? null : classifySetType(restVal, rirVal);
+        // Superset has no rest/rir signature of its own -- classifySetType
+        // can never return it. Read straight from the hidden field
+        // instead (excluded from sortedArr above, so looked up in the
+        // full copyArr directly); a non-empty value means this set is
+        // paired, on EITHER side of the pairing, same as the live editor.
+        const supersetVal = copyArr.find(([k])=>k===`superset${i}`)?.[1];
+        const rowType = isIso ? null : (supersetVal ? "superset" : classifySetType(restVal, rirVal));
         const rowIsWarmup = !isIso && isWarmupSet(rirVal);
         sortedArr.forEach((arr,k) => {
             let val = arr[1];
@@ -297,6 +321,7 @@ function displayDetails(n,el,outerEl,inputArray){
                 cloneOutput.classList.toggle("dropset-cell", rowType === "dropset");
                 cloneOutput.classList.toggle("restpause-cell", rowType === "restpause");
                 cloneOutput.classList.toggle("warmup-cell", rowIsWarmup);
+                cloneOutput.classList.toggle("superset-cell", rowType === "superset");
             }
             clone.append(cloneOutput)
         })

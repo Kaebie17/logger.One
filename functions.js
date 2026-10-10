@@ -476,17 +476,64 @@ function isWarmupSet(rirValue){
 // Drops EVERY field belonging to a warmup-flagged set (its setnum, reps,
 // weight, rest, tut -- not just its rir) before any stat sees it, so it
 // contributes to nothing: not totalSets, not totalReps/Vol, not any
-// average. Never called for isometric exercises -- Effort's 2/4/6 values
-// live in this same "rir" key but are a completely different scale, not
-// a real RIR.
+// average. Keyed off setnum's own DISPLAYED value ("W", exercises.js's
+// refreshSetDisplay) rather than re-deriving from rir independently --
+// that value is already the single source of truth for what showed on
+// screen while logging, so this can never disagree with it. Never
+// called for isometric exercises -- their setnum never becomes "W" in
+// the first place (refreshSetDisplay/cycleSetTypeState both skip them).
 function excludeWarmupSets(array){
     const warmupIndices = new Set(
-        array.filter(([k,v]) => /^rir\d+$/.test(k) && isWarmupSet(v)).map(([k]) => k.match(/\d+$/)[0])
+        array.filter(([k,v]) => /^setnum\d+$/.test(k) && v === "W").map(([k]) => k.match(/\d+$/)[0])
     );
     if (!warmupIndices.size) return array;
     return array.filter(([k]) => {
         const idx = k.match(/\d+$/)?.[0];
         return idx === undefined || !warmupIndices.has(idx);
+    });
+}
+// A rest-pause set isn't a separate set -- it's the SAME set continued
+// after a near-zero pause, so its reps get folded into the set it
+// continues, and its own fields are then dropped entirely -- it should
+// count toward totalSets once, not twice, and its equipment weight
+// (added once per remaining set in computeWeightVolume) shouldn't be
+// added again for what's really the same set. Weight is left as the
+// target set's own -- a rest-pause continuation uses the same load by
+// definition, so its own weight field is informational display only,
+// never read into volume.
+//
+// Grouped by setnum's own DISPLAYED value, not by re-deriving
+// restpause/warmup from rest/rir independently -- exercises.js's
+// refreshSetDisplay already gives a rest-pause set the EXACT SAME
+// setnum value as the real set it continues (that's what makes it read
+// as "the same set" on screen), so grouping by that value here can never
+// drift out of sync with what was actually shown while logging. Only
+// ever groups entries that aren't "W" (a warmup never shares its number
+// with anything -- excludeWarmupSets handles it on its own).
+function mergeRestPauseSets(array){
+    const groups = new Map(); // displayed label -> [idx, idx, ...] sharing it
+    array.filter(([k,v]) => /^setnum\d+$/.test(k) && v !== "W").forEach(([k,v]) => {
+        const idx = k.match(/\d+$/)[0];
+        (groups.get(v) || groups.set(v, []).get(v)).push(idx);
+    });
+    const merged = array.map(entry => entry.slice());
+    const droppedIndices = new Set();
+    groups.forEach(indices => {
+        if (indices.length <= 1) return;
+        const [targetIdx, ...restIdx] = indices.slice().sort((a,b) => a-b);
+        const targetRepsEntry = merged.find(([k]) => k === `reps${targetIdx}`);
+        restIdx.forEach(idx => {
+            const repsEntry = merged.find(([k]) => k === `reps${idx}`);
+            if (repsEntry && targetRepsEntry){
+                targetRepsEntry[1] = String((parseFloat(targetRepsEntry[1])||0) + (parseFloat(repsEntry[1])||0));
+            }
+            droppedIndices.add(idx);
+        });
+    });
+    if (!droppedIndices.size) return array;
+    return merged.filter(([k]) => {
+        const idx = k.match(/\d+$/)?.[0];
+        return idx === undefined || !droppedIndices.has(idx);
     });
 }
 
@@ -1536,13 +1583,15 @@ function getExistingDBVocab(){
     };
 }
 
-function buildExercisePrompt(exerciseNames, hint){
+// The single definition of what an exercise entry needs -- shared by
+// buildExercisePrompt (brand new exercises) and buildAlignmentPrompt
+// (refreshing existing ones against this SAME schema), so adding or
+// changing a field here automatically keeps both prompts in sync
+// instead of needing to be edited in two places. Bump
+// EXERCISE_SCHEMA_VERSION alongside any change here.
+function buildExerciseSchemaFields(){
     const { bodyparts, categories, movers } = getExistingDBVocab();
-    const n = exerciseNames.length;
-    return `You are generating ${n} new strength-training exercise ${n===1?"entry":"entries"} for a fitness-tracking app's exercise database, one for each name listed at the bottom, in the same order.
-
-Return ONLY a single valid JSON array of ${n} object${n===1?"":"s"} -- no markdown code fences, no commentary before or after. Each object needs exactly these fields:
-{
+    return `{
   "name": string, Title Case display name,
   "bodypart": string -- MUST be exactly one value from this list; pick the closest one, never invent a new value: ${JSON.stringify(bodyparts)},
   "categories": array of 1-3 strings -- MUST be values copied exactly from this list; pick the closest ones, never invent a new value (any value not in this list is discarded): ${JSON.stringify(categories)},
@@ -1553,11 +1602,38 @@ Return ONLY a single valid JSON array of ${n} object${n===1?"":"s"} -- no markdo
   "effectiveness": integer 1-10,
   "technicality": integer 1-10,
   "fatigue": integer 1-10,
-  "media": {"imagelinks": "", "videolinks": ""}
+  "media": {"imagelinks": "", "videolinks": ""},
+  "loadMultiplier": OPTIONAL -- omit this field entirely unless one of the two cases below clearly applies, don't include it as null or empty:
+    - "weight" if the exercise is held with two SEPARATE same-size implements that move together (e.g. a dumbbell in each hand pressed/rowed/curled at once) -- the weight a user logs is ONE implement's load, not the combined total, so this doubles it,
+    - "reps" if it's ONE implement worked as two sequential halves of the same logged set -- explicit single-arm/one-arm work (e.g. a Kroc row, a single-arm press) -- the reps a user logs are for ONE side only, so this doubles them,
+    - omit for everything else, including any barbell/machine/cable/bodyweight exercise, or a dumbbell exercise held with BOTH hands on one implement together (e.g. a goblet squat, a dumbbell pullover) -- most exercises fall here,
+}`;
 }
+function buildExercisePrompt(exerciseNames, hint){
+    const n = exerciseNames.length;
+    return `You are generating ${n} new strength-training exercise ${n===1?"entry":"entries"} for a fitness-tracking app's exercise database, one for each name listed at the bottom, in the same order.
+
+Return ONLY a single valid JSON array of ${n} object${n===1?"":"s"} -- no markdown code fences, no commentary before or after. Each object needs exactly these fields:
+${buildExerciseSchemaFields()}
 
 Exercises to generate, in order: ${JSON.stringify(exerciseNames)}
 ${hint ? `Additional context that applies to all of them: ${hint}` : ""}
+
+Return ONLY the JSON array, nothing else.`;
+}
+// existingExercises is an array of the exercises' own CURRENT (possibly
+// outdated) data -- the AI is asked to correct/complete each one against
+// the current schema below, not regenerate from scratch, so whatever's
+// already right (name, description, movers, ...) survives untouched and
+// only genuinely missing/wrong fields change.
+function buildAlignmentPrompt(existingExercises){
+    const n = existingExercises.length;
+    return `You are updating ${n} existing strength-training exercise ${n===1?"entry":"entries"} in a fitness-tracking app's exercise database to match its CURRENT schema. Each one already has data from an older version of this schema -- keep whatever is already correct as-is, and fill in or correct ONLY what's missing or wrong against the current schema below.
+
+Return ONLY a single valid JSON array of ${n} object${n===1?"":"s"} -- no markdown code fences, no commentary before or after, in the EXACT SAME ORDER as the existing entries listed at the bottom. Each object needs exactly these fields:
+${buildExerciseSchemaFields()}
+
+Existing entries to update, in order: ${JSON.stringify(existingExercises)}
 
 Return ONLY the JSON array, nothing else.`;
 }
@@ -1600,6 +1676,49 @@ function extractGeneratedText(config, responseData){
     return responseData?.choices?.[0]?.message?.content;
 }
 
+// Bump this whenever the schema below (REQUIRED_EXERCISE_KEYS, or any
+// field's own criteria -- loadMultiplier's rules, say) changes. Every
+// newly AI-generated exercise gets stamped with whatever version was
+// current when it was made (see generateExercisesWithAI); the alignment
+// sweep in settings.js (getStaleCustomExercises) flags anything stamped
+// with an older version -- or never stamped at all, i.e. generated
+// before this versioning existed -- as needing a refresh against the
+// CURRENT schema. This is what makes "add Exercise via AI" and "Align
+// custom exercises" both stay correct automatically the next time a
+// field gets added here, instead of needing their own hardcoded list of
+// what changed.
+const EXERCISE_SCHEMA_VERSION = 2; // 1 = original fields; 2 = added loadMultiplier
+const REQUIRED_EXERCISE_KEYS = ["name","bodypart","categories","movers","equipment","description","type","effectiveness","technicality","fatigue"];
+// Validates/normalizes ONE exercise object against the DB's own live
+// vocabulary -- shared by generateExercisesWithAI (brand new exercises)
+// and alignCustomExercisesWithAI (refreshing existing ones), so both
+// apply the exact same rules. Mutates exercise in place (canonicalized
+// bodypart/categories, a default media object, loadMultiplier dropped if
+// it's not a recognized value) and returns {ok:true} or {ok:false,reason}.
+function validateGeneratedExercise(exercise, validMovers, canonBodypart, canonCategory){
+    const missingKeys = REQUIRED_EXERCISE_KEYS.filter(k => exercise?.[k] === undefined);
+    if (missingKeys.length) return { ok: false, reason: `missing ${missingKeys.join(", ")}` };
+    const bodypart = canonBodypart(exercise.bodypart);
+    if (!bodypart) return { ok: false, reason: `bodypart "${exercise.bodypart}" isn't in the DB` };
+    exercise.bodypart = bodypart;
+    // Keep the categories that exist (in their canonical spelling), drop invented ones;
+    // only skip the exercise if none of them are in the DB.
+    const categories = [...new Set((Array.isArray(exercise.categories) ? exercise.categories : []).map(canonCategory).filter(Boolean))];
+    if (!categories.length) return { ok: false, reason: `none of its categories ${JSON.stringify(exercise.categories)} are in the DB` };
+    exercise.categories = categories;
+    if (!Array.isArray(exercise.movers) || !exercise.movers.length || exercise.movers.some(m => !validMovers.includes(m))){
+        return { ok: false, reason: `invalid muscles ${JSON.stringify(exercise.movers)}` };
+    }
+    if (!["bilateral","unilateral","isometric"].includes(exercise.type)) return { ok: false, reason: `invalid type "${exercise.type}"` };
+    if (!exercise.media) exercise.media = { imagelinks: "", videolinks: "" };
+    // Optional and not in REQUIRED_EXERCISE_KEYS -- most exercises
+    // correctly have no loadMultiplier at all. A hallucinated value
+    // (anything other than "weight"/"reps") is just dropped, not treated
+    // as a reason to reject the whole exercise, same leniency categories
+    // already gets above.
+    if (exercise.loadMultiplier !== "weight" && exercise.loadMultiplier !== "reps") delete exercise.loadMultiplier;
+    return { ok: true };
+}
 // Calls the configured AI (through the relay) once for every name in
 // exerciseNames, validates each result against the DB's own live
 // vocabulary, and returns {key, exercise} pairs -- never writes anything
@@ -1641,33 +1760,90 @@ async function generateExercisesWithAI(exerciseNames, hint){
     }
 
     const { movers: validMovers, canonBodypart, canonCategory } = getExistingDBVocab();
-    const requiredKeys = ["name","bodypart","categories","movers","equipment","description","type","effectiveness","technicality","fatigue"];
 
     // One bad entry is skipped (and reported), not allowed to throw away the
     // rest of an already-paid-for batch.
     const results = [], failures = [];
     exercises.forEach((exercise, i) => {
         const label = exerciseNames[i] || `#${i+1}`;
-        const fail = (reason) => failures.push(`"${label}" skipped: ${reason}`);
-        const missingKeys = requiredKeys.filter(k => exercise?.[k] === undefined);
-        if (missingKeys.length) return fail(`missing ${missingKeys.join(", ")}`);
-        const bodypart = canonBodypart(exercise.bodypart);
-        if (!bodypart) return fail(`bodypart "${exercise.bodypart}" isn't in the DB`);
-        exercise.bodypart = bodypart;
-        // Keep the categories that exist (in their canonical spelling), drop invented ones;
-        // only skip the exercise if none of them are in the DB.
-        const categories = [...new Set((Array.isArray(exercise.categories) ? exercise.categories : []).map(canonCategory).filter(Boolean))];
-        if (!categories.length) return fail(`none of its categories ${JSON.stringify(exercise.categories)} are in the DB`);
-        exercise.categories = categories;
-        if (!Array.isArray(exercise.movers) || !exercise.movers.length || exercise.movers.some(m => !validMovers.includes(m))){
-            return fail(`invalid muscles ${JSON.stringify(exercise.movers)}`);
-        }
-        if (!["bilateral","unilateral","isometric"].includes(exercise.type)) return fail(`invalid type "${exercise.type}"`);
-        if (!exercise.media) exercise.media = { imagelinks: "", videolinks: "" };
+        const result = validateGeneratedExercise(exercise, validMovers, canonBodypart, canonCategory);
+        if (!result.ok) return failures.push(`"${label}" skipped: ${result.reason}`);
+        exercise._schemaVersion = EXERCISE_SCHEMA_VERSION;
         results.push({ key: nameToId(exercise.name), exercise });
     });
     if (!results.length) throw new Error(failures.join("\n"));
     return { results, failures };
+}
+// Any custom exercise with no _schemaVersion at all (generated before
+// this versioning existed) or an older one than current needs a refresh
+// -- returns [key, exercise] pairs, same shape Object.entries gives.
+function getStaleCustomExercises(){
+    const custom = window.customExercisesData || {};
+    return Object.entries(custom).filter(([, ex]) => (ex._schemaVersion||0) < EXERCISE_SCHEMA_VERSION);
+}
+// Sends every stale custom exercise's EXISTING data back to the AI in
+// ONE call, asking it to fill in/correct only what the current schema
+// needs -- not regenerate from scratch -- then validates/merges the
+// results the same way a brand new generation would. Never silently
+// drops a failure: a per-exercise reason is always reported, and
+// anything that didn't come back validly stays stale (so it shows up
+// again next sweep) rather than being marked done. Throws only for
+// request-level failures (no AI configured, relay unreachable, bad
+// JSON); individual exercise failures are returned, not thrown.
+async function alignCustomExercisesWithAI(){
+    const config = JSON.parse(localStorage.aiConfig || "{}");
+    if (getMissingAIConfigFields().length) throw new Error("AI isn't configured yet.");
+
+    const stale = getStaleCustomExercises();
+    if (!stale.length) return { aligned: 0, remaining: 0, failures: [] };
+
+    const prompt = buildAlignmentPrompt(stale.map(([,ex]) => ex));
+    const { headers, body } = buildProviderRequest(config, prompt);
+
+    let relayResponse;
+    try {
+        relayResponse = await fetch(AI_RELAY_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ endpoint: config.endpoint, headers, body }),
+        });
+    } catch (e) {
+        throw new Error(`Couldn't reach the relay at ${AI_RELAY_URL} -- check that it's still deployed.`);
+    }
+
+    const responseData = await relayResponse.json().catch(() => null);
+    if (!relayResponse.ok){
+        const detail = responseData?.error || responseData?.detail || relayResponse.statusText;
+        throw new Error(`${config.label} request failed: ${detail}`);
+    }
+
+    const text = extractGeneratedText(config, responseData);
+    if (!text) throw new Error(`${config.label} returned no usable response.`);
+
+    let updated;
+    try { updated = JSON.parse(stripCodeFences(text)); }
+    catch (e) { throw new Error(`${config.label}'s response wasn't valid JSON: ${text.slice(0, 200)}`); }
+    if (!Array.isArray(updated)) throw new Error(`${config.label} didn't return a JSON array: ${text.slice(0, 200)}`);
+    if (updated.length !== stale.length){
+        throw new Error(`Expected ${stale.length} updated exercises back, got ${updated.length}.`);
+    }
+
+    const { movers: validMovers, canonBodypart, canonCategory } = getExistingDBVocab();
+    const merged = { ...(window.customExercisesData||{}) };
+    const failures = [];
+    let aligned = 0;
+    updated.forEach((exercise, idx) => {
+        const [origKey, origExercise] = stale[idx];
+        const label = origExercise.name || origKey;
+        const result = validateGeneratedExercise(exercise, validMovers, canonBodypart, canonCategory);
+        if (!result.ok){ failures.push(`"${label}" not aligned: ${result.reason}`); return; }
+        exercise._schemaVersion = EXERCISE_SCHEMA_VERSION;
+        merged[origKey] = exercise; // the key itself never changes, only what's stored under it
+        aligned++;
+    });
+    await window.LoggerDB.saveCustomExercises(merged);
+    window.customExercisesData = merged;
+    return { aligned, remaining: stale.length - aligned, failures };
 }
 
 // Maps each page's own <body id> (already used throughout for CSS scoping)

@@ -67,6 +67,11 @@
              main page. -->
         <button type="button" id="datamanagementbtn">Reset &amp; Backup</button>
         <button type="button" id="generateexercise">✨ Add Exercise via AI</button>
+        <!-- Hidden by default -- settings.js shows this only when
+             getStaleCustomExercises() finds custom exercises generated
+             under an older schema version, and hides it again once a
+             sweep brings everything current. -->
+        <button type="button" id="alignexercisesbtn" hidden>🔄 Align Custom Exercises</button>
     </div>
     <dialog id="datamanagementprompt">
         <span class="modal-close">❌</span>
