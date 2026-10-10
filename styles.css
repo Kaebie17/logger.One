@@ -1667,9 +1667,13 @@ svg > path:nth-child(23) {
        "this SET is special" without touching the row's already
        fully-budgeted width. pastworkout.js's history view uses the exact
        same two classes/colors on its own read-only set-number display. */
+    /* NOT var(--template-color-soft) -- that's this page's own background/
+       border/gradient color already, so a box filled with it just blended
+       into the rest of the UI instead of standing out as a special-set
+       indicator. */
     #createexercisespage > #selectionlistdisplay > div > span > input.dropset-cell,
     #pastworkout output.dropset-cell{
-        background-color: var(--template-color-soft) !important;
+        background-color: #3b7dd1 !important;
         color: white;
     }
     #createexercisespage > #selectionlistdisplay > div > span > input.restpause-cell,
